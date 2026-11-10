@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>หน้าแรก + โจทย์อาจารย์ — เว็บติวสอบ Project Database</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-tts="1">
+<div id="progressBar"></div>
+<div class="backdrop"></div>
+
+<header class="topbar">
+  <button class="hamburger" aria-label="เปิดเมนู">☰</button>
+  <div class="topbar-title">🎓 ติวสอบ Project Database</div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="เมนูหลัก">
+    <div class="side-brand">🎓 Project DB Prep<small>สอบ Project Face-to-face • 2 Business Domain</small></div>
+    <div class="side-note">💡 <b>กฎเหล็ก:</b> ลำดับรัน 00→05 • DROP ให้อาจารย์ดู • ทุกคนตอบ "ทำไม" ได้เหมือนกัน</div>
+    <a class="nav-link" href="index.html"><span class="nav-emoji">🏠</span> หน้าแรก + โจทย์อาจารย์</a>
+    <div class="side-group">PART I — อ.อู๊ด (เวียน + ประกาศ)</div>
+    <a class="nav-link" href="p1-usecase.html"><span class="nav-emoji">📋</span> Use Case + Traceability</a>
+    <a class="nav-link" href="p1-er-ddl-dml.html"><span class="nav-emoji">🗄️</span> E/R + DDL/DML <span class="nav-pts">11 ตาราง</span></a>
+    <a class="nav-link" href="p1-plsql.html"><span class="nav-emoji">⚙️</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p1-join.html"><span class="nav-emoji">🔗</span> SQL JOIN 6 ข้อ</a>
+    <div class="side-group">PART II — อ.ผึ้ง (Public Transit)</div>
+    <a class="nav-link" href="p2-usecase.html"><span class="nav-emoji">🚌</span> Use Case + REG1–17</a>
+    <a class="nav-link" href="p2-er-ddl-dml.html"><span class="nav-emoji">🚏</span> E/R + DDL/DML <span class="nav-pts">10 ตาราง</span></a>
+    <a class="nav-link" href="p2-plsql.html"><span class="nav-emoji">🚦</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p2-join.html"><span class="nav-emoji">🧭</span> SQL JOIN 6 ข้อ</a>
+    <div class="side-group">สาธิตหน้าห้อง</div>
+    <a class="nav-link" href="verify-demo.html"><span class="nav-emoji">🎤</span> ลำดับ demo + Q&A</a>
+  </nav>
+
+  <main class="main">
+    <div class="content">
+
+      <section class="hero">
+        <p class="kicker">DATABASE SYSTEMS • PROJECT FACE-TO-FACE</p>
+        <h1>ติวสอบ Project Database<br>ครบทั้ง 2 Business Domain — อ่านจบ demo ได้เอง</h1>
+        <p>สอนทีละขั้นจากโจทย์อาจารย์จริง: DROP ทุกตารางแล้วสร้างใหม่ให้ดู • DDL/DML ตาม E/R •
+        PL/SQL Transaction Processing • SQL JOIN ตารางมาก ๆ • พร้อมสคริปต์พูด บทบาท 4 คน และ Q&A ที่อาจารย์ชอบถาม</p>
+        <div class="hero-stats">
+          <div class="stat"><b>2</b><span>Business Domain</span></div>
+          <div class="stat"><b>22</b><span>ตารางรวม (11+11)</span></div>
+          <div class="stat"><b>00→05</b><span>ลำดับรันสคริปต์</span></div>
+          <div class="stat"><b>4</b><span>บทบาทสมาชิก</span></div>
+        </div>
+      </section>
+
+      <div class="big-warn" id="warn-notifications">
+        <p class="box-title">⚠️ คำเตือนสำคัญก่อน demo — Database User ตัวนี้มี "ตารางงานอื่น" อยู่รวมด้วย</p>
+        <ul>
+          <li>Part II ใช้ account เดียวบน server (iSQL*Plus Oracle 10g) ซึ่งมีตารางงานอื่นอยู่แล้ว: <code>ADMIN, DEPARTMENT, DOCUMENT, EMPLOYEE, LOG ฯลฯ</code> — <strong>ห้ามลบ!</strong></li>
+          <li>ไฟล์ 1 (oracle_1_ddl.sql) ออกแบบให้ <strong>ลบเฉพาะตาราง/Sequence/View ที่ชื่อตรงกับโปรเจกต์นี้</strong> ด้วย <code>WHERE TABLE_NAME IN (...)</code> — จึงรันซ้ำได้ปลอดภัย และเป็นคำตอบพร้อมถ้าอาจารย์ถาม "จะ DROP แล้วตารางอื่นล่ะ"</li>
+          <li>ชุดสคริปต์ <strong>deploy บน server เรียบร้อยแล้วทั้งหมด</strong> — วันสอบแค่รับซ้ำตามลำดับไฟล์ 1→5 ให้อาจารย์เห็น + จับภาพผล script ตรวจสอบ (รายละเอียดหน้า <a href="verify-demo.html">demo</a>)</li>
+        </ul>
+      </div>
+
+      <h2 id="beginner">🌱 ไม่มีพื้นฐาน SQL เลย? เริ่มตรงนี้ (อ่าน 5 นาที แล้วไปต่อได้ทั้งเว็บ)</h2>
+      <p>เว็บนี้เขียนให้ "คนที่ไม่เคยเขียน SQL มาก่อน" อ่านแล้วเตรียมสาธิตหน้าอาจารย์ได้จริง — เริ่มจาก 4 ภาพความเข้าใจนี้:</p>
+      <div class="grid grid-2">
+        <div class="card">
+          <h4>🗄️ ฐานข้อมูล = ตาราง Excel หลายใบที่ผูกกันได้</h4>
+          <p><strong>ตาราง (Table)</strong> เช่น <code>DEPARTMENTS</code> มี <strong>คอลัมน์ (Column)</strong> = หัวข้อข้อมูล (รหัสแผนก, ชื่อแผนก) และ <strong>แถว (Row)</strong> = ข้อมูล 1 ชิ้นจริง (แผนก IT 1 แผนก)</p>
+          <p>ตารางผูกกันด้วย "รหัส": <strong>PK (Primary Key)</strong> = เลขบัตรประชาชนของแถว (ห้ามซ้ำ ห้ามว่าง) · <strong>FK (Foreign Key)</strong> = คอลัมน์ที่ชี้ไปอ้างแถวของตารางอื่น (เช่น พนักงานเก็บ DEPT_ID แทนการพิมพ์ชื่อแผนกซ้ำ ๆ)</p>
+        </div>
+        <div class="card">
+          <h4>💬 SQL = ภาษาที่พิมพ์สั่งฐานข้อมูล</h4>
+          <p>พิมพ์บรรทัดเดียวแล้วฐานข้อมูลทำให้เอง — ในงานนี้ใช้แค่ 4 กลุ่ม:</p>
+          <ul style="margin:4px 0;">
+            <li><strong>DDL</strong> — สร้าง/ลบโครงตาราง: <code>CREATE</code>, <code>DROP</code></li>
+            <li><strong>DML</strong> — ใส่/แก้ข้อมูล: <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code></li>
+            <li><strong>คิวรี (Query)</strong> — อ่านข้อมูลมาแสดง: <code>SELECT</code></li>
+            <li><strong>TCL</strong> — บันทึกถาวร/ย้อนกลับ: <code>COMMIT</code>, <code>ROLLBACK</code></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>▶️ คำสั่งแรกในชีวิต (ลองพิมพ์ตามได้เลย)</h4>
+          <pre class="code">SELECT * FROM DEPARTMENTS;</pre>
+          <p>แปลว่า "ขอดูทุกคอลัมน์ (*) ของตาราง DEPARTMENTS ทั้งหมด" — ผลที่ได้บนจอ:</p>
+          <div class="tbl-wrap"><table class="tbl compact">
+            <tr><th>DEPT_ID</th><th>DEPT_NAME</th></tr>
+            <tr><td>10</td><td>ฝ่ายเทคโนโลยีสารสนเทศ</td></tr>
+            <tr><td>20</td><td>ฝ่ายธุรการและสื่อสารองค์กร</td></tr>
+            <tr><td>30</td><td>ฝ่ายบริหาร</td></tr>
+            <tr><td>40</td><td>สาขาปฏิบัติการ</td></tr>
+          </table></div>
+          <p style="margin-bottom:0;">ตัวเลขนี้คือข้อมูลจริงที่ไฟล์ 02_DML ใส่เข้าไป — ทั้งเว็บใช้ข้อมูลชุดนี้สอนตลอด เพื่อให้ "สิ่งที่เห็นในเว็บ = สิ่งที่จะเห็นบนจอ"</p>
+        </div>
+        <div class="card">
+          <h4>🧭 เวลาอ่านโค้ดยาว ๆ ให้ทำแบบนี้</h4>
+          <ul style="margin:4px 0;">
+            <li>อ่าน <strong>ป้ายชื่อไฟล์</strong> (มุมซ้ายบนก้อนโค้ด) ก่อน — รู้ทันทีว่าอยู่ขั้นไหนของ demo</li>
+            <li>อ่าน <strong>บรรทัดที่ขึ้นต้นด้วย <code>--</code></strong> (คอมเมนต์ สีเทา) ก่อนเสมอ = สรุปว่าก้อนนี้ทำอะไร</li>
+            <li>แล้วค่อยอ่าน <strong>bullet ใต้โค้ด</strong> — อธิบายจุดสำคัญ + บอกว่าอาจารย์มักถามอะไร</li>
+            <li>ท้ายสุดย้อนอ่านโค้ดรอบเดียว จะเห็นภาพทั้งก้อนเอง</li>
+          </ul>
+        </div>
+      </div>
+      <div class="box box-tip">
+        <p class="box-title">🗺️ เส้นทางอ่านสำหรับมือใหม่ (ตามลำดับ sidebar เท่านั้น ไม่ต้องกระโดด)</p>
+        <ol>
+          <li><strong>Part I ทั้ง 4 หน้า</strong> — หน้า E/R + DDL/DML คือหน้าที่หนักสุด อ่านช้าที่สุด (พื้นฐาน CREATE/INSERT/SELECT อยู่ตรงนั้นหมด) · หน้า PL/SQL ต้องอ่านต่อจากหน้า DDL ถึงจะเข้าใจตัวแปร</li>
+          <li><strong>Part II ทั้ง 4 หน้า</strong> — อ่านเร็วกว่าได้ เพราะรูปแบบโค้ดเหมือน Part I ทุกอย่าง สลับแค่ "ธุรกิจ"</li>
+          <li><strong>หน้า demo + Q&A</strong> — อ่านจบก่อนวันสาธิต แล้วกลับมาท่องตาราง Q&A อีกรอบ</li>
+          <li>เจอคำศัพท์ติดตรงไหน มองหา <strong>การ์ดเส้นประ "ศัพท์"</strong> แทรกตรงจุดนั้น — มีอธิบายแบบไม่ใช้ศัพท์เทคนิคอีกชั้น</li>
+        </ol>
+      </div>
+
+      <h2>📝 โจทย์จากอาจารย์ (ต้นฉบับเต็ม — ทุกคนต้องจำได้)</h2>
+      <div class="box box-exam">
+        <p class="box-title">📄 ข้อความประกาศสอบ Project วิชา Database Systems</p>
+        <pre class="code">[ สอบ Project วิชา ] แนวทางคือ Business Domain ที่ให้ทำทั้ง อ.ประพจน์และ อ.ผึ้ง .... โดยสร้าง
+[ Part I ]  อ.ประพจน์ (อ.อู๊ด)
+1- DDL , DML ตาม  E/R Diagram
+2- เขียน PL/SQL ตามโจทย์หลักของระบบงาน (Transaction Processing)
+3- เขียน SQL : JOIN แสดงข้อมูลการทำงานหลัก ( JOIN ตารางมากๆ)
+[ Part II ]  อ.วรางคณา (อ.ผึ้ง)
+1- DDL , DML ตาม  E/R Diagram
+2- เขียน PL/SQL ตามโจทย์หลักของระบบงาน (Transaction Processing)
+3- เขียน SQL : JOIN แสดงข้อมูลการทำงานหลัก ( JOIN ตารางมากๆ)
+---
+และจะให้แต่ละกลุ่มแสดงตาม DB Script และให้ DROP ทุกตารางแล้วสร้างใหม่ ให้ดูแบบ Face-to-face
+โดยสมาชิกในกลุ่มต้องเข้าใจทุกเรื่องเหมือนกันครับ
+-- **  DB Script ที่ใช้ตรวจสอบผลการทำงาน ** SQL แสดง Object ประเภท TABLE ที่ Database User เป็นเจ้าของ
+โดยให้แสดง Constraint ของ Table ดังกล่าวด้วย:
+SELECT USER_TABLES.TABLE_NAME, TABLESPACE_NAME, USER_TABLES.OWNER, CONSTRAINT_NAME,
+CONSTRAINT_TYPE, USER_CONSTRAINTS.TABLE_NAME
+FROM USER_TABLES LEFT OUTER JOIN USER_CONSTRAINTS ON (USER_TABLES.TABLE_NAME = USER_CONSTRAINTS.TABLE_NAME)
+ORDER BY USER_TABLES.TABLE_NAME, CONSTRAINT_TYPE, CONSTRAINT_NAME;</pre>
+      </div>
+
+      <h2>🎯 อาจารย์ต้องการอะไร — อ่านโจทย์แตกเป็น 4 ข้อ</h2>
+      <ol>
+        <li><strong>DDL + DML ตาม E/R Diagram</strong> — ชื่อตาราง/คอลัมน์ต้องตรงกับ E/R ที่กลุ่มส่งอาจารย์ มี Constraint ครบ (PK/FK/UNIQUE/CHECK/NOT NULL) + มีข้อมูลตัวอย่างให้ JOIN ได้จริง</li>
+        <li><strong>PL/SQL ตามโจทย์หลักของระบบ (Transaction Processing)</strong> — โชว์ว่าเข้าใจ COMMIT / ROLLBACK / EXCEPTION และทำงานครบทั้ง Flow ของระบบ ไม่ใช่แค่ SELECT</li>
+        <li><strong>SQL JOIN แสดงการทำงานหลัก (JOIN ตารางมาก ๆ)</strong> — อย่างน้อยมีข้อที่ JOIN 4–6 ตาราง และอธิบายได้ว่าทำไมต้อง JOIN แบบนั้น</li>
+        <li><strong>DROP ทุกตารางแล้วสร้างใหม่ให้ดู Face-to-face + สมาชิกเข้าใจเหมือนกัน</strong> — ต้องซ้อมให้ทุกคนพูดได้ทุกส่วน และจบด้วย DB Script ตรวจสอบ (USER_TABLES + USER_CONSTRAINTS) เสมอ</li>
+      </ol>
+
+      <h2>🗺️ ภาพรวม 2 Business Domain</h2>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="tag" style="background:#ede9fe;color:#6d28d9;">PART I • อ.ประพจน์ (อ.อู๊ด)</span>
+          <h4>📨 ระบบแจ้งข้อความเวียน + ประกาศภายในองค์กร</h4>
+          <p>ธุรการร่างเอกสาร → ผู้บริหารอนุมัติ/ตีกลับ (XOR) → ลงนามอิเล็กทรอนิกส์ → กระจายตามความเร่งด่วน (AND) →
+          พนักงานยืนยันรับทราบ → เกิน 24 ชม. เตือนซ้ำ (SLA)</p>
+          <p>🗄️ 11 ตาราง · ⚙️ Trigger 1 + Procedure 4 · 🔗 JOIN 6 ข้อ (มากสุด 6 ตาราง)</p>
+          <p style="margin-bottom:0;"><a href="p1-usecase.html">เริ่มอ่าน Part I →</a></p>
+        </div>
+        <div class="card">
+          <span class="tag" style="background:#dbeafe;color:#1d4ed8;">PART II • อ.วรางคณา (อ.ผึ้ง)</span>
+          <h4>🔔 Smart Bus Bell &amp; IoT Tracking System</h4>
+          <p>โจทย์หลัก: ผู้โดยสารกดกริ่งลงรถ → ส่งสัญญาณถึงรถ (ผ่าน junction ของ N:M) → อัปเดตสถิติการแจ้งเตือน — <strong>ทั้งหมดใน 1 transaction</strong> (SP_PRESS_BELL) ·
+          พร้อมกริ่งดิจิตอล · กล่อง IoT เก็บพิกัดรถ (weak entity)</p>
+          <p>🗄️ 11 ตาราง · ⚙️ Procedure 4 + demo block · 📊 รายงาน 3 แบบ (JOIN 6 ตาราง · RANK · WITH) · 🖥️ Oracle 10g — <strong>deploy บน server แล้ว วันสอบรับซ้ำไฟล์ 1→5</strong></p>
+          <p style="margin-bottom:0;"><a href="p2-usecase.html">เริ่มอ่าน Part II →</a></p>
+        </div>
+      </div>
+      <p>โครงงานทั้ง 2 Part เหมือนกันทุกข้อ (DDL/DML → PL/SQL → JOIN → VERIFY) ต่างแค่ Business Domain —
+      เลยต้องเข้าใจ <strong>รูปแบบเดียวกัน 2 รอบ</strong>: รู้ว่าของตัวเองคือ "ระบบอะไร มีใครใช้ มีตารางอะไร Transaction ใหญ่ตัวไหน"</p>
+
+      <h2>🗂️ ลำดับรันสคริปต์ 00→05 (หัวใจของการ demo)</h2>
+      <p>ทั้ง 2 Part ใช้ลำดับเดียวกัน จำเป็นชื่อไฟล์ได้เลย:</p>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>ขั้น</th><th>Part II — ไฟล์จริงบน server</th><th>Part I — ไฟล์ชุดเดิม</th><th>ทำอะไร / พูดว่าอะไร</th></tr>
+          <tr><td>1</td><td><code>oracle_1_ddl.sql</code></td><td><code>00 + 01</code></td><td>DROP ของเดิม (Part II ลบเฉพาะชื่อของโปรเจกต์ — User มีของงานอื่น) → CREATE ตาราง + Sequence + Constraint ครบ — "ตามที่อาจารย์สั่ง DROP แล้วสร้างใหม่ให้ดู"</td></tr>
+          <tr><td>2</td><td><code>oracle_2_dml.sql</code></td><td><code>02</code></td><td>INSERT ข้อมูลทดสอบ (Part II: 27 แถว) + COMMIT + ตรวจนับทุกตาราง — "ข้อมูลจริงให้ JOIN/รายงานได้ทันที"</td></tr>
+          <tr><td>3</td><td><code>oracle_3_plsql.sql</code></td><td><code>03</code></td><td>Procedure/Transaction ตามโจทย์หลัก + รัน demo block + โชว์กรณี error — "Transaction Processing ข้อ 2"</td></tr>
+          <tr><td>4</td><td><code>oracle_4_report.sql</code></td><td><code>04</code></td><td>SQL JOIN/รายงานแสดงการทำงานหลัก (Part II: JOIN 6 ตาราง · RANK · WITH) — "ข้อ 3 JOIN ตารางมาก ๆ"</td></tr>
+          <tr><td>5</td><td><code>oracle_5_verify.sql</code></td><td><code>05</code></td><td>⭐ Script ตรวจสอบที่อาจารย์กำหนด — ตารางที่ User เป็นเจ้าของ + Constraint ทุกตัว แล้วอ่านผลให้ฟัง</td></tr>
+        </table>
+      </div>
+
+      <h2>👥 แบ่งบทบาทสมาชิก 4 คน (ใช้ทั้ง 2 Part)</h2>
+      <p>อาจารย์สั่งว่า <strong>"สมาชิกต้องเข้าใจทุกเรื่องเหมือนกัน"</strong> — แบ่งบทบาทเพื่อให้ทุกคนมีส่วนที่ตัวเองเป็น "เจ้าของ" แล้วซ้อมส่งไม้ต่อกัน ทุกคนต้องอ่านครบทุกหน้าแต่ซ้อมพูดหนักในส่วนของตัวเอง:</p>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>คนที่</th><th>เจ้าของส่วน</th><th>ต้องซ้อมพูดใน demo</th><th>โดนถามบ่อย</th></tr>
+          <tr><td><strong>1</strong></td><td>DROP + DDL (โครงตาราง + Constraint)</td><td>รัน 00 + 01 ในทั้ง 2 Part อธิบาย P/R/U/C</td><td>"ทำไมมี FK / CHECK ตรงนี้"</td></tr>
+          <tr><td><strong>2</strong></td><td>DML + โครงเรื่อง E/R + Use Case</td><td>รัน 02 เล่า Actor/UC ให้ฟังว่าระบบทำอะไร</td><td>"UC ไหนเก็บในตารางไหน"</td></tr>
+          <tr><td><strong>3</strong></td><td>PL/SQL (Trigger + Procedure)</td><td>รัน 03 + ทดสอบ Transaction จริง 1 รอบ + โชว์กรณี error</td><td>"Transaction อยู่ตรงไหน ทำไม ROLLBACK"</td></tr>
+          <tr><td><strong>4</strong></td><td>JOIN + VERIFY + ปิดท้าย Q&A</td><td>รัน 04 + 05 อ่านผล VERIFY ให้อาจารย์ฟัง</td><td>"อ่านผล CONSTRAINT_TYPE ให้ฟัง"</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption" style="text-align:left;">📝 สคริปต์ demo ละเอียดทั้งหมด (พูดว่าอะไร คนไหนรันไฟล์ไหน) อยู่หน้า <a href="verify-demo.html">ลำดับ demo + Q&A</a></p>
+
+      <h2>📅 แผนเตรียม 2 วัน</h2>
+      <div class="grid grid-2">
+        <div class="card">
+          <h4>วันที่ 1 — ให้ "รันผ่านจริง"</h4>
+          <ul>
+            <li>รัน 00→05 ครบทั้ง 2 Part บน Oracle (Live SQL / SQL Developer / XE) แก้จุดพังให้จบ</li>
+            <li>รัน Procedure ทดสอบ Flow จริงทุกตัว (คำสั่ง EXEC อยู่หน้า PL/SQL ของแต่ละ Part)</li>
+            <li>ทดสอบกรณี error ทุกกรณีที่หน้า <a href="verify-demo.html">demo</a> — ต้องเห็น raise error + ROLLBACK</li>
+            <li>เทียบชื่อตาราง/คอลัมน์กับ E/R Diagram ที่กลุ่มส่งอาจารย์ ถ้าต่างให้แก้ชื่อให้ตรง</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>วันที่ 2 — ให้ "ทุกคนเข้าใจเท่ากัน"</h4>
+          <ul>
+            <li>ซ้อม demo จริง 3 รอบ แบ่งคนพูดตามบทบาท 4 คน ไม่ใช่คนเดียวทำ</li>
+            <li>ทุกคนตอบ Q&A ทุกข้อในหน้า <a href="verify-demo.html">demo</a> ได้ (อาจารย์ชอบถามกลาง demo)</li>
+            <li>ท่องคำตอบ "ทำไม" ของทุก constraint — ไม่เดา ตอบจากเหตุผลธุรกิจ</li>
+            <li>เตรียมสคริปต์พิมพ์/แชร์ให้ทุกคน + เช็คการแยก Database User 2 ตัวอีกครั้ง</li>
+          </ul>
+        </div>
+      </div>
+
+      <h2>✅ เช็คลิสต์เตรียมสอบ Project (ติ๊กเก็บไว้ได้ — ไม่หายแม้ปิดเบราว์เซอร์)</h2>
+      <ul class="checklist" id="exam-checklist">
+        <li><label><input type="checkbox" data-key="p1-uc"><span>Part I: เล่า Actor 4 ตัว + UC 9 ตัวได้ และทุก UC «include» UC09 เข้าสู่ระบบ</span></label></li>
+        <li><label><input type="checkbox" data-key="p1-ddl"><span>Part I: อธิบาย 11 ตารางได้ + รู้ว่า Constraint แต่ละตัวกันอะไร (P/R/U/C)</span></label></li>
+        <li><label><input type="checkbox" data-key="p1-plsql"><span>Part I: เดิน Flow SP_DECIDE_APPROVAL ได้ครบ (บันทึกผล→ลงนาม→กระจาย→แจ้งเตือน) + อธิบาย ROLLBACK</span></label></li>
+        <li><label><input type="checkbox" data-key="p1-join"><span>Part I: เล่า JOIN 6 ข้อได้ รู้ว่าข้อไหนใช้ LEFT JOIN และทำไม</span></label></li>
+        <li><label><input type="checkbox" data-key="p2-uc"><span>Part II: เล่า UC01–UC10 + Traceability REG1–17 ได้ + จับคู่ UC กับตาราง/SP ใหม่ได้</span></label></li>
+        <li><label><input type="checkbox" data-key="p2-ddl"><span>Part II: อธิบาย 11 ตารางได้ (junction/weak entity/derived) + กฎแปลง E/R→ตาราง 3 ข้อ</span></label></li>
+        <li><label><input type="checkbox" data-key="p2-plsql"><span>Part II: เดิน SP_PRESS_BELL 3 DML ทีละขั้น + MERGE + RETURNING INTO + อธิบายได้ว่า Transaction อยู่ตรงไหน</span></label></li>
+        <li><label><input type="checkbox" data-key="p2-join"><span>Part II: เล่ารายงาน 3 แบบได้ (JOIN 6 ตาราง / RANK tie / WITH แทน CREATE VIEW) + ผลที่จะเห็นจริง</span></label></li>
+        <li><label><input type="checkbox" data-key="p2-10g"><span>Part II: ท่อง 3 ข้อจำกัด Oracle 10g (PLS-00357 / ORA-01031 / ORA-00904) พร้อมวิธีแก้ของเรา</span></label></li>
+        <li><label><input type="checkbox" data-key="error-demo"><span>ซ้อมกรณี error ครบ: Part I (ส่งซ้ำ/ไม่ใช่ Approver/ยืนยันซ้ำ) + Part II (-20001..-20004 + ข้อจำกัด 10g)</span></label></li>
+        <li><label><input type="checkbox" data-key="notif-split"><span>จำคำตอบ "จะ DROP แล้วตารางงานอื่นล่ะ" → ลบเฉพาะชื่อโปรเจกต์ (WHERE TABLE_NAME IN) + ห้ามแตะ ADMIN/DEPARTMENT/DOCUMENT ฯลฯ</span></label></li>
+        <li><label><input type="checkbox" data-key="rehearse"><span>ซ้อม demo 3 รอบ: ทุกคนพูด + จับเวลา + จบด้วย script ตรวจสอบเสมอ (+ จับภาพผลรันสำรอง)</span></label></li>
+      </ul>
+
+      <div class="box box-tip">
+        <p class="box-title">💡 เคล็ดลับกลาง demo (จากสิ่งที่อาจารย์เน้น)</p>
+        <ul>
+          <li>ทุกครั้งที่อาจารย์ถาม <strong>"ทำไม"</strong> ตอบ 2 ชั้น: <em>เหตุผลทางธุรกิจ + เทคนิคใน SQL</em> เช่น "BR-Ann-102 ห้ามเผยแพร่ก่อนลงนาม → จึงมีตาราง SIGNATURES + ล็อกสถานะ SIGNED ก่อน DISTRIBUTED"</li>
+          <li>โชว์ error ตามโจทย์เอง อย่ารอให้อาจารย์จับผิด — เป็นการพิสูจน์ว่า EXCEPTION + ROLLBACK ทำงานจริง</li>
+          <li>จบทุก Part ด้วย <code>05_VERIFY.sql</code> แล้วชี้ให้อาจารย์เห็นจำนวนตาราง + Constraint ครบ</li>
+        </ul>
+      </div>
+
+      <div class="prevnext">
+        <a class="next" href="p1-usecase.html">เริ่มบทแรก: Part I — Use Case + Traceability<small>📋 โครงระบบที่ต้องเล่าให้อาจารย์ฟังก่อนแตะ SQL</small></a>
+      </div>
+
+    </div>
+  </main>
+</div>
+<script src="script.js"></script>
+<script src="tts.js"></script>
+</body>
+</html>

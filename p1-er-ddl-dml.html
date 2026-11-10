@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Part I · E/R + DDL/DML (11 ตาราง) — เว็บติวสอบ Project Database</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-tts="1">
+<div id="progressBar"></div>
+<div class="backdrop"></div>
+
+<header class="topbar">
+  <button class="hamburger" aria-label="เปิดเมนู">☰</button>
+  <div class="topbar-title">🎓 ติวสอบ Project Database</div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="เมนูหลัก">
+    <div class="side-brand">🎓 Project DB Prep<small>สอบ Project Face-to-face • 2 Business Domain</small></div>
+    <div class="side-note">💡 <b>กฎเหล็ก:</b> ลำดับรัน 00→05 • DROP ให้อาจารย์ดู • ทุกคนตอบ "ทำไม" ได้เหมือนกัน</div>
+    <a class="nav-link" href="index.html"><span class="nav-emoji">🏠</span> หน้าแรก + โจทย์อาจารย์</a>
+    <div class="side-group">PART I — อ.อู๊ด (เวียน + ประกาศ)</div>
+    <a class="nav-link" href="p1-usecase.html"><span class="nav-emoji">📋</span> Use Case + Traceability</a>
+    <a class="nav-link" href="p1-er-ddl-dml.html"><span class="nav-emoji">🗄️</span> E/R + DDL/DML <span class="nav-pts">11 ตาราง</span></a>
+    <a class="nav-link" href="p1-plsql.html"><span class="nav-emoji">⚙️</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p1-join.html"><span class="nav-emoji">🔗</span> SQL JOIN 6 ข้อ</a>
+    <div class="side-group">PART II — อ.ผึ้ง (Public Transit)</div>
+    <a class="nav-link" href="p2-usecase.html"><span class="nav-emoji">🚌</span> Use Case + REG1–17</a>
+    <a class="nav-link" href="p2-er-ddl-dml.html"><span class="nav-emoji">🚏</span> E/R + DDL/DML <span class="nav-pts">10 ตาราง</span></a>
+    <a class="nav-link" href="p2-plsql.html"><span class="nav-emoji">🚦</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p2-join.html"><span class="nav-emoji">🧭</span> SQL JOIN 6 ข้อ</a>
+    <div class="side-group">สาธิตหน้าห้อง</div>
+    <a class="nav-link" href="verify-demo.html"><span class="nav-emoji">🎤</span> ลำดับ demo + Q&A</a>
+  </nav>
+
+  <main class="main">
+    <div class="content">
+
+      <section class="page-head">
+        <p class="crumb"><a href="index.html">หน้าแรก</a> • PART I — ระบบแจ้งข้อความเวียน + ประกาศภายในองค์กร (อ.อู๊ด)</p>
+        <h1>🗄️ E/R → สร้างตาราง 11 ตาราง + ใส่ข้อมูล — โค้ด DDL/DML เต็มพร้อมอธิบายทีละบล็อก</h1>
+        <div class="head-meta">
+          <span class="badge">11 ตาราง + 7 Sequence</span><span class="badge">Constraint ครบ P/R/U/C</span><span class="badge gold">ขั้น 00 → 01 → 02</span>
+        </div>
+      </section>
+
+      <div class="box box-exam">
+        <p class="box-title">① อาจารย์ต้องการอะไร (โจทย์ข้อนี้)</p>
+        <p>"<strong>1- DDL , DML ตาม E/R Diagram</strong>" + "ให้ <strong>DROP ทุกตารางแล้วสร้างใหม่ให้ดู</strong>" —
+        แปลว่า demo ต้องเริ่มจากล้างของเก่า (00) แล้ว CREATE ตารางตามโครง E/R ที่กลุ่มส่งอาจารย์ (01) พร้อม Constraint กันข้อมูลเสีย แล้ว INSERT ข้อมูลจริงให้ทดสอบได้ (02) —
+        และอาจารย์มักจิ้มถามตารางไหนก็ได้ว่า "เก็บอะไร ทำไมมี constraint นี้" ต้องตอบได้ทุกตาราง</p>
+      </div>
+
+      <h2>🗺️ ภาพ E/R (ความสัมพันธ์ 11 ตาราง)</h2>
+      <pre class="mermaid">
+erDiagram
+  DEPARTMENTS ||--o{ EMPLOYEES : "มีพนักงาน"
+  ROLES ||--o{ EMPLOYEES : "กำหนดบทบาท"
+  EMPLOYEES ||--o{ DOCUMENTS : "ร่าง (CREATED_BY)"
+  DOCUMENTS ||--o{ DOC_STATUS_LOG : "เปลี่ยนสถานะ"
+  DOCUMENTS ||--o{ APPROVALS : "ถูกพิจารณา"
+  DOCUMENTS ||--o| SIGNATURES : "ลงนาม 1:1"
+  DOCUMENTS ||--o{ DISTRIBUTIONS : "กระจายช่องทาง"
+  DOCUMENTS ||--o{ NOTIFICATIONS : "แจ้งเตือนรายบุคคล"
+  DOCUMENTS ||--o{ READ_LOGS : "ถูกยืนยันอ่าน"
+  EMPLOYEES ||--o{ APPROVALS : "ผู้พิจารณา"
+  EMPLOYEES ||--o{ SIGNATURES : "ผู้ลงนาม"
+  EMPLOYEES ||--o{ NOTIFICATIONS : "ผู้รับแจ้ง"
+  EMPLOYEES ||--o{ READ_LOGS : "ผู้ยืนยัน"
+  ROLES ||--o{ ACCESS_MATRIX : "สิทธิ์ตามบทบาท"
+      </pre>
+      <p class="mermaid-caption">แกนกลางคือ DOCUMENTS (ประกาศ/ข้อความเวียน) — ตารางอื่น ๆ ห้อยออกจาก DOCUMENTS หรือ EMPLOYEES ทั้งหมด</p>
+
+      <h3>สรุป 11 ตาราง — จำสั้น ๆ ว่าเก็บอะไร</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>ตาราง</th><th>เก็บอะไร</th><th>Constraint เด่น</th></tr>
+          <tr><td><code>DEPARTMENTS</code></td><td>แผนก/หน่วยงาน (4 แถวตัวอย่าง)</td><td>PK_DEPT, ชื่อแผนก NOT NULL</td></tr>
+          <tr><td><code>ROLES</code></td><td>บทบาท 4 แบบ: IT_ADMIN / CREATOR / APPROVER / EMPLOYEE</td><td>ชื่อ role UNIQUE</td></tr>
+          <tr><td><code>EMPLOYEES</code></td><td>พนักงาน (Actor ทุกตัวใน UC)</td><td>EMAIL UNIQUE (ใช้ล็อกอิน), FK แผนก + บทบาท</td></tr>
+          <tr><td><code>DOCUMENTS</code></td><td>แกนกลาง: ประกาศ + ข้อความเวียน</td><td>CHECK 8 สถานะ + 2 ประเภท + 2 ความเร่งด่วน, SLA_HOURS &gt; 0</td></tr>
+          <tr><td><code>DOC_STATUS_LOG</code></td><td>ประวัติเปลี่ยนสถานะ (Audit Trail)</td><td>เกิดจาก Trigger อัตโนมัติ ห้ามแก้มือ</td></tr>
+          <tr><td><code>APPROVALS</code></td><td>ผลพิจารณา: APPROVED / REJECTED + เหตุผล</td><td>CHECK DECISION ค่าเดียวจาก 2 ค่า</td></tr>
+          <tr><td><code>SIGNATURES</code></td><td>ลายมือชื่ออิเล็กทรอนิกส์ + hash</td><td>DOC_ID UNIQUE = <strong>ลงนามได้ 1 ครั้งต่อเอกสาร</strong></td></tr>
+          <tr><td><code>DISTRIBUTIONS</code></td><td>กระจายช่องทาง EMAIL / APP / SMS</td><td>CHECK 3 ช่องทาง + สถานะ SENT/FAILED</td></tr>
+          <tr><td><code>NOTIFICATIONS</code></td><td>แจ้งเตือนรายบุคคล: NEW / REMINDER</td><td>CHECK ประเภทแจ้ง 2 ค่า</td></tr>
+          <tr><td><code>READ_LOGS</code></td><td>บันทึกเปิดอ่าน + ยืนยันรับทราบ</td><td>UNIQUE (DOC_ID, EMP_ID) = <strong>ยืนยันซ้ำไม่ได้</strong></td></tr>
+          <tr><td><code>ACCESS_MATRIX</code></td><td>สิทธิ์เข้าถึงตาม role × ประเภทเอกสาร (UC08)</td><td>CHECK CAN_VIEW Y/N</td></tr>
+        </table>
+      </div>
+
+      <h2 id="read-create">🌱 อ่าน CREATE TABLE ให้เป็นก่อน (แปลทีละบรรทัด — 5 นาทีจบ)</h2>
+      <p>โค้ด CREATE TABLE ทุกก้อนในเว็บนี้ใช้โครงเดียวกันหมด — ถ้าอ่านตารางที่เล็กที่สุด (DEPARTMENTS) ออก แปลว่าอ่านอีก 10 ตารางออกทั้งหมด:</p>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th style="width:55%;">บรรทัดโค้ด</th><th>แปลเป็นไทยล้วน</th></tr>
+          <tr><td><code>CREATE TABLE DEPARTMENTS (</code></td><td>"ขอสร้างตารางใหม่ชื่อ DEPARTMENTS นิยามอยู่ในวงเล็บนี้"</td></tr>
+          <tr><td><code>DEPT_ID NUMBER(4) CONSTRAINT PK_DEPT PRIMARY KEY,</code></td><td>"คอลัมน์แรกชื่อ DEPT_ID เก็บตัวเลขไม่เกิน 4 หลัก · ตั้งชื่อ constraint ว่า PK_DEPT · PRIMARY KEY = รหัสประจำตัวของแถว → <strong>ห้ามซ้ำ ห้ามว่าง</strong> (เหมือนเลขบัตรประชาชน)"</td></tr>
+          <tr><td><code>DEPT_NAME VARCHAR2(60) CONSTRAINT NN_DEPT_NAME NOT NULL</code></td><td>"คอลัมน์ที่สองชื่อ DEPT_NAME เก็บข้อความยาวไม่เกิน 60 ตัวอักษร · NOT NULL = <strong>ห้ามเว้นว่าง</strong> (แผนกต้องมีชื่อเสมอ)"</td></tr>
+          <tr><td><code>);</code></td><td>"จบนิยามตาราง — ฐานข้อมูลจะสร้างให้ทันที จากนี้พิมพ์ INSERT เพิ่มข้อมูลได้เลย"</td></tr>
+        </table>
+      </div>
+      <div class="term">
+        <p><span class="term-word">CONSTRAINT</span> <span class="term-read">อ่านว่า "คอนสเตรนต์"</span> = "กฎที่ฝังไว้ในตาราง" — ให้ฐานข้อมูลเป็นคนเช็คข้อมูลเสมอ ไม่ต้องเขียนโค้ดตรวจเอง (คนพิมพ์ผิดฐานข้อมูลปฏิเสธทันที) ·
+        ชื่อ constraint ที่เราตั้ง (PK_/NN_/UQ_/CK_/FK_) จะโผล่ในผล 05_VERIFY ตอน demo จึงตั้งให้อ่านรู้เรื่อง</p>
+      </div>
+      <h3>ชนิดข้อมูล (Type) ที่พบในงานนี้ — 5 แบบจบ</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>ชนิด</th><th>เก็บอะไร</th><th>ตัวอย่างค่าจริงจากข้อมูลของเรา</th></tr>
+          <tr><td><code>NUMBER(4)</code> / <code>NUMBER(6)</code></td><td>ตัวเลขจำนวนเต็ม ไม่เกิน n หลัก</td><td>รหัสแผนก <code>10</code> · รหัสพนักงาน <code>1001</code></td></tr>
+          <tr><td><code>NUMBER(6,2)</code></td><td>ตัวเลขมีทศนิยม (ทั้งหมด 6 หลัก ทศนิยม 2 หลัก)</td><td>ค่าโดยสาร <code>13.00</code> (Part II)</td></tr>
+          <tr><td><code>VARCHAR2(60)</code></td><td>ข้อความยาวไม่เกิน n ตัวอักษร (ใช้บ่อยสุด)</td><td><code>'ฝ่ายบริหาร'</code>, <code>'บข 1234'</code>, <code>'pakorn@corp.co.th'</code></td></tr>
+          <tr><td><code>CHAR(1)</code></td><td>ตัวอักษร 1 ตัวตายตัว (เก็บค่า Y/N)</td><td>สิทธิ์เข้าถึง <code>'Y'</code></td></tr>
+          <tr><td><code>DATE</code></td><td>วันที่ + เวลา (DEFAULT SYSDATE = ใช้วันเวลาปัจจุบันถ้าไม่กรอก)</td><td>วันที่ส่งเอกสาร, เวลากดกริ่ง</td></tr>
+          <tr><td><code>CLOB</code></td><td>ข้อความยาวมาก ๆ (เนื้อความประกาศ)</td><td>'บริษัทงดให้บริการ 3 วันในช่วงสงกรานต์...'</td></tr>
+        </table>
+      </div>
+
+      <h2>🧹 ขั้นที่ 0 — DROP ทุกอย่างก่อน (ไฟล์ 00)</h2>
+      <p>อาจารย์สั่งชัดว่า "<strong>DROP ทุกตารางแล้วสร้างใหม่ให้ดู</strong>" — ไฟล์ 00 คือขั้นนี้ จำหลักการ 3 ข้อ:</p>
+      <ol>
+        <li><strong>ลบตารางลูกก่อนตารางแม่</strong> — เพราะลูกมี FK อ้างถึงแม่ ถ้าลบแม่ก่อนจะโดน <code>ORA-02292: integrity constraint violated</code></li>
+        <li><code><strong>CASCADE CONSTRAINTS PURGE</strong></code> — CASCADE CONSTRAINTS = ลบ FK ที่ชี้มาที่ตารางนี้ทิ้งไปด้วย (กันติดขัดจากของค้าง) · PURGE = ไม่เก็บไว้ recycle bin จะ CREATE ชื่อซ้ำได้เลย</li>
+        <li>อย่าลืม <strong>DROP SEQUENCE / PROCEDURE / TRIGGER เก่า</strong>ด้วย มิฉะนั้นตอนรัน 01–03 จะชนชื่อ</li>
+      </ol>
+      <span class="file-tag">00_DROP_ALL.sql</span>
+      <pre class="code sql"><span class="cm">-- =====================================================================</span></span></span></span></span></span>
+<span class="cm">-- 00_DROP_ALL.sql — ใช้ "DROP ทุกตารางแล้วสร้างใหม่" ตอนสาธิตหน้าห้อง</span></span></span></span></span></span>
+<span class="cm">-- รันไฟล์นี้ก่อน 01_DDL.sql เสมอ (ล้างของเก่าให้สะอาด)</span></span></span></span></span></span>
+<span class="cm">-- =====================================================================</span></span></span></span></span></span>
+
+<span class="cm">-- ลบตาราง (ลูกก่อนแม่ เพราะมี FK ผูกกัน)</span></span></span></span></span></span>
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> READ_LOGS      <span class="kw">CASCADE</span></span></span></span></span></span> <span class="kw">CONSTRAINTS</span></span></span></span></span></span> <span class="kw">PURGE</span></span></span></span></span></span>;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> NOTIFICATIONS  <span class="kw">CASCADE</span></span></span></span></span></span> <span class="kw">CONSTRAINTS</span></span></span></span></span></span> <span class="kw">PURGE</span></span></span></span></span></span>;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> DISTRIBUTIONS  <span class="kw">CASCADE</span></span></span></span></span></span> <span class="kw">CONSTRAINTS</span></span></span></span></span></span> <span class="kw">PURGE</span></span></span></span></span></span>;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> SIGNATURES     <span class="kw">CASCADE</span></span></span></span></span></span> <span class="kw">CONSTRAINTS</span></span></span></span></span></span> <span class="kw">PURGE</span></span></span></span></span></span>;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> APPROVALS      <span class="kw">CASCADE</span></span></span></span></span></span> <span class="kw">CONSTRAINTS</span></span></span></span></span></span> <span class="kw">PURGE</span></span></span></span></span></span>;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> DOC_STATUS_LOG <span class="kw">CASCADE</span></span></span></span></span></span> <span class="kw">CONSTRAINTS</span></span></span></span></span></span> <span class="kw">PURGE</span></span></span></span></span></span>;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> ACCESS_MATRIX  <span class="kw">CASCADE</span></span></span></span></span></span> <span class="kw">CONSTRAINTS</span></span></span></span></span></span> <span class="kw">PURGE</span></span></span></span></span></span>;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> DOCUMENTS      <span class="kw">CASCADE</span></span></span></span></span></span> <span class="kw">CONSTRAINTS</span></span></span></span></span></span> <span class="kw">PURGE</span></span></span></span></span></span>;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> EMPLOYEES      <span class="kw">CASCADE</span></span></span></span></span></span> <span class="kw">CONSTRAINTS</span></span></span></span></span></span> <span class="kw">PURGE</span></span></span></span></span></span>;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> ROLES          <span class="kw">CASCADE</span></span></span></span></span></span> <span class="kw">CONSTRAINTS</span></span></span></span></span></span> <span class="kw">PURGE</span></span></span></span></span></span>;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> DEPARTMENTS    <span class="kw">CASCADE</span></span></span></span></span></span> <span class="kw">CONSTRAINTS</span></span></span></span></span></span> <span class="kw">PURGE</span></span></span></span></span></span>;
+
+<span class="cm">-- ลบ Sequence</span></span></span></span></span></span>
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">SEQUENCE</span></span></span></span></span></span> SEQ_DOC;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">SEQUENCE</span></span></span></span></span></span> SEQ_APPROVAL;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">SEQUENCE</span></span></span></span></span></span> SEQ_SIGN;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">SEQUENCE</span></span></span></span></span></span> SEQ_DIST;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">SEQUENCE</span></span></span></span></span></span> SEQ_NOTIF;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">SEQUENCE</span></span></span></span></span></span> SEQ_LOG;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">SEQUENCE</span></span></span></span></span></span> SEQ_EMP;
+
+<span class="cm">-- ลบ Procedure (ถ้ามี)</span></span></span></span></span></span>
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">PROCEDURE</span></span></span></span></span></span> SP_SUBMIT_DOC;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">PROCEDURE</span></span></span></span></span></span> SP_DECIDE_APPROVAL;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">PROCEDURE</span></span></span></span></span></span> SP_ACKNOWLEDGE_DOC;
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">PROCEDURE</span></span></span></span></span></span> SP_CHECK_SLA_REMIND;
+
+<span class="cm">-- ลบ Trigger (ถ้ามี)</span></span></span></span></span></span>
+<span class="kw">DROP</span></span></span></span></span></span> <span class="kw">TRIGGER</span></span></span></span></span></span> TRG_DOC_STATUS_LOG;</pre>
+      <p class="code-note">⚠️ เรียง "ลูก (READ_LOGS) → แม่ (DEPARTMENTS)" — และถ้ารันตอนฐานข้อมูลยังไม่มีอะไรเลย บางขั้นจะ error "does not exist" ซึ่งไม่ใช่ปัญหา (DROP ของที่ไม่มี = ข้ามได้) แต่ demo ครั้งแรกควรสร้างก่อน 1 รอบ แล้วค่อยโชว์ DROP</p>
+
+      <h2>🏗️ ขั้นที่ 1 — CREATE ตารางทีละใบ (ไฟล์ 01 · DDL)</h2>
+      <p>อ่านแบบ "ตารางละ 1 ก้อน": ดูชื่อคอลัมน์ + ชนิดข้อมูล แล้วดู Constraint ที่ประกาศด้วยคำสั่ง <code>CONSTRAINT ชื่อ ชนิด</code> —
+      การตั้งชื่อ constraint แบบมีระบบ (NN_ / UQ_ / CK_ / PK_ / FK_) ช่วยให้อ่านผล 05_VERIFY ได้ง่ายมาก</p>
+
+      <h3>1. DEPARTMENTS — แผนก/หน่วยงาน</h3>
+      <pre class="code sql"><span class="cm">-- ---------- 1. DEPARTMENTS : แผนก/หน่วยงาน ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> DEPARTMENTS (
+    DEPT_ID      <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">4</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> PK_DEPT <span class="kw">PRIMARY</span></span></span></span></span></span> <span class="kw">KEY</span></span></span></span></span></span>,
+    DEPT_NAME    <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">60</span></span></span></span></span></span>)   <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_DEPT_NAME <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>
+);</pre>
+      <ul>
+        <li><code>PK_DEPT</code> = Primary Key — รหัสแผนกไม่ซ้ำ ไม่เป็น NULL (จะเห็นประเภท <strong>P</strong> ใน 05_VERIFY)</li>
+        <li><code>NN_DEPT_NAME</code> = NOT NULL — แผนกต้องมีชื่อเสมอ เพราะถ้าไม่มีชื่อ การจัดกลุ่มพนักงานจะไม่มีความหมาย (ประเภท <strong>C</strong>)</li>
+      </ul>
+
+      <h3>2. ROLES — บทบาท 4 แบบ (แผนที่กับ Actor ใน UC Diagram)</h3>
+      <pre class="code sql"><span class="cm">-- ---------- 2. ROLES : บทบาทตาม Use Case (IT / Creator / Approver / Employee) ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> ROLES (
+    ROLE_ID      <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">4</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> PK_ROLE <span class="kw">PRIMARY</span></span></span></span></span></span> <span class="kw">KEY</span></span></span></span></span></span>,
+    ROLE_NAME    <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">40</span></span></span></span></span></span>)   <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_ROLE_NAME <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span> <span class="kw">CONSTRAINT</span></span></span></span></span></span> UQ_ROLE_NAME <span class="kw">UNIQUE</span></span></span></span></span></span>,
+    ROLE_DESC    <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">120</span></span></span></span></span></span>)
+);</pre>
+      <ul>
+        <li><code>UQ_ROLE_NAME</code> = UNIQUE — ชื่อบทบาทห้ามซ้ำ เพราะ Procedure เช่น SP_DECIDE_APPROVAL จะหา "ผู้มี ROLE_ID = 3 (APPROVER)" — ถ้าบทบาทซ้ำ สิทธิ์จะพัง</li>
+      </ul>
+
+      <h3>3. EMPLOYEES — พนักงาน (Actor ทุกตัว)</h3>
+      <pre class="code sql"><span class="cm">-- ---------- 3. EMPLOYEES : พนักงาน (Actor ทุกตัวใน UC Diagram) ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> EMPLOYEES (
+    EMP_ID       <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">6</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> PK_EMP <span class="kw">PRIMARY</span></span></span></span></span></span> <span class="kw">KEY</span></span></span></span></span></span>,
+    EMP_NAME     <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">80</span></span></span></span></span></span>)   <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_EMP_NAME <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>,
+    EMAIL        <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">80</span></span></span></span></span></span>)   <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_EMP_EMAIL <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span> <span class="kw">CONSTRAINT</span></span></span></span></span></span> UQ_EMP_EMAIL <span class="kw">UNIQUE</span></span></span></span></span></span>,
+    POSITION     <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">60</span></span></span></span></span></span>),
+    DEPT_ID      <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">4</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> FK_EMP_DEPT <span class="kw">REFERENCES</span></span></span></span></span></span> DEPARTMENTS(DEPT_ID),
+    ROLE_ID      <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">4</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> FK_EMP_ROLE <span class="kw">REFERENCES</span></span></span></span></span></span> ROLES(ROLE_ID),
+    HIRE_DATE    <span class="kw">DATE</span></span></span></span></span></span>           <span class="kw">DEFAULT</span></span></span></span></span></span> <span class="fn">SYSDATE</span></span></span></span></span></span>
+);</pre>
+      <ul>
+        <li><code>UQ_EMP_EMAIL</code> — อีเมลไม่ซ้ำ เพราะ UC09 ใช้อีเมลเป็นชื่อบัญชีเข้าสู่ระบบ + UC01 ส่งแจ้งเตือนทางอีเมล ถ้าซ้ำจะส่งผิดคน</li>
+        <li><code>FK_EMP_DEPT</code> / <code>FK_EMP_ROLE</code> = Foreign Key (ประเภท <strong>R</strong>) — พนักงานต้องอยู่แผนกและบทบาทที่ "มีจริง" ในระบบ กันพิมพ์รหัสแผนกเลขมั่ว</li>
+        <li><code>DEFAULT SYSDATE</code> — ถ้าไม่กรอกวันเข้าทำงาน ใช้วันที่ปัจจุบันอัตโนมัติ</li>
+      </ul>
+
+      <h3>4. DOCUMENTS — แกนหลักของระบบ ⭐</h3>
+      <pre class="code sql"><span class="cm">-- ---------- 4. DOCUMENTS : ประกาศ/ข้อความเวียน (แกนหลักของระบบ) ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> DOCUMENTS (
+    DOC_ID       <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">8</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> PK_DOC <span class="kw">PRIMARY</span></span></span></span></span></span> <span class="kw">KEY</span></span></span></span></span></span>,
+    DOC_TYPE     <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">15</span></span></span></span></span></span>)   <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_DOC_TYPE <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> CK_DOC_TYPE <span class="kw">CHECK</span></span></span></span></span></span> (DOC_TYPE <span class="kw">IN</span></span></span></span></span></span> (<span class="st">'ANNOUNCEMENT'</span></span></span></span></span></span>,<span class="st">'MEMO'</span></span></span></span></span></span>)),
+    TITLE        <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">150</span></span></span></span></span></span>)  <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_DOC_TITLE <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>,
+    CONTENT      <span class="kw">CLOB</span></span></span></span></span></span>,
+    PRIORITY     <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">10</span></span></span></span></span></span>)   <span class="kw">DEFAULT</span></span></span></span></span></span> <span class="st">'GENERAL'</span></span></span></span></span></span>
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> CK_DOC_PRI <span class="kw">CHECK</span></span></span></span></span></span> (PRIORITY <span class="kw">IN</span></span></span></span></span></span> (<span class="st">'EMERGENCY'</span></span></span></span></span></span>,<span class="st">'GENERAL'</span></span></span></span></span></span>)),
+    STATUS       <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">12</span></span></span></span></span></span>)   <span class="kw">DEFAULT</span></span></span></span></span></span> <span class="st">'DRAFT'</span></span></span></span></span></span>
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> CK_DOC_STATUS <span class="kw">CHECK</span></span></span></span></span></span> (STATUS <span class="kw">IN</span></span></span></span></span></span>
+                   (<span class="st">'DRAFT'</span></span></span></span></span></span>,<span class="st">'PENDING'</span></span></span></span></span></span>,<span class="st">'APPROVED'</span></span></span></span></span></span>,<span class="st">'REJECTED'</span></span></span></span></span></span>,<span class="st">'SIGNED'</span></span></span></span></span></span>,<span class="st">'DISTRIBUTED'</span></span></span></span></span></span>,<span class="st">'COMPLETED'</span></span></span></span></span></span>,<span class="st">'ARCHIVED'</span></span></span></span></span></span>)),
+    CREATED_BY   <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">6</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> FK_DOC_CREATOR <span class="kw">REFERENCES</span></span></span></span></span></span> EMPLOYEES(EMP_ID),
+    CREATED_DATE <span class="kw">DATE</span></span></span></span></span></span>           <span class="kw">DEFAULT</span></span></span></span></span></span> <span class="fn">SYSDATE</span></span></span></span></span></span>,
+    SLA_HOURS    <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">3</span></span></span></span></span></span>)      <span class="kw">DEFAULT</span></span></span></span></span></span> <span class="fn">24</span></span></span></span></span></span> <span class="kw">CONSTRAINT</span></span></span></span></span></span> CK_DOC_SLA <span class="kw">CHECK</span></span></span></span></span></span> (SLA_HOURS &gt; <span class="fn">0</span></span></span></span></span></span>),
+    EXPIRY_DATE  <span class="kw">DATE</span></span></span></span></span></span>
+);</pre>
+      <ul>
+        <li><code>CK_DOC_TYPE</code> — เอกสารมีแค่ 2 ประเภท: ANNOUNCEMENT (ประกาศ) / MEMO (ข้อความเวียน) ตรงกับ 2 Pool ใน BPMN ของงาน</li>
+        <li><code>CK_DOC_STATUS</code> — <strong>สถานะ 8 ค่า</strong>คือชีวิตของเอกสาร (ดูแผนภาพเต็มในหน้า PL/SQL): DRAFT → PENDING → APPROVED → SIGNED → DISTRIBUTED → COMPLETED (+ แขนง REJECTED, ARCHIVED) — ถ้าโค้ดพยายามอัปเดตสถานะออกนอกชุดนี้ DB ปฏิเสธทันที</li>
+        <li><code>CK_DOC_PRI</code> + <code>DEFAULT 'GENERAL'</code> — ความเร่งด่วน 2 ค่า: EMERGENCY กระจาย 3 ช่องทาง, GENERAL กระจาย 2 ช่องทาง (SP_DECIDE_APPROVAL อ่านค่านี้)</li>
+        <li><code>SLA_HOURS DEFAULT 24 CHECK (SLA_HOURS &gt; 0)</code> — กรอบเวลาการอ่าน (UC04 ตั้งค่า) ต้องเป็นบวกเท่านั้น และมาจากกฎ BR-Memo-101 "ยืนยันภายใน 24 ชม."</li>
+        <li><code>CONTENT CLOB</code> — CLOB = ข้อความยาวขนาดใหญ่ เหมาะกับเนื้อหาประกาศ</li>
+      </ul>
+
+      <h3>5. DOC_STATUS_LOG — Audit Trail (โต๊ะบันทึกของ Trigger)</h3>
+      <pre class="code sql"><span class="cm">-- ---------- 5. DOC_STATUS_LOG : ประวัติการเปลี่ยนสถานะ (Audit Trail — เกิดจาก Trigger) ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> DOC_STATUS_LOG (
+    LOG_ID       <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">10</span></span></span></span></span></span>)     <span class="kw">CONSTRAINT</span></span></span></span></span></span> PK_STLOG <span class="kw">PRIMARY</span></span></span></span></span></span> <span class="kw">KEY</span></span></span></span></span></span>,
+    DOC_ID       <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">8</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> FK_STLOG_DOC <span class="kw">REFERENCES</span></span></span></span></span></span> DOCUMENTS(DOC_ID),
+    OLD_STATUS   <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">12</span></span></span></span></span></span>),
+    NEW_STATUS   <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">12</span></span></span></span></span></span>)   <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_STLOG_NEW <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>,
+    CHANGED_DATE <span class="kw">DATE</span></span></span></span></span></span>           <span class="kw">DEFAULT</span></span></span></span></span></span> <span class="fn">SYSDATE</span></span></span></span></span></span>
+);</pre>
+      <ul>
+        <li>ทุกครั้งที่สถานะของเอกสารเปลี่ยน Trigger จะ INSERT แถวนี้อัตโนมัติ — ตอบโจทย์ UC03 "ดูสถานะย้อนหลัง" และกฎ BR-Memo-103 "ห้ามแก้ Log"</li>
+      </ul>
+
+      <h3>6. APPROVALS — ผลพิจารณาอนุมัติ (XOR Gateway)</h3>
+      <pre class="code sql"><span class="cm">-- ---------- 6. APPROVALS : ผลการพิจารณาอนุมัติ (XOR: ผ่าน/ตีกลับ) ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> APPROVALS (
+    APPROVAL_ID  <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">8</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> PK_APRV <span class="kw">PRIMARY</span></span></span></span></span></span> <span class="kw">KEY</span></span></span></span></span></span>,
+    DOC_ID       <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">8</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_APRV_DOC <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> FK_APRV_DOC <span class="kw">REFERENCES</span></span></span></span></span></span> DOCUMENTS(DOC_ID),
+    APPROVER_ID  <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">6</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> FK_APRV_EMP <span class="kw">REFERENCES</span></span></span></span></span></span> EMPLOYEES(EMP_ID),
+    DECISION     <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">10</span></span></span></span></span></span>)   <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_APRV_DEC <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> CK_APRV_DEC <span class="kw">CHECK</span></span></span></span></span></span> (DECISION <span class="kw">IN</span></span></span></span></span></span> (<span class="st">'APPROVED'</span></span></span></span></span></span>,<span class="st">'REJECTED'</span></span></span></span></span></span>)),
+    REASON       <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">200</span></span></span></span></span></span>),
+    DECIDED_DATE <span class="kw">DATE</span></span></span></span></span></span>           <span class="kw">DEFAULT</span></span></span></span></span></span> <span class="fn">SYSDATE</span></span></span></span></span></span>
+);</pre>
+      <ul>
+        <li>ตรงกับ <strong>XOR Gateway</strong> ใน BPMN: เดินได้แค่ 1 ทางเท่านั้น — APPROVED (ลงนาม+กระจาย) หรือ REJECTED (ส่งกลับให้ธุรการแก้ ตาม DR-Ann-101)</li>
+        <li><code>REASON</code> — UC07 Extension 4a ให้ "เขียนเหตุผลการตีกลับ" คอลัมน์นี้คือที่เก็บเหตุผลนั้น (UC06 อ่านกลับไปแสดงให้ธุรการ)</li>
+      </ul>
+
+      <h3>7. SIGNATURES — ลายมือชื่ออิเล็กทรอนิกส์</h3>
+      <pre class="code sql"><span class="cm">-- ---------- 7. SIGNATURES : ลายมือชื่ออิเล็กทรอนิกส์ (ห้ามเผยแพร่ก่อนลงนาม = BR-Ann-102) ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> SIGNATURES (
+    SIGN_ID      <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">8</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> PK_SIGN <span class="kw">PRIMARY</span></span></span></span></span></span> <span class="kw">KEY</span></span></span></span></span></span>,
+    DOC_ID       <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">8</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_SIGN_DOC <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> FK_SIGN_DOC <span class="kw">REFERENCES</span></span></span></span></span></span> DOCUMENTS(DOC_ID)
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> UQ_SIGN_DOC <span class="kw">UNIQUE</span></span></span></span></span></span>,          -- ลงนามได้ <span class="fn">1</span></span></span></span></span></span> ครั้งต่อเอกสาร
+    SIGNER_ID    <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">6</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> FK_SIGN_EMP <span class="kw">REFERENCES</span></span></span></span></span></span> EMPLOYEES(EMP_ID),
+    SIGNATURE_HASH <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">64</span></span></span></span></span></span>) <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_SIGN_HASH <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>,
+    SIGNED_DATE  <span class="kw">DATE</span></span></span></span></span></span>           <span class="kw">DEFAULT</span></span></span></span></span></span> <span class="fn">SYSDATE</span></span></span></span></span></span>
+);</pre>
+      <ul>
+        <li><code>UQ_SIGN_DOC</code> — <strong>เอกสารเดียวลงนามได้แค่ 1 แถว</strong> (UNIQUE บน DOC_ID) พิสูจน์กฎ BR-Ann-102 ด้วยโครงสร้าง DB: มีลายเซ็นแล้ว = เอกสารจึงเผยแพร่ได้</li>
+        <li><code>SIGNATURE_HASH</code> — สตริงลายเซ็นดิจิทัล (ระบบจริงเป็น hash เข้ารหัส) demo ใช้ 'SHA256-...' สร้างจากรหัสเอกสาร+เวลา</li>
+      </ul>
+
+      <h3>8. DISTRIBUTIONS — กระจายเอกสารหลายช่องทาง (AND Gateway)</h3>
+      <pre class="code sql"><span class="cm">-- ---------- 8. DISTRIBUTIONS : การกระจายเอกสารออกช่องทางต่าง ๆ (AND Gateway) ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> DISTRIBUTIONS (
+    DIST_ID      <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">8</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> PK_DIST <span class="kw">PRIMARY</span></span></span></span></span></span> <span class="kw">KEY</span></span></span></span></span></span>,
+    DOC_ID       <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">8</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_DIST_DOC <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> FK_DIST_DOC <span class="kw">REFERENCES</span></span></span></span></span></span> DOCUMENTS(DOC_ID),
+    CHANNEL      <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">6</span></span></span></span></span></span>)    <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_DIST_CH <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> CK_DIST_CH <span class="kw">CHECK</span></span></span></span></span></span> (CHANNEL <span class="kw">IN</span></span></span></span></span></span> (<span class="st">'EMAIL'</span></span></span></span></span></span>,<span class="st">'APP'</span></span></span></span></span></span>,<span class="st">'SMS'</span></span></span></span></span></span>)),
+    RECIPIENT_GROUP <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">60</span></span></span></span></span></span>) <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_DIST_GRP <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>,
+    SENT_DATE    <span class="kw">DATE</span></span></span></span></span></span>           <span class="kw">DEFAULT</span></span></span></span></span></span> <span class="fn">SYSDATE</span></span></span></span></span></span>,
+    STATUS       <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">6</span></span></span></span></span></span>)    <span class="kw">DEFAULT</span></span></span></span></span></span> <span class="st">'SENT'</span></span></span></span></span></span>
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> CK_DIST_ST <span class="kw">CHECK</span></span></span></span></span></span> (STATUS <span class="kw">IN</span></span></span></span></span></span> (<span class="st">'SENT'</span></span></span></span></span></span>,<span class="st">'FAILED'</span></span></span></span></span></span>))
+);</pre>
+      <ul>
+        <li>ตรงกับ <strong>AND Gateway</strong> ขากระจาย: เอกสารเดียวมีหลายแถว (EMAIL + APP + SMS ตาม PRIORITY) — กฎเร่งด่วน: EMERGENCY → 3 ช่องทาง, GENERAL → EMAIL+APP</li>
+        <li><code>SENT_DATE</code> จากตารางนี้คือจุดเริ่มนับ SLA 24 ชม. (SP_CHECK_SLA_REMIND อ่าน MIN(SENT_DATE))</li>
+      </ul>
+
+      <h3>9. NOTIFICATIONS — แจ้งเตือนรายบุคคล</h3>
+      <pre class="code sql"><span class="cm">-- ---------- 9. NOTIFICATIONS : การแจ้งเตือนรายบุคคล (ใหม่ / เตือนซ้ำเมื่อเกิน SLA) ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> NOTIFICATIONS (
+    NOTIF_ID     <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">10</span></span></span></span></span></span>)     <span class="kw">CONSTRAINT</span></span></span></span></span></span> PK_NOTIF <span class="kw">PRIMARY</span></span></span></span></span></span> <span class="kw">KEY</span></span></span></span></span></span>,
+    DOC_ID       <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">8</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_NOTIF_DOC <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> FK_NOTIF_DOC <span class="kw">REFERENCES</span></span></span></span></span></span> DOCUMENTS(DOC_ID),
+    EMP_ID       <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">6</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_NOTIF_EMP <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> FK_NOTIF_EMP <span class="kw">REFERENCES</span></span></span></span></span></span> EMPLOYEES(EMP_ID),
+    CHANNEL      <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">6</span></span></span></span></span></span>)    <span class="kw">CONSTRAINT</span></span></span></span></span></span> CK_NOTIF_CH <span class="kw">CHECK</span></span></span></span></span></span> (CHANNEL <span class="kw">IN</span></span></span></span></span></span> (<span class="st">'EMAIL'</span></span></span></span></span></span>,<span class="st">'APP'</span></span></span></span></span></span>,<span class="st">'SMS'</span></span></span></span></span></span>)),
+    NOTIF_TYPE   <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">8</span></span></span></span></span></span>)    <span class="kw">DEFAULT</span></span></span></span></span></span> <span class="st">'NEW'</span></span></span></span></span></span>
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> CK_NOTIF_TYPE <span class="kw">CHECK</span></span></span></span></span></span> (NOTIF_TYPE <span class="kw">IN</span></span></span></span></span></span> (<span class="st">'NEW'</span></span></span></span></span></span>,<span class="st">'REMINDER'</span></span></span></span></span></span>)),
+    SENT_AT      <span class="kw">DATE</span></span></span></span></span></span>           <span class="kw">DEFAULT</span></span></span></span></span></span> <span class="fn">SYSDATE</span></span></span></span></span></span>
+);</pre>
+      <ul>
+        <li>ต่างจาก DISTRIBUTIONS ตรงที่นี่ <strong>ระบุตัวคน</strong> (EMP_ID) — 1 แถวต่อ 1 คน ใช้ตอบคำถาม "ใครยังไม่อ่าน" ใน JOIN Q2</li>
+        <li><code>NOTIF_TYPE</code>: NEW = แจ้งครั้งแรกตอนเอกสารกระจาย, REMINDER = เตือนซ้ำเมื่อเกิน SLA (UC02 Extension 1a)</li>
+        <li><span class="state-chip">⚠️ ตารางนี้ชื่อชนกับ Part II</span> — ดูกล่องเตือนในหน้า <a href="verify-demo.html">demo</a></li>
+      </ul>
+
+      <h3>10. READ_LOGS — ยืนยันรับทราบ (กันซ้ำด้วย UNIQUE คู่)</h3>
+      <pre class="code sql"><span class="cm">-- ---------- 10. READ_LOGS : บันทึกการเปิดอ่าน+ยืนยันรับทราบ (ห้ามลบ/แก้ = BR-Memo-103) ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> READ_LOGS (
+    LOG_ID       <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">10</span></span></span></span></span></span>)     <span class="kw">CONSTRAINT</span></span></span></span></span></span> PK_RLOG <span class="kw">PRIMARY</span></span></span></span></span></span> <span class="kw">KEY</span></span></span></span></span></span>,
+    DOC_ID       <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">8</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_RLOG_DOC <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> FK_RLOG_DOC <span class="kw">REFERENCES</span></span></span></span></span></span> DOCUMENTS(DOC_ID),
+    EMP_ID       <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">6</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_RLOG_EMP <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> FK_RLOG_EMP <span class="kw">REFERENCES</span></span></span></span></span></span> EMPLOYEES(EMP_ID),
+    READ_AT      <span class="kw">DATE</span></span></span></span></span></span>           <span class="kw">DEFAULT</span></span></span></span></span></span> <span class="fn">SYSDATE</span></span></span></span></span></span>,
+    IP_ADDRESS   <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">45</span></span></span></span></span></span>),
+    <span class="kw">CONSTRAINT</span></span></span></span></span></span> UQ_RLOG_DOC_EMP <span class="kw">UNIQUE</span></span></span></span></span></span> (DOC_ID, EMP_ID)   -- กันยืนยันซ้ำ <span class="fn">1</span></span></span></span></span></span> คน <span class="fn">1</span></span></span></span></span></span> เอกสาร
+);</pre>
+      <ul>
+        <li><code>UNIQUE (DOC_ID, EMP_ID)</code> = Unique แบบคู่ — คนเดียวยืนยันเอกสารเดียวได้ <strong>แค่ 1 ครั้ง</strong> ถ้าพยายาม INSERT ซ้ำจะโดน exception <code>DUP_VAL_ON_INDEX</code> ซึ่ง SP_ACKNOWLEDGE_DOC จับไว้แล้ว raise error ตาม UC02/BR-Memo-103</li>
+        <li><code>IP_ADDRESS VARCHAR2(45)</code> — 45 ตัวอักษรพอสำหรับ IPv6 เก็บหลักฐานว่ายืนยันจากเครื่องไหน</li>
+      </ul>
+
+      <h3>11. ACCESS_MATRIX — สิทธิ์เข้าถึงตามบทบาท (UC08)</h3>
+      <pre class="code sql"><span class="cm">-- ---------- 11. ACCESS_MATRIX : สิทธิ์การเข้าถึงเอกสารตามบทบาท (UC04 กำหนดสิทธิ์) ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">TABLE</span></span></span></span></span></span> ACCESS_MATRIX (
+    ACCESS_ID    <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">6</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> PK_ACC <span class="kw">PRIMARY</span></span></span></span></span></span> <span class="kw">KEY</span></span></span></span></span></span>,
+    ROLE_ID      <span class="kw">NUMBER</span></span></span></span></span></span>(<span class="fn">4</span></span></span></span></span></span>)      <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_ACC_ROLE <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> FK_ACC_ROLE <span class="kw">REFERENCES</span></span></span></span></span></span> ROLES(ROLE_ID),
+    DOC_TYPE     <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">15</span></span></span></span></span></span>)   <span class="kw">CONSTRAINT</span></span></span></span></span></span> NN_ACC_TYPE <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>
+                 <span class="kw">CONSTRAINT</span></span></span></span></span></span> CK_ACC_TYPE <span class="kw">CHECK</span></span></span></span></span></span> (DOC_TYPE <span class="kw">IN</span></span></span></span></span></span> (<span class="st">'ANNOUNCEMENT'</span></span></span></span></span></span>,<span class="st">'MEMO'</span></span></span></span></span></span>,<span class="st">'ALL'</span></span></span></span></span></span>)),
+    CAN_VIEW     <span class="kw">CHAR</span></span></span></span></span></span>(<span class="fn">1</span></span></span></span></span></span>)        <span class="kw">DEFAULT</span></span></span></span></span></span> <span class="st">'Y'</span></span></span></span></span></span> <span class="kw">CONSTRAINT</span></span></span></span></span></span> CK_ACC_VIEW <span class="kw">CHECK</span></span></span></span></span></span> (CAN_VIEW <span class="kw">IN</span></span></span></span></span></span> (<span class="st">'Y'</span></span></span></span></span></span>,<span class="st">'N'</span></span></span></span></span></span>))
+);</pre>
+      <ul>
+        <li>แถวเดียวตอบคำถาม "บทบาท X เห็นเอกสารประเภท Y ได้ไหม" — IT ใส่ ALL = เห็นทุกประเภท · ป้องกันข้อมูลรั่วไหลตาม UC08</li>
+      </ul>
+
+      <h3>SEQUENCES — สร้างรหัสอ้างอิงอัตโนมัติ</h3>
+      <pre class="code sql"><span class="cm">-- ---------- SEQUENCES : สร้างรหัสอ้างอิงอัตโนมัติ (Doc ID ตาม A2 To-Be) ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">SEQUENCE</span></span></span></span></span></span> SEQ_EMP       <span class="kw">START</span></span></span></span></span></span> <span class="kw">WITH</span></span></span></span></span></span> <span class="fn">1000</span></span></span></span></span></span> <span class="kw">INCREMENT</span></span></span></span></span></span> <span class="kw">BY</span></span></span></span></span></span> <span class="fn">1</span></span></span></span></span></span> <span class="kw">NOCACHE</span></span></span></span></span></span>;
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">SEQUENCE</span></span></span></span></span></span> SEQ_DOC       <span class="kw">START</span></span></span></span></span></span> <span class="kw">WITH</span></span></span></span></span></span> <span class="fn">5001</span></span></span></span></span></span> <span class="kw">INCREMENT</span></span></span></span></span></span> <span class="kw">BY</span></span></span></span></span></span> <span class="fn">1</span></span></span></span></span></span> <span class="kw">NOCACHE</span></span></span></span></span></span>;
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">SEQUENCE</span></span></span></span></span></span> SEQ_APPROVAL  <span class="kw">START</span></span></span></span></span></span> <span class="kw">WITH</span></span></span></span></span></span> <span class="fn">1</span></span></span></span></span></span>    <span class="kw">INCREMENT</span></span></span></span></span></span> <span class="kw">BY</span></span></span></span></span></span> <span class="fn">1</span></span></span></span></span></span> <span class="kw">NOCACHE</span></span></span></span></span></span>;
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">SEQUENCE</span></span></span></span></span></span> SEQ_SIGN      <span class="kw">START</span></span></span></span></span></span> <span class="kw">WITH</span></span></span></span></span></span> <span class="fn">1</span></span></span></span></span></span>    <span class="kw">INCREMENT</span></span></span></span></span></span> <span class="kw">BY</span></span></span></span></span></span> <span class="fn">1</span></span></span></span></span></span> <span class="kw">NOCACHE</span></span></span></span></span></span>;
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">SEQUENCE</span></span></span></span></span></span> SEQ_DIST      <span class="kw">START</span></span></span></span></span></span> <span class="kw">WITH</span></span></span></span></span></span> <span class="fn">1</span></span></span></span></span></span>    <span class="kw">INCREMENT</span></span></span></span></span></span> <span class="kw">BY</span></span></span></span></span></span> <span class="fn">1</span></span></span></span></span></span> <span class="kw">NOCACHE</span></span></span></span></span></span>;
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">SEQUENCE</span></span></span></span></span></span> SEQ_NOTIF     <span class="kw">START</span></span></span></span></span></span> <span class="kw">WITH</span></span></span></span></span></span> <span class="fn">1</span></span></span></span></span></span>    <span class="kw">INCREMENT</span></span></span></span></span></span> <span class="kw">BY</span></span></span></span></span></span> <span class="fn">1</span></span></span></span></span></span> <span class="kw">NOCACHE</span></span></span></span></span></span>;
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">SEQUENCE</span></span></span></span></span></span> SEQ_LOG       <span class="kw">START</span></span></span></span></span></span> <span class="kw">WITH</span></span></span></span></span></span> <span class="fn">1</span></span></span></span></span></span>    <span class="kw">INCREMENT</span></span></span></span></span></span> <span class="kw">BY</span></span></span></span></span></span> <span class="fn">1</span></span></span></span></span></span> <span class="kw">NOCACHE</span></span></span></span></span></span>;</pre>
+      <div class="term">
+        <p><span class="term-word">SEQUENCE</span> <span class="term-read">อ่านว่า "ซีเควนซ์"</span> — ออบเจ็กต์นับเลขอัตโนมัติ ใช้ <code>SEQ_X.NEXTVAL</code> เพื่อขอเลขถัดไปตอน INSERT —
+        ตรงกับ To-Be "จัดเก็บ + ออกรหัสอ้างอิงอัตโนมัติ" ของงาน · <code>START WITH 5001</code> เลยได้รหัสเอกสาร 5001, 5002, ... · <code>NOCACHE</code> = ไม่กันเลขไว้ล่วงหน้า เลขต่อเนื่องไม่กระโดด (เหมาะกับ demo)</p>
+      </div>
+
+      <h2>🔢 ขั้นที่ 2 — INSERT ข้อมูลตัวอย่าง (ไฟล์ 02 · DML)</h2>
+      <p>หลักคิด: ใส่ข้อมูล <strong>พอให้ JOIN ทุกข้อรันได้จริง</strong> — แผนก 4 · บทบาท 4 · พนักงาน 8 · สิทธิ์ 6 · เอกสาร 4 — และจบทุกชุดด้วย <code>COMMIT;</code></p>
+
+      <h3>2.1 แผนก + บทบาท (แผนที่ Actor)</h3>
+      <pre class="code sql"><span class="cm">-- 1) DEPARTMENTS</span></span></span></span></span></span>
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> DEPARTMENTS <span class="kw">VALUES</span></span></span></span></span></span> (<span class="fn">10</span></span></span></span></span></span>, <span class="st">'ฝ่ายเทคโนโลยีสารสนเทศ'</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> DEPARTMENTS <span class="kw">VALUES</span></span></span></span></span></span> (<span class="fn">20</span></span></span></span></span></span>, <span class="st">'ฝ่ายธุรการและสื่อสารองค์กร'</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> DEPARTMENTS <span class="kw">VALUES</span></span></span></span></span></span> (<span class="fn">30</span></span></span></span></span></span>, <span class="st">'ฝ่ายบริหาร'</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> DEPARTMENTS <span class="kw">VALUES</span></span></span></span></span></span> (<span class="fn">40</span></span></span></span></span></span>, <span class="st">'สาขาปฏิบัติการ'</span></span></span></span></span></span>);
+
+<span class="cm">-- 2) ROLES (แผนที่กับ Actor ใน UC Diagram)</span></span></span></span></span></span>
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> ROLES <span class="kw">VALUES</span></span></span></span></span></span> (<span class="fn">1</span></span></span></span></span></span>, <span class="st">'IT_ADMIN'</span></span></span></span></span></span>,    <span class="st">'ผู้ดูแลระบบ IT/HR — กำหนดสิทธิ์การเข้าถึง'</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> ROLES <span class="kw">VALUES</span></span></span></span></span></span> (<span class="fn">2</span></span></span></span></span></span>, <span class="st">'CREATOR'</span></span></span></span></span></span>,     <span class="st">'เจ้าหน้าที่ธุรการ — ร่างเอกสาร/ตั้งค่า SLA'</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> ROLES <span class="kw">VALUES</span></span></span></span></span></span> (<span class="fn">3</span></span></span></span></span></span>, <span class="st">'APPROVER'</span></span></span></span></span></span>,    <span class="st">'CEO/Manager — ตรวจสอบ อนุมัติ ลงนาม'</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> ROLES <span class="kw">VALUES</span></span></span></span></span></span> (<span class="fn">4</span></span></span></span></span></span>, <span class="st">'EMPLOYEE'</span></span></span></span></span></span>,    <span class="st">'พนักงานกลุ่มเป้าหมาย — รับแจ้งเตือน อ่าน ยืนยัน'</span></span></span></span></span></span>);
+<span class="kw">COMMIT</span></span></span></span></span></span>;</pre>
+      <ul>
+        <li>รหัสบทบาท 1–4 คือ "กฎที่ PL/SQL อ่าน": <code>ROLE_ID = 3</code> = APPROVER (SP_DECIDE_APPROVAL ตรวจ), <code>ROLE_ID = 4</code> = พนักงานกลุ่มเป้าหมาย (กลุ่มที่ต้องยืนยัน 100%)</li>
+      </ul>
+
+      <h3>2.2 พนักงาน 8 คน (ใช้ SEQUENCE ออกรหัส)</h3>
+      <pre class="code sql"><span class="cm">-- 3) EMPLOYEES</span></span></span></span></span></span>
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> EMPLOYEES (EMP_ID, EMP_NAME, EMAIL, POSITION, DEPT_ID, ROLE_ID) <span class="kw">VALUES</span></span></span></span></span></span>
+ (SEQ_EMP.<span class="fn">NEXTVAL</span></span></span></span></span></span>, <span class="st">'สมชาย วัฒนชัย'</span></span></span></span></span></span>,    <span class="st">'somchai.it@corp.co.th'</span></span></span></span></span></span>,   <span class="st">'ผู้ดูแลระบบ IT'</span></span></span></span></span></span>,       <span class="fn">10</span></span></span></span></span></span>, <span class="fn">1</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> EMPLOYEES (EMP_ID, EMP_NAME, EMAIL, POSITION, DEPT_ID, ROLE_ID) <span class="kw">VALUES</span></span></span></span></span></span>
+ (SEQ_EMP.<span class="fn">NEXTVAL</span></span></span></span></span></span>, <span class="st">'สมศรี รักงาน'</span></span></span></span></span></span>,      <span class="st">'somsri.admin@corp.co.th'</span></span></span></span></span></span>, <span class="st">'เจ้าหน้าที่ธุรการส่วนกลาง'</span></span></span></span></span></span>, <span class="fn">20</span></span></span></span></span></span>, <span class="fn">2</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> EMPLOYEES (EMP_ID, EMP_NAME, EMAIL, POSITION, DEPT_ID, ROLE_ID) <span class="kw">VALUES</span></span></span></span></span></span>
+ (SEQ_EMP.<span class="fn">NEXTVAL</span></span></span></span></span></span>, <span class="st">'อรุณ เจริญสุข'</span></span></span></span></span></span>,     <span class="st">'arun.ceo@corp.co.th'</span></span></span></span></span></span>,     <span class="st">'ผู้บริหารระดับสูง'</span></span></span></span></span></span>,   <span class="fn">30</span></span></span></span></span></span>, <span class="fn">3</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> EMPLOYEES (EMP_ID, EMP_NAME, EMAIL, POSITION, DEPT_ID, ROLE_ID) <span class="kw">VALUES</span></span></span></span></span></span>
+ (SEQ_EMP.<span class="fn">NEXTVAL</span></span></span></span></span></span>, <span class="st">'มาลี ประสงค์ดี'</span></span></span></span></span></span>,    <span class="st">'malee.mgr@corp.co.th'</span></span></span></span></span></span>,    <span class="st">'ผู้จัดการฝ่าย'</span></span></span></span></span></span>,        <span class="fn">40</span></span></span></span></span></span>, <span class="fn">3</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> EMPLOYEES (EMP_ID, EMP_NAME, EMAIL, POSITION, DEPT_ID, ROLE_ID) <span class="kw">VALUES</span></span></span></span></span></span>
+ (SEQ_EMP.<span class="fn">NEXTVAL</span></span></span></span></span></span>, <span class="st">'ปกรณ์ ใจสุภาพ'</span></span></span></span></span></span>,     <span class="st">'pakorn@corp.co.th'</span></span></span></span></span></span>,       <span class="st">'พนักงานปฏิบัติการ'</span></span></span></span></span></span>,    <span class="fn">40</span></span></span></span></span></span>, <span class="fn">4</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> EMPLOYEES (EMP_ID, EMP_NAME, EMAIL, POSITION, DEPT_ID, ROLE_ID) <span class="kw">VALUES</span></span></span></span></span></span>
+ (SEQ_EMP.<span class="fn">NEXTVAL</span></span></span></span></span></span>, <span class="st">'กมลวรรณ แสงทอง'</span></span></span></span></span></span>,    <span class="st">'kamonwan@corp.co.th'</span></span></span></span></span></span>,     <span class="st">'พนักงานปฏิบัติการ'</span></span></span></span></span></span>,    <span class="fn">40</span></span></span></span></span></span>, <span class="fn">4</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> EMPLOYEES (EMP_ID, EMP_NAME, EMAIL, POSITION, DEPT_ID, ROLE_ID) <span class="kw">VALUES</span></span></span></span></span></span>
+ (SEQ_EMP.<span class="fn">NEXTVAL</span></span></span></span></span></span>, <span class="st">'ธนกร มั่นคง'</span></span></span></span></span></span>,       <span class="st">'thanakorn@corp.co.th'</span></span></span></span></span></span>,    <span class="st">'พนักงานการตลาด'</span></span></span></span></span></span>,       <span class="fn">20</span></span></span></span></span></span>, <span class="fn">4</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> EMPLOYEES (EMP_ID, EMP_NAME, EMAIL, POSITION, DEPT_ID, ROLE_ID) <span class="kw">VALUES</span></span></span></span></span></span>
+ (SEQ_EMP.<span class="fn">NEXTVAL</span></span></span></span></span></span>, <span class="st">'พิมพ์ชนก สดใส'</span></span></span></span></span></span>,     <span class="st">'pimchanok@corp.co.th'</span></span></span></span></span></span>,    <span class="st">'พนักงานบัญชี'</span></span></span></span></span></span>,         <span class="fn">30</span></span></span></span></span></span>, <span class="fn">4</span></span></span></span></span></span>);
+<span class="kw">COMMIT</span></span></span></span></span></span>;</pre>
+      <p class="code-note">จำตัวเลขไว้ใช้ตอนทดสอบ PL/SQL (SEQ_EMP เริ่มที่ 1000 — คนแรกจึงได้ <strong>1000</strong>): <strong>1000 สมชาย = IT</strong> · <strong>1001 สมศรี = ธุรการผู้ร่าง</strong> · <strong>1002 อรุณ = CEO (APPROVER)</strong> · <strong>1003 มาลี = Manager (APPROVER)</strong> · <strong>1004 ปกรณ์, 1005 กมลวรรณ, 1006 ธนกร, 1007 พิมพ์ชนก = พนักงานกลุ่มเป้าหมาย 4 คน (ยืนยันครบ 4/4 ถึงจะ COMPLETED)</strong></p>
+
+      <h3>2.3 สิทธิ์เข้าถึง (ACCESS_MATRIX)</h3>
+      <pre class="code sql"><span class="cm">-- 4) ACCESS_MATRIX (สิทธิ์การเข้าถึงตามประเภทเอกสาร — UC04 กำหนดสิทธิ์)</span></span></span></span></span></span>
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> ACCESS_MATRIX <span class="kw">VALUES</span></span></span></span></span></span> (<span class="fn">1</span></span></span></span></span></span>, <span class="fn">1</span></span></span></span></span></span>, <span class="st">'ALL'</span></span></span></span></span></span>,          <span class="st">'Y'</span></span></span></span></span></span>);  -- IT เห็นทุกประเภท
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> ACCESS_MATRIX <span class="kw">VALUES</span></span></span></span></span></span> (<span class="fn">2</span></span></span></span></span></span>, <span class="fn">2</span></span></span></span></span></span>, <span class="st">'ANNOUNCEMENT'</span></span></span></span></span></span>, <span class="st">'Y'</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> ACCESS_MATRIX <span class="kw">VALUES</span></span></span></span></span></span> (<span class="fn">3</span></span></span></span></span></span>, <span class="fn">2</span></span></span></span></span></span>, <span class="st">'MEMO'</span></span></span></span></span></span>,         <span class="st">'Y'</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> ACCESS_MATRIX <span class="kw">VALUES</span></span></span></span></span></span> (<span class="fn">4</span></span></span></span></span></span>, <span class="fn">3</span></span></span></span></span></span>, <span class="st">'ANNOUNCEMENT'</span></span></span></span></span></span>, <span class="st">'Y'</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> ACCESS_MATRIX <span class="kw">VALUES</span></span></span></span></span></span> (<span class="fn">5</span></span></span></span></span></span>, <span class="fn">3</span></span></span></span></span></span>, <span class="st">'MEMO'</span></span></span></span></span></span>,         <span class="st">'Y'</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> ACCESS_MATRIX <span class="kw">VALUES</span></span></span></span></span></span> (<span class="fn">6</span></span></span></span></span></span>, <span class="fn">4</span></span></span></span></span></span>, <span class="st">'ALL'</span></span></span></span></span></span>,          <span class="st">'Y'</span></span></span></span></span></span>);  -- พนักงานเห็นเอกสารของกลุ่มตน</pre>
+
+      <h3>2.4 เอกสาร 4 ฉบับ (ร่างโดยธุรการ 1001 — ยังสถานะ DRAFT)</h3>
+      <pre class="code sql"><span class="cm">-- 5) DOCUMENTS (ร่างโดยธุรการ EMP 1001 = สมศรี)</span></span></span></span></span></span>
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> DOCUMENTS (DOC_ID, DOC_TYPE, TITLE, CONTENT, PRIORITY, STATUS, CREATED_BY, SLA_HOURS) <span class="kw">VALUES</span></span></span></span></span></span>
+ (SEQ_DOC.<span class="fn">NEXTVAL</span></span></span></span></span></span>, <span class="st">'ANNOUNCEMENT'</span></span></span></span></span></span>, <span class="st">'ประกาศวันหยุดสงกรานต์ประจำปี'</span></span></span></span></span></span>, <span class="st">'บริษัทงดให้บริการ 3 วันในช่วงสงกรานต์'</span></span></span></span></span></span>, <span class="st">'GENERAL'</span></span></span></span></span></span>,   <span class="st">'DRAFT'</span></span></span></span></span></span>, <span class="fn">1001</span></span></span></span></span></span>, <span class="fn">24</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> DOCUMENTS (DOC_ID, DOC_TYPE, TITLE, CONTENT, PRIORITY, STATUS, CREATED_BY, SLA_HOURS) <span class="kw">VALUES</span></span></span></span></span></span>
+ (SEQ_DOC.<span class="fn">NEXTVAL</span></span></span></span></span></span>, <span class="st">'MEMO'</span></span></span></span></span></span>,         <span class="st">'ข้อความเวียน: ปิดประตูหลังเลิกงานทุกครั้ง'</span></span></span></span></span></span>, <span class="st">'เพื่อความปลอดภัยให้ปิดประตูทุกครั้ง'</span></span></span></span></span></span>, <span class="st">'EMERGENCY'</span></span></span></span></span></span>, <span class="st">'DRAFT'</span></span></span></span></span></span>, <span class="fn">1001</span></span></span></span></span></span>, <span class="fn">24</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> DOCUMENTS (DOC_ID, DOC_TYPE, TITLE, CONTENT, PRIORITY, STATUS, CREATED_BY, SLA_HOURS) <span class="kw">VALUES</span></span></span></span></span></span>
+ (SEQ_DOC.<span class="fn">NEXTVAL</span></span></span></span></span></span>, <span class="st">'ANNOUNCEMENT'</span></span></span></span></span></span>, <span class="st">'ประกาศนโยบาย Work From Home'</span></span></span></span></span></span>, <span class="st">'WFH ได้ไม่เกิน 2 วัน/สัปดาห์'</span></span></span></span></span></span>, <span class="st">'GENERAL'</span></span></span></span></span></span>, <span class="st">'DRAFT'</span></span></span></span></span></span>, <span class="fn">1001</span></span></span></span></span></span>, <span class="fn">24</span></span></span></span></span></span>);
+<span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> DOCUMENTS (DOC_ID, DOC_TYPE, TITLE, CONTENT, PRIORITY, STATUS, CREATED_BY, SLA_HOURS) <span class="kw">VALUES</span></span></span></span></span></span>
+ (SEQ_DOC.<span class="fn">NEXTVAL</span></span></span></span></span></span>, <span class="st">'MEMO'</span></span></span></span></span></span>,         <span class="st">'เรียนเชิญประชุมประจำไตรมาส'</span></span></span></span></span></span>, <span class="st">'ประชุมวันศุกร์ 09:00 น. ห้องประชุมใหญ่'</span></span></span></span></span></span>, <span class="st">'GENERAL'</span></span></span></span></span></span>, <span class="st">'DRAFT'</span></span></span></span></span></span>, <span class="fn">1001</span></span></span></span></span></span>, <span class="fn">24</span></span></span></span></span></span>);
+<span class="kw">COMMIT</span></span></span></span></span></span>;</pre>
+      <p class="code-note">เอกสารเริ่มที่ <strong>5001</strong> (SEQ_DOC START WITH 5001) — 5002 คือ MEMO <strong>EMERGENCY</strong> ใช้โชว์การกระจาย 3 ช่องทาง ส่วน 5001/5003/5004 เป็น GENERAL กระจาย 2 ช่องทาง</p>
+
+      <h2 id="read-select">🌱 SELECT แรกในชีวิต + อ่าน INSERT ให้เป็น (ก่อนไปหน้า PL/SQL)</h2>
+      <p>ใส่ข้อมูล (INSERT) แล้วต้องดูข้อมูล (SELECT) เป็น — สามตัวอย่างนี้ใช้ข้อมูลจริงของไฟล์ 02 ทั้งหมด ผลลัพธ์บนจอจะตรงเป๊ะแบบนี้:</p>
+
+      <h3>ตัวอย่าง 1 — ดูข้อมูลทั้งหมด</h3>
+      <pre class="code sql"><span class="kw">SELECT</span></span></span></span></span> * <span class="kw">FROM</span></span></span></span></span> EMPLOYEES;</pre>
+      <ul>
+        <li><code>SELECT *</code> = ขอ <strong>ทุกคอลัมน์</strong> · <code>FROM EMPLOYEES</code> = จากตารางพนักงาน — ได้ 8 แถว (พนักงาน 8 คน) โผล่บนจอทั้งคน</li>
+      </ul>
+
+      <h3>ตัวอย่าง 2 — เลือกเฉพาะคอลัมน์ + คัดเฉพาะแถว (WHERE)</h3>
+      <pre class="code sql"><span class="kw">SELECT</span></span></span></span></span> EMP_ID, EMP_NAME, EMAIL
+<span class="kw">FROM</span></span></span></span></span>   EMPLOYEES
+<span class="kw">WHERE</span></span></span></span></span>  ROLE_ID = <span class="fn">4</span></span></span></span></span>
+<span class="kw">ORDER</span></span></span></span></span>  <span class="kw">BY</span></span></span></span></span> EMP_ID;</pre>
+      <ul>
+        <li>"ขอคอลัมน์รหัส+ชื่อ+อีเมล เฉพาะแถวที่ ROLE_ID = 4 (บทบาทพนักงานกลุ่มเป้าหมาย) เรียงตามรหัส" — ผลบนจอ = คนกลุ่มเป้าหมาย 4 คนนี้เอง (ตัวเลขที่ใช้ทดสอบยืนยันทั้งหน้า PL/SQL):</li>
+      </ul>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>EMP_ID</th><th>EMP_NAME</th><th>EMAIL</th></tr>
+          <tr><td>1004</td><td>ปกรณ์ ใจสุภาพ</td><td>pakorn@corp.co.th</td></tr>
+          <tr><td>1005</td><td>กมลวรรณ แสงทอง</td><td>kamonwan@corp.co.th</td></tr>
+          <tr><td>1006</td><td>ธนกร มั่นคง</td><td>thanakorn@corp.co.th</td></tr>
+          <tr><td>1007</td><td>พิมพ์ชนก สดใส</td><td>pimchanok@corp.co.th</td></tr>
+        </table>
+      </div>
+      <div class="term">
+        <p><span class="term-word">WHERE</span> = "คัดเฉพาะแถวที่เงื่อนไขจริง" เหมือน filter ใน Excel · <span class="term-word">ORDER BY</span> = เรียงผล (ASC น้อย→มาก [ค่าเริ่มต้น], DESC มาก→น้อย) · <span class="term-word">;</span> ท้ายบรรทัด = จบคำสั่ง ให้ฐานข้อมูลรันทันที</p>
+      </div>
+
+      <h3>ตัวอย่าง 3 — อ่าน INSERT ทีละส่วน (โครงเดียวกันทุกแถวในไฟล์ 02)</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th style="width:48%;">ส่วนของโค้ด</th><th>แปลว่าอะไร</th></tr>
+          <tr><td><code>INSERT INTO EMPLOYEES (EMP_ID, EMP_NAME, EMAIL, POSITION, DEPT_ID, ROLE_ID)</code></td><td>"จะเพิ่ม 1 แถวเข้าตาราง EMPLOYEES โดยระบุชัดว่าจะกรอกคอลัมน์ไหนบ้าง (คอลัมน์ HIRE_DATE ไม่ยกมา → ใช้ DEFAULT SYSDATE ให้เอง)"</td></tr>
+          <tr><td><code>VALUES (SEQ_EMP.NEXTVAL, 'ปกรณ์ ใจสุภาพ', 'pakorn@corp.co.th', 'พนักงานปฏิบัติการ', 40, 4)</code></td><td>"ค่าของแต่ละคอลัมน์ตามลำดับเดียวกับบรรทัดบน — ต้องเรียงครบและตรงประเภทเสมอ"</td></tr>
+          <tr><td><code>SEQ_EMP.NEXTVAL</code></td><td>"ขอเลขถัดไปจากเครื่องนับอัตโนมัติ" — แถวนี้เลยได้ EMP_ID = 1004 (เครื่องนับเริ่มที่ 1000 ตามด้วย 1001, 1002, ...)</td></tr>
+          <tr><td><code>COMMIT;</code></td><td>"บันทึกถาวร" — ก่อน COMMIT ข้อมูลยังเป็นฉบับร่างที่เราเห็นคนเดียว, COMMIT แล้วทุก session เห็น + เก็บถาวร (ส่วน ROLLBACK = ย้อนลบทิ้ง — เจอเยอะในหน้า PL/SQL)</td></tr>
+        </table>
+      </div>
+      <div class="box box-tip">
+        <p class="box-title">💡 เทคนิคจำของมือใหม่</p>
+        <p>จำโครง 3 บรรทัดนี้ให้ได้: <code>INSERT INTO ตาราง (คอลัมน์ที่กรอก)</code> + <code>VALUES (ค่าตามลำดับเดิม)</code> + <code>COMMIT;</code> — และจำไว้ว่า <strong>ข้อความต้องมีเครื่องหมาย '...' ครอบ ส่วนตัวเลขห้ามมี</strong> (พิมพ์ '40' แทน 40 แล้วจะถูกมองเป็นข้อความ อาจารย์ชอบจิ้มประเด็นนี้)</p>
+      </div>
+
+      <h2>📐 Constraint 4 ประเภท — จากตัวอย่างจริงใน DDL นี้</h2>
+      <p>ใน 05_VERIFY คอลัมน์ <code>CONSTRAINT_TYPE</code> จะมีแค่ 4 ตัวอักษร — ทุกคนต้องแปลได้ทันที:</p>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>ตัวอักษร</th><th>ชนิด</th><th>ความหมาย / กันอะไร</th><th>ตัวอย่างจริงจาก Part I</th></tr>
+          <tr><td><strong>P</strong></td><td>Primary Key</td><td>แถวตัวตนของตาราง ไม่ซ้ำ + ไม่ NULL — ใช้อ้างอิงจากตารางอื่น (เป็นแบบคอลัมน์เดียวหรือ composite ก็ได้)</td><td>PK_DEPT · PK_DOC · PK_EMP — Part I มี PK ครบทั้ง 11 ตาราง</td></tr>
+          <tr><td><strong>R</strong></td><td>Foreign Key (Referential)</td><td>ค่าต้องมีจริงในตารางแม่ — กันอ้างอิงของที่ไม่มี</td><td>FK_DOC_CREATOR (ผู้ร่างต้องเป็นพนักงานที่มีอยู่)</td></tr>
+          <tr><td><strong>U</strong></td><td>Unique</td><td>ห้ามซ้ำในตาราง (แต่อนุญาต NULL ได้ต่างจาก PK)</td><td>UQ_EMP_EMAIL · UQ_SIGN_DOC (ลงนาม 1 ครั้ง) · UQ_RLOG_DOC_EMP (ยืนยัน 1 ครั้ง)</td></tr>
+          <tr><td><strong>C</strong></td><td>Check / Not Null</td><td>จำกัดค่าให้อยู่ในเงื่อนไขธุรกิจ + คอลัมน์จำเป็นต้องมีค่า</td><td>CK_DOC_STATUS (8 สถานะ) · CK_DOC_SLA (&gt; 0) · NN_DOC_TITLE</td></tr>
+        </table>
+      </div>
+      <div class="box box-mem">
+        <p class="box-title">🧠 ตัวเลข Constraint ของ Part I (นับจาก DDL จริง — ใช้ชี้ผล 05_VERIFY ได้)</p>
+        <p><strong>P = 11</strong> (ทุกตารางมี 1) · <strong>R = 14</strong> · <strong>U = 4</strong> · <strong>C = 31</strong> (CHECK ที่ตั้งชื่อ CK_ 11 + NOT NULL NN_ 20) —
+        รวม ~60 แถว Constraint ในผล VERIFY เมื่อรันเสร็จ — จำแค่ "11 ตาราง ตารางละ PK" + "FK 14 ตัว" ก็ตอบได้ว่าระบบผูกกันสมบูรณ์</p>
+      </div>
+
+      <h2>💥 กรณี error ที่ demo โชว์ได้จาก DDL นี้ (Constraint ทำงานจริง)</h2>
+      <div class="tbl-wrap">
+      <table class="tbl compact">
+        <tr><th>ทดสอบ</th><th>คำสั่งพิมพ์</th><th>ผลที่ต้องเห็น</th><th>อธิบายอาจารย์ว่า</th></tr>
+        <tr><td>INSERT อีเมลซ้ำ (UNIQUE)</td><td><code>INSERT INTO EMPLOYEES VALUES (SEQ_EMP.NEXTVAL,'ทดสอบซ้ำ','pakorn@corp.co.th','ทด',40,4);</code></td><td><code>ORA-00001: unique constraint (UQ_EMP_EMAIL) violated</code></td><td>"EMAIL UNIQUE เพราะเป็นบัญชีเข้าสู่ระบบ — DB กันซ้ำเองโดยไม่ต้องเขียนโค้ดตรวจ"</td></tr>
+        <tr><td>สถานะผิดจากชุดที่อนุญาต (CHECK)</td><td><code>INSERT INTO DOCUMENTS (DOC_ID,DOC_TYPE,TITLE,STATUS,CREATED_BY) VALUES (9001,'MEMO','ทดสอบ','ส่งแล้ว',1001);</code></td><td><code>ORA-02290: check constraint (CK_DOC_STATUS) violated</code></td><td>"CHECK คือกฎธุรกิจฝังใน DB — สถานะต้องอยู่ใน 8 ค่าเท่านั้น"</td></tr>
+        <tr><td>อ้างแผนกที่ไม่มี (FK)</td><td><code>INSERT INTO EMPLOYEES (EMP_ID,EMP_NAME,EMAIL,DEPT_ID,ROLE_ID) VALUES (9999,'ทด FK','fk@test.co.th',99,4);</code></td><td><code>ORA-02291: integrity constraint (FK_EMP_DEPT) violated - parent key not found</code></td><td>"FK รับประกันความสัมพันธ์ — ไม่มีแผนก 99 จึงสร้างพนักงานไม่ได้"</td></tr>
+      </table>
+      </div>
+      <p class="mermaid-caption" style="text-align:left;">💡 โชว์ 3 อันนี้ตอน demo แล้วรัน ROLLBACK ท้ายด้วย เพื่อให้ฐานข้อมูลสะอาดเหมือนเดิมก่อนไปขั้น PL/SQL</p>
+
+      <div class="quiz" data-answer="3">
+        <p class="quiz-q"><span class="qno">Q</span> ทำไม READ_LOGS ถึงใช้ UNIQUE (DOC_ID, EMP_ID) แทนที่จะให้ DOC_ID เป็น UNIQUE เหมือน SIGNATURES?</p>
+        <div class="quiz-opts">
+          <button class="quiz-opt">เพราะ READ_LOGS มีคอลัมน์น้อยกว่า</button>
+          <button class="quiz-opt">เพราะ DOC_ID ของ READ_LOGS ไม่ใช่ FK</button>
+          <button class="quiz-opt">เพราะ UNIQUE คู่ทำให้ PK เป็น LOG_ID ได้</button>
+          <button class="quiz-opt">เพราะเอกสารเดียวต้องมีคนยืนยันได้ "หลายคน" (แต่ละคนซ้ำไม่ได้) — ส่วน SIGNATURES อนุญาตลงนามได้แค่คนเดียวต่อเอกสาร</button>
+        </div>
+        <div class="quiz-explain"><strong>เฉลย:</strong> READ_LOGS = หลายแถวต่อเอกสาร (คนละคน) จึงล็อกที่คู่ (DOC_ID, EMP_ID) กันแค่ "คนเดิมยืนยันซ้ำ" · SIGNATURES = แถวเดียวต่อเอกสาร จึง UNIQUE แค่ DOC_ID</div>
+      </div>
+
+      <div class="quiz" data-answer="0">
+        <p class="quiz-q"><span class="qno">Q</span> ใน 05_VERIFY เห็นแถว CONSTRAINT_TYPE = 'R' — แปลว่าอะไร?</p>
+        <div class="quiz-opts">
+          <button class="quiz-opt">Foreign Key (Referential)</button>
+          <button class="quiz-opt">Required field (NOT NULL)</button>
+          <button class="quiz-opt">Referenced table (ตารางแม่)</button>
+          <button class="quiz-opt">Row-level constraint</button>
+        </div>
+        <div class="quiz-explain"><strong>เฉลย:</strong> R = Referential = Foreign Key จำคู่กัน: P = Primary, R = Reference (FK), U = Unique, C = Check/NOT NULL</div>
+      </div>
+
+      <div class="prevnext">
+        <a href="p1-usecase.html">ก่อนหน้า: Use Case + Traceability<small>📋 โครงระบบ Part I</small></a>
+        <a class="next" href="p1-plsql.html">ต่อไป: PL/SQL Transaction Processing<small>⚙️ Trigger + Procedure 4 ตัว + Transaction ใหญ่</small></a>
+      </div>
+
+    </div>
+  </main>
+</div>
+<script src="script.js"></script>
+<script src="tts.js"></script>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true, securityLevel: 'loose', theme: 'base',
+    fontFamily: '"Noto Sans Thai", sans-serif',
+    themeVariables: { primaryColor:'#eef0ff', primaryTextColor:'#1d2333', primaryBorderColor:'#4f46e5', lineColor:'#5b6474' }
+  });
+</script>
+</body>
+</html>

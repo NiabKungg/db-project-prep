@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Part II · Use Case UC01–UC10 + REG1–17 — เว็บติวสอบ Project Database</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-tts="1">
+<div id="progressBar"></div>
+<div class="backdrop"></div>
+
+<header class="topbar">
+  <button class="hamburger" aria-label="เปิดเมนู">☰</button>
+  <div class="topbar-title">🎓 ติวสอบ Project Database</div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="เมนูหลัก">
+    <div class="side-brand">🎓 Project DB Prep<small>สอบ Project Face-to-face • 2 Business Domain</small></div>
+    <div class="side-note">💡 <b>กฎเหล็ก:</b> ลำดับรัน 00→05 • DROP ให้อาจารย์ดู • ทุกคนตอบ "ทำไม" ได้เหมือนกัน</div>
+    <a class="nav-link" href="index.html"><span class="nav-emoji">🏠</span> หน้าแรก + โจทย์อาจารย์</a>
+    <div class="side-group">PART I — อ.อู๊ด (เวียน + ประกาศ)</div>
+    <a class="nav-link" href="p1-usecase.html"><span class="nav-emoji">📋</span> Use Case + Traceability</a>
+    <a class="nav-link" href="p1-er-ddl-dml.html"><span class="nav-emoji">🗄️</span> E/R + DDL/DML <span class="nav-pts">11 ตาราง</span></a>
+    <a class="nav-link" href="p1-plsql.html"><span class="nav-emoji">⚙️</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p1-join.html"><span class="nav-emoji">🔗</span> SQL JOIN 6 ข้อ</a>
+    <div class="side-group">PART II — อ.ผึ้ง (Smart Bus Bell)</div>
+    <a class="nav-link" href="p2-usecase.html"><span class="nav-emoji">🚌</span> Use Case + REG1–17</a>
+    <a class="nav-link" href="p2-er-ddl-dml.html"><span class="nav-emoji">🚏</span> E/R + DDL/DML <span class="nav-pts">10 ตาราง</span></a>
+    <a class="nav-link" href="p2-plsql.html"><span class="nav-emoji">🚦</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p2-join.html"><span class="nav-emoji">🧭</span> SQL JOIN 6 ข้อ</a>
+    <div class="side-group">สาธิตหน้าห้อง</div>
+    <a class="nav-link" href="verify-demo.html"><span class="nav-emoji">🎤</span> ลำดับ demo + Q&A</a>
+  </nav>
+
+  <main class="main">
+    <div class="content">
+
+      <section class="page-head">
+        <p class="crumb"><a href="index.html">หน้าแรก</a> • PART II — S2G13 Public Transit Navigation System (อ.ผึ้ง)</p>
+        <h1>🚌 Use Case 10 ตัว + Traceability REG1–17 — ระบบช่วยเดินทางโดยรถขนส่งสาธารณะ</h1>
+        <div class="head-meta">
+          <span class="badge">4 Actor</span><span class="badge">10 Use Case</span><span class="badge">REQ 17 ข้อ</span><span class="badge gold">REG1–17 ↔ UC</span>
+        </div>
+      </section>
+
+      <div class="box box-basics">
+        <p class="box-title">🔗 เอกสาร UC/REQ นี้สัมพันธ์กับอะไรที่จะสาธิตจริง</p>
+        <p>Use Case และ REQ 17 ข้อในหน้านี้คือ <strong>เอกสาร Business Domain ของงาน อ.ผึ้ง</strong> (Public Transit Navigation) ที่ Traceability อ้างอิง —
+        ส่วน <strong>ระบบที่ implement จริงและ deploy บน server แล้วสำหรับสาธิต</strong> คือ <strong>Smart Bus Bell &amp; IoT Tracking System</strong> (11 ตาราง + Procedure 4 ตัว) ซึ่งรองรับกลุ่ม UC ใจกลางเรื่อง "กดกริ่ง–แจ้งเตือน–ติดตามรถ" (UC04/UC05/UC01/UC10) —
+        หน้าถัดไปจะสอนโค้ดจริงทีละบล็อก และท้ายหน้านี้มีตารางจับคู่ UC ↔ ตารางใหม่ให้ตอบอาจารย์ได้ว่า "UC นี้ implement ด้วยอะไร"</p>
+      </div>
+
+      <div class="box box-exam">
+        <p class="box-title">① อาจารย์ต้องการอะไร (โจทย์ Part II เหมือน Part I ทุกข้อ)</p>
+        <p>"DDL , DML ตาม E/R Diagram" + "PL/SQL ตามโจทย์หลักของระบบงาน" + "JOIN แสดงข้อมูลการทำงานหลัก" —
+        Business Domain เปลี่ยนเป็น <strong>ระบบช่วยเดินทางโดยรถขนส่งสาธารณะ (Public Transit Navigation)</strong> —
+        ทุกคนต้องเล่าได้ว่าระบบนี้แก้ปัญหาอะไร ใครใช้ และทำไมตาราง/Procedure ทุกตัวถึงมีอยู่ (มาจาก UC ตัวไหน)</p>
+      </div>
+
+      <h2>🚌 ระบบนี้แก้ปัญหาอะไร (เล่าเปิด demo 30 วินาที — จากเอกสารความต้องการจริง)</h2>
+      <p>ปัญหาเดิม: ผู้ใช้รถเมล์/สองแถว <strong>ไม่รู้ว่ารถคันถัดไปอยู่ไหน ต้องรอนานเท่าไร</strong> ·
+      ช่วงโมงเร่งด่วนรถแน่นจนขึ้นไม่ได้แต่เช็คไม่ได้ล่วงหน้า ·
+      รถสองแถวยืนท้ายรถแล้วต้องเอื้อมมือกดกริ่งลงรถ <strong>เสี่ยงอุบัติเหตุ</strong> ·
+      ฝั่งคนขับมองไม่เห็นคนรอตามจุดจอดมืดหรือไม่ชัดเจน</p>
+      <p>ระบบใหม่: ผู้โดยสาร <strong>ดูตำแหน่งรถบนแผนที่แบบ real-time + เช็คความหนาแน่น (ว่าง/ปานกลาง/แน่น) + กดกริ่งลงรถผ่านแอป + รับแจ้งเตือนรถใกล้ถึง</strong> —
+      คนขับมีหน้าจอแจ้งเตือน "มีคนรอขึ้น/ต้องการลง" จุดจอดถัดไป และกดเปลี่ยนสถานะรถให้ข้อมูลตรงความจริง —
+      ฝั่ง Admin จัดการสายรถ/จุดจอด/เส้นทาง และดาวน์โหลดประวัติรอบวิ่งมาตรวจสอบย้อนหลัง</p>
+
+      <h2>🧩 Use Case Diagram — Actor 4 ตัว, UC 10 ตัว</h2>
+      <pre class="mermaid">
+flowchart LR
+  P["👤 ผู้โดยสาร"]
+  D["🚌 พนักงานขับรถ"]
+  A["🛠️ ผู้ดูแลระบบ"]
+  U1(["UC01 ดูพิกัดตำแหน่งรถบนแผนที่"])
+  U2(["UC02 ดูสายรถ เส้นทาง ค่าโดยสาร"])
+  U3(["UC03 ตรวจสอบความหนาแน่นบนรถ"])
+  U4(["UC04 กดกริ่งลงรถผ่านแอป"])
+  U5(["UC05 รับแจ้งเตือนรถใกล้ถึง"])
+  U6(["UC06 กดเปลี่ยนสถานะของรถ"])
+  U7(["UC07 ดูตำแหน่งรถทุกคันภาพรวม"])
+  U8(["UC08 เพิ่ม ลบ แก้ไข สายรถ จุดจอด เส้นทาง"])
+  U9(["UC09 ดูและดาวน์โหลดประวัติรอบวิ่ง"])
+  U10(["UC10 เข้าสู่ระบบ"])
+  P --> U1
+  P --> U2
+  P --> U3
+  P --> U4
+  P --> U5
+  D --> U6
+  A --> U7
+  A --> U8
+  A --> U9
+  U4 -. «include» .-> U10
+  U5 -. «include» .-> U10
+  U6 -. «include» .-> U10
+      </pre>
+      <p class="mermaid-caption">จาก UC Diagram จริงของกลุ่ม: UC04/UC05/UC06 «include» UC10 (ต้องยืนยันตัวตนก่อนใช้) · พนักงานบนรถ participate ใน UC04 ·
+      UC07–UC09 ต้องเข้าสู่ระบบด้วยสิทธิ์ Admin ตาม Preconditions</p>
+
+      <div class="box box-tip">
+        <p class="box-title">🎤 เล่า UC Diagram เปิด demo ด้วย 4 ประโยค (ท่องได้ = เริ่มอย่างมั่นใจ)</p>
+        <ol>
+          <li>"ระบบนี้แก้ปัญหาผู้โดยสารไม่รู้ว่ารถอยู่ไหน/รถแน่นไหม/กดกริ่นยาก — โดยมี 4 Actor: ผู้โดยสาร, พนักงานขับรถ, ผู้ดูแลระบบ และพนักงานบนรถ (participate)"</li>
+          <li>"มี 10 Use Case: ฝั่งผู้โดยสาร 5 ตัว (ดูตำแหน่ง/เส้นทาง/ความหนาแน่น/กดกริ่ง/รับแจ้งเตือน), ฝั่งคนขับ 1 ตัว (เปลี่ยนสถานะรถ), ฝั่ง Admin 3 ตัว (ภาพรวม/จัดการเส้นทาง/รายงานรอบวิ่ง) และ UC10 เข้าสู่ระบบ"</li>
+          <li>"UC04/05/06 «include» UC10 — กดกริ่ง รับแจ้งเตือน และเปลี่ยนสถานะรถ ต้องล็อกอินก่อนทั้งหมด"</li>
+          <li>"ทั้ง 10 UC แปลงเป็นตาราง 10 ตาราง + Procedure 5 ตัวหน้าถัดไป — เช่น UC04 กดกริ่ง = ตาราง BELL_REQUESTS + SP_RING_BELL"</li>
+        </ol>
+      </div>
+      <div class="term">
+        <p><span class="term-word">«include»</span> — Base UC เรียกใช้ UC10 ทุกครั้งแบบบังคับ (ยืนยันตัวตนก่อน) ·
+        <span class="term-word">participate</span> — Actor ช่วยร่วมทำ (พนักงานบนรถรับสัญญาณกริ่งใน UC04) ·
+        <span class="term-word">Participating Actors (ระบบ)</span> — ระบบย่อยที่ถูกเรียกใช้: ระบบ GPS, ระบบค้นหาอาคาร/ย่านทานะ, ระบบแจ้งเตือนสถานะรถ, Trip History Service, ระบบจัดการข้อมูลผู้ใช้งาน</p>
+      </div>
+
+      <h2>📖 Use Case Specification ครบทั้ง 10 ตัว (จากเอกสารรายละเอียด Use Case จริง)</h2>
+      <p>อ่านสาย Flow: <strong>→</strong> = Actor ทำ / <strong>←</strong> = System ตอบสนอง · Extensions = กรณีผิดปกติ</p>
+
+      <h3>UC-01 · ดูพิกัดตำแหน่งรถบนแผนที่</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>REQ-01, REQ-14</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>ผู้โดยสาร</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>ตรวจสอบตำแหน่งปัจจุบันของรถเมล์/สองแถวบนแผนที่</td></tr>
+          <tr><td><strong>Participating Actors</strong></td><td>ระบบ GPS</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>1. ผู้ใช้งานเปิดแอปและเชื่อมต่ออินเทอร์เน็ต · 2. รถโดยสารเปิดใช้งาน GPS อยู่</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>ระบบแสดงตำแหน่งรถโดยสารที่เคลื่อนที่อยู่ในขณะนั้น</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>→ 1. ผู้โดยสารเลือกดูแผนที่ตำแหน่งรถ<br>← 2. ระบบดึงพิกัด GPS ของรถที่กำลังใช้งาน<br>← 3. ระบบแสดงตำแหน่งรถบนแผนที่</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>2a.</strong> ไม่มีรถให้บริการในสายที่เลือก ณ เวลานั้น → "ขณะนี้ยังไม่มีรถเปิดให้บริการในเส้นทางนี้"<br><strong>2b.</strong> สัญญาณ GPS ขาดหาย/ไม่เสถียร → "ไม่พบข้อมูลรถโดยสารในขณะนี้"</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB (ฉบับ implement): <code>IOT_BOX</code> (กล่อง IoT — พิกัด LAT/LONG + LAST_PING_AT = ตำแหน่งล่าสุดของรถ)</p>
+
+      <h3>UC-02 · ดูสายรถ เส้นทาง และอัตราค่าโดยสาร</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>REQ-04, REQ-03</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>ผู้โดยสาร</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>ดูข้อมูลสายรถ เส้นทางที่วิ่งผ่าน จุดจอด และอัตราค่าโดยสาร</td></tr>
+          <tr><td><strong>Participating Actors</strong></td><td>ระบบฐานข้อมูลเส้นทาง (ค้นหาอาคาร/ย่านใกล้เคียง — LANDMARK)</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>1. มีข้อมูลสายรถ เส้นทาง จุดจอดอยู่ในระบบ · 2. โทรศัพท์เชื่อมต่ออินเทอร์เน็ต</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>ระบบแสดงข้อมูลเส้นทาง จุดจอด และราคาค่าโดยสาร</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>→ 1. ผู้โดยสารค้นหาสายรถหรือจุดจอดที่ต้องการ<br>← 2. ระบบแสดงสายรถ เส้นทางที่วิ่ง จุดจอด ค่าโดยสาร<br>← 3. ระบบคำนวณและแสดงเวลาที่มาถึงจุดจอดที่ใกล้ที่สุด</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>2a.</strong> ค้นหาจุดจอดหรือสายรถไม่พบ → "ไม่พบข้อมูลที่ค้นหา"</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB (ฉบับ implement): <code>VEHICLE</code> เก็บทะเบียน + ROUTE_NO (สายเดินรถ) — ค้นสายได้จากทะเบียน (จุดจอดรายละเอียดไม่อยู่ในขอบเขตฉบับสาธิต)</p>
+
+      <h3>UC-03 · ตรวจสอบสถานะความหนาแน่นบนรถ</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>REQ-05</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>ผู้โดยสาร</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>เช็คระดับความแน่นของรถก่อนตัดสินใจขึ้น</td></tr>
+          <tr><td><strong>Participating Actors</strong></td><td>ระบบติดตามสถานะยานพาหนะ</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>พนักงานอัปเดตสถานะความหนาแน่นของคนบนรถแล้ว</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>ระบบแสดงความหนาแน่นของคนบนรถ</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>→ 1. ผู้โดยสารเลือกรถที่ต้องการดูความหนาแน่น<br>← 2. ระบบดึงข้อมูลระดับความหนาแน่น<br>← 3. ระบบแสดงป้ายสถานะ 3 ระดับ: "ว่าง" / "ปานกลาง" / "แน่น" พร้อมไอคอนสีประกอบ</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>2a.</strong> ข้อมูลไม่มีการอัปเดตนาน → เตือน "รถคันนี้สถานะอาจไม่เป็นปัจจุบัน"</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB: ไม่มีคอลัมน์! "จำนวนคนบนรถ" เป็น <strong>Derived Attribute</strong> ตาม ER (วงรีเส้นประ) — ไม่เก็บ คำนวณจากตัวนับ IoT/แอปคนขับ (คำตอบโจทย์ ER ข้อนี้)</p>
+
+      <h3>UC-04 · กดกริ่งลงรถผ่านแอปพลิเคชัน</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>REQ-06, REQ-09, REQ-17</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>ผู้โดยสาร</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>แจ้งพนักงานขับรถว่าต้องการลงจุดจอดถัดไป โดยไม่ต้องเอื้อมมือกดกริ่งบนรถ</td></tr>
+          <tr><td><strong>Participating Actors</strong></td><td>พนักงานขับรถ, ระบบติดตามยานพาหนะ (พนักงานบนรถ participate)</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>1. ผู้โดยสารเข้าสู่ระบบ («include» UC10) · 2. ผู้โดยสารอยู่บนรถ</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>1. ระบบส่งสัญญาณกริ่งสำเร็จ · 2. พนักงานขับรถได้รับสัญญาณกริ่ง</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>→ 1. ผู้โดยสารกด "กดกริ่งลงรถ" บนแอปพลิเคชัน<br>← 2. ระบบส่งสัญญาณไปให้พนักงานขับรถ<br>← 3. ระบบแสดงข้อความยืนยันแก่ผู้โดยสารว่า "กดกริ่งสำเร็จ"</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>1a.</strong> ยังไม่ได้เข้าสู่ระบบ → ระบบแจ้งให้เข้าสู่ระบบก่อนใช้ฟังก์ชันนี้ (UC10)<br><strong>2a.</strong> เครือข่ายขัดข้อง ส่งสัญญาณไม่สำเร็จ → "ส่งสัญญาณไม่สำเร็จ กรุณากดใหม่อีกครั้ง หรือกดกริ่งบนตัวรถโดยตรง"</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB (ฉบับ implement ⭐): <code>BELL_REQUEST</code> (สถานะ SENDING/SUCCESS/CANCELLED + ALIGHT_TIME) + junction <code>VEHICLE_BELL_REQUEST</code> + <code>SP_PRESS_BELL</code> — 1 transaction = 3 DML: กริ่ง → ส่งถึงรถ → สถิติ + ตรวจบทบาท PASSENGER ก่อน (-20001)</p>
+
+      <h3>UC-05 · รับการแจ้งเตือนเมื่อรถใกล้ถึงจุดจอด</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>REQ-07, REQ-08</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>ผู้โดยสาร</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>รับแจ้งเตือนเมื่อรถคันที่กำลังรอใกล้ถึงจุดจอด เพื่อเตรียมตัวขึ้นทัน</td></tr>
+          <tr><td><strong>Participating Actors</strong></td><td>ระบบแจ้งเตือน, ระบบติดตามพิกัด GPS</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>1. ผู้โดยสารเลือกสายรถที่กำลังรอ («include» UC10) · 2. ผู้โดยสารอนุญาตการแจ้งเตือน</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>ผู้โดยสารได้รับข้อความแจ้งเตือนเมื่อรถเข้าใกล้จุดจอดที่กำหนด</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>→ 1. ผู้โดยสารเลือกจุดจอดที่รอ<br>← 2. เมื่อรถเข้าใกล้ ระบบส่งแจ้งเตือนให้ผู้โดยสาร<br>← 3. ระบบส่งแจ้งเตือนให้คนขับว่ามีคนในจุดจอดถัดไป</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>2a.</strong> ปิดการรับแจ้งเตือน หรือไม่มีสัญญาณเน็ต → ระบบบันทึกประวัติข้อความเตือนไว้ในกล่องข้อความภายในแอป</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB (ฉบับ implement): <code>DIGITAL_BELL_SIGNAL</code> + junction <code>VEHICLE_DIGITAL_SIGNAL</code> + <code>ALERT_STATISTICS</code> (สถิติต่อรถต่อวัน — UNIQUE รถ+วัน) + <code>SP_SEND_DIGITAL_SIGNAL</code> (MERGE +1)</p>
+
+      <h3>UC-06 · กดเปลี่ยนสถานะของรถ</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>REQ-10, REQ-17</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>พนักงานขับรถ («include» UC10)</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>ทำให้สถานะการเดินรถตรงความเป็นจริง (เช่น พร้อมให้บริการ / รถเต็ม / หมดระยะ)</td></tr>
+          <tr><td><strong>Participating Actors</strong></td><td>ระบบจัดการสถานะยานพาหนะ, ผู้โดยสาร</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>พนักงานขับรถเข้าสู่ระบบเรียบร้อยแล้ว</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>1. สถานะรถในฐานข้อมูลส่วนกลางถูกอัปเดต · 2. สถานะใหม่อัปเดตบนหน้าจอผู้โดยสารทันที</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>→ 1. พนักงานเลือกเมนูเปลี่ยนสถานะรถ<br>→ 2. กดเลือกสถานะใหม่ที่ต้องการ (เช่น หมดระยะ)<br>← 3. ระบบบันทึกสถานะใหม่และกระจายข้อมูลอัปเดตไปยังระบบแผนที่ของผู้โดยสาร</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB (ฉบับ implement): ฝั่งคนขับคือ <code>SP_COMPLETE_ALIGHT</code> (ยืนยันว่าผู้โดยสารลงแล้ว: SENDING → SUCCESS + ประทับ ALIGHT_TIME — กันยืนยันซ้ำด้วย SQL%ROWCOUNT=0 → -20002)</p>
+
+      <h3>UC-07 · ดูตำแหน่งรถทุกคันบนแผนที่ภาพรวม</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>REQ-02</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>ผู้ดูแลระบบ</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>ติดตาม ตรวจสอบ และจัดการการเดินรถทั้งหมดในระบบ</td></tr>
+          <tr><td><strong>Participating Actors</strong></td><td>ระบบติดตามยานพาหนะ</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>ผู้ดูแลระบบเข้าสู่ระบบด้วยสิทธิ์ผู้ดูแลระบบ</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>เห็นตำแหน่ง ทิศทาง และสถานะของรถทุกคันที่กำลังวิ่งบนแผนที่</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>→ 1. เปิดหน้าจอ "แผนที่ภาพรวมการเดินรถ"<br>← 2. ระบบดึงข้อมูล GPS ทุกคัน<br>← 3. ระบบแสดงตำแหน่งรถพร้อมรายละเอียด</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>3a.</strong> รถบางคันขาดส่งพิกัด GPS นานเกินกำหนด → แสดงไอคอนรถสีเทา/เครื่องหมายเตือนออฟไลน์ (ใช้ตำแหน่งล่าสุดที่มี)</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB (ฉบับ implement): <code>IOT_BOX.LAST_PING_AT / LATITUDE / LONGITUDE</code> — เก็บตำแหน่งล่าสุดของแต่ละกล่อง ตรงแนวทาง Ext 3a (ใช้ตำแหน่งล่าสุดเมื่อ GPS ขาด)</p>
+
+      <h3>UC-08 · เพิ่ม ลบ แก้ไข สายรถ จุดจอด เส้นทาง</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>REQ-12, REQ-13</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>ผู้ดูแลระบบ</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>เพิ่ม ลบ แก้ไขข้อมูลสายรถ จุดจอด เส้นทาง และข้อมูลคนขับ ให้เป็นปัจจุบัน</td></tr>
+          <tr><td><strong>Participating Actors</strong></td><td>ระบบจัดการข้อมูลเส้นทาง</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>ผู้ดูแลระบบเข้าสู่ระบบด้วยสิทธิ์ Admin</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>ข้อมูลสายรถ จุดจอด หรือเส้นทางเดินรถได้รับการปรับปรุง</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>→ 1. เข้าสู่เมนู "จัดการข้อมูลเส้นทางและจุดจอด"<br>← 2. ระบบแสดงรายการสายรถ จุดจอด เส้นทางที่มีอยู่<br>→ 3. เลือกทำรายการ: เพิ่มใหม่ / แก้ไข / ลบรายการที่ไม่ใช้งาน<br>→ 4. กรอกข้อมูล (ชื่อสายรถ พิกัดจุดจอด ลำดับจุดจอด อัตราค่าโดยสาร) แล้วกดยืนยัน<br>← 5. ระบบตรวจสอบความถูกต้อง บันทึกลงฐานข้อมูล และแสดงข้อความบันทึกสำเร็จ</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>4a.</strong> กรอกข้อมูลไม่ครบ/ผิดพลาด → แจ้งเตือนตามช่องข้อมูล ไม่บันทึกจนกว่าจะแก้<br><strong>4b.</strong> ลบจุดจอดที่ยังผูกอยู่กับสายรถที่เปิดใช้งาน → เตือนยืนยันผลกระทบ ให้ยกเลิกหรือเอาออกจากสายก่อน</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB (ฉบับ implement): <code>VEHICLE</code> (ทะเบียน UNIQUE + สายเดินรถ) — การเพิ่ม/ลบ/แก้ข้อมูลรถทำที่ตารางนี้ (สคริปต์สาธิตเน้นฝั่งกริ่งตามโจทย์หลัก)</p>
+
+      <h3>UC-09 · ดูและดาวน์โหลดประวัติรอบการวิ่ง</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>REQ-14</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>ผู้ดูแลระบบ</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>เรียกดูและดาวน์โหลดไฟล์ประวัติการวิ่งประจำวันเพื่อตรวจสอบย้อนหลัง</td></tr>
+          <tr><td><strong>Participating Actors</strong></td><td>ระบบฐานข้อมูลประวัติการเดินรถ (Trip History Service)</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>1. เข้าสู่ระบบด้วยสิทธิ์ Admin · 2. มีข้อมูลการเดินรถอยู่ในระบบ</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>ระบบสร้างไฟล์รายงานประวัติรอบการวิ่งตามเงื่อนไขที่เลือก</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>→ 1. เลือกเมนู "รายงานประวัติการเดินรถ"<br>→ 2. เลือกช่วงวันที่/สายรถ/ทะเบียนรถ แล้วกดค้นหา<br>← 3. ระบบดึงข้อมูลรอบการวิ่งแสดงเป็นตาราง<br>→ 4. กด "ดาวน์โหลดรายงาน"<br>← 5. ระบบส่งออกไฟล์เริ่มดาวน์โหลดลงเครื่อง</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>3a.</strong> ไม่พบข้อมูลในช่วงที่เลือก → "ไม่พบข้อมูลประวัติการเดินรถในช่วงวันดังกล่าว"</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB (ฉบับ implement): ประวัติใช้ <code>BELL_REQUEST</code> (REQ_TIME/ALIGHT_TIME) + <code>ALERT_STATISTICS</code> ต่อวัน — รายงานทั้ง 3 ในไฟล์ 4 ดึงจากตารางพวกนี้</p>
+
+      <h3>UC-10 · เข้าสู่ระบบ</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>REQ-11, REQ-15 (และถูกอ้างถึงโดย UC-4, UC-6, UC-8)</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>ผู้โดยสาร, พนักงานขับรถ, ผู้ดูแลระบบ</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>ยืนยันตัวตนและรับสิทธิ์เข้าใช้งาน</td></tr>
+          <tr><td><strong>Participating Actors</strong></td><td>ระบบจัดการสิทธิ์และการยืนยันตัวตน</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>1. ผู้ใช้งานมีบัญชีที่ลงทะเบียนไว้ในระบบแล้ว · 2. เชื่อมต่อเครือข่ายอินเทอร์เน็ต</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>ผู้ใช้งานได้รับการยืนยันตัวตน</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>← 1. ระบบแสดงหน้าจอเข้าสู่ระบบ<br>→ 2. กรอกเบอร์โทรศัพท์/ชื่อบัญชีและรหัสผ่าน แล้วกด "เข้าสู่ระบบ"<br>← 3. ระบบนำรหัสผ่านไปเทียบกับรหัสที่เข้ารหัสไว้ในฐานข้อมูล<br>← 4. เมื่อถูกต้อง ระบบตรวจสอบบทบาทของผู้ใช้ (Passenger / Driver / Admin)<br>← 5. ระบบนำทางผู้ใช้ไปหน้าจอหลักที่ตรงกับบทบาทนั้น</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>3a.</strong> เบอร์โทรศัพท์หรือรหัสผ่านไม่ถูกต้อง → แจ้งเตือนให้ลองใหม่อีกครั้ง<br><strong>3b.</strong> ยังไม่มีบัญชีในระบบ → กด "สมัครสมาชิกใหม่" เข้าสู่ขั้นตอนลงทะเบียน</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB (ฉบับ implement): <code>USER_TYPE</code> (ADMIN/DRIVER/PASSENGER) + <code>USERS</code> (PHONE UNIQUE) — ทุก Procedure ตรวจสิทธิ์จากคู่ตารางนี้ (เช่น กดกริ่งต้อง PASSENGER → -20001 รองรับ REQ-15)</p>
+
+      <h2>📋 Requirements 17 ข้อ (REQ-01 ถึง REQ-17) — สรุปสั้น + ประเด็น</h2>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>Req</th><th>สรุปความต้องการ</th><th>ใคร</th><th>Size</th></tr>
+          <tr><td>REQ-01</td><td>ดูตำแหน่งรถ/สองแถว real-time บนแผนที่</td><td>ผู้โดยสาร</td><td>8 pts</td></tr>
+          <tr><td>REQ-02</td><td>ดูรถทุกคันที่ให้บริการบนแผนที่ภาพรวม เพื่อจัดการการเดินรถ</td><td>Admin</td><td>5 pts</td></tr>
+          <tr><td>REQ-03</td><td>ค้นหาจุดจอด + ดูเวลารถจะถึงโดยประมาณ เพื่อวางแผนเดินมารอ</td><td>ผู้โดยสาร</td><td>5 pts</td></tr>
+          <tr><td>REQ-04</td><td>ดูสายรถ เส้นทาง จุดจอด และอัตราค่าโดยสาร</td><td>ผู้โดยสาร</td><td>3 pts</td></tr>
+          <tr><td>REQ-05</td><td>เช็คความหนาแน่นบนรถ (ว่าง / ปานกลาง / แน่น) ก่อนตัดสินใจขึ้น</td><td>ผู้โดยสาร</td><td>5 pts</td></tr>
+          <tr><td>REQ-06</td><td>กดกริ่งลงรถผ่านแอป โดยไม่ต้องเอื้อม/เบียดบนรถสองแถว</td><td>ผู้โดยสาร</td><td>5 pts</td></tr>
+          <tr><td>REQ-07</td><td>ส่งสัญญาณว่ากำลังยืนรออยู่ที่จุดจอด ให้คนขับชะลอจอดรับ</td><td>ผู้โดยสาร</td><td>3 pts</td></tr>
+          <tr><td>REQ-08</td><td>รับแจ้งเตือนเมื่อรถที่รอใกล้ถึงจุดจอด เพื่อเตรียมขึ้นทันเวลา</td><td>ผู้โดยสาร</td><td>3 pts</td></tr>
+          <tr><td>REQ-09</td><td>หน้าจอคนขับเห็นคำขอกริ่ง/คนรอ เพื่อจอดรับ-ส่งอย่างปลอดภัย</td><td>พนักงานขับรถ</td><td>5 pts</td></tr>
+          <tr><td>REQ-10</td><td>คนขับอัปเดตสถานะรถ (ให้บริการ/เต็ม/หมดระยะ) ให้ตรงความจริง</td><td>พนักงานขับรถ</td><td>3 pts</td></tr>
+          <tr><td>REQ-11</td><td>สมัครสมาชิก + เข้าสู่ระบบด้วยเบอร์โทรศัพท์ + บันทึกสายที่ใช้บ่อย</td><td>ทุกคน</td><td>3 pts</td></tr>
+          <tr><td>REQ-12</td><td>Admin เพิ่ม/แก้ไข/ลบ สายรถ จุดจอด เส้นทาง ให้ข้อมูลเป็นปัจจุบัน</td><td>Admin</td><td>5 pts</td></tr>
+          <tr><td>REQ-13</td><td>Admin จัดการบัญชีคนขับ + มอบหมายประจำรถคันใด</td><td>Admin</td><td>5 pts</td></tr>
+          <tr><td>REQ-14</td><td>Admin ดูและดาวน์โหลดประวัติรอบวิ่งรายวัน เพื่อ audit</td><td>Admin</td><td>3 pts</td></tr>
+          <tr><td>REQ-15</td><td>เข้ารหัสรหัสผ่าน + ควบคุมสิทธิ์ตามบทบาท (Role-Based Access)</td><td>Admin</td><td>5 pts</td></tr>
+          <tr><td>REQ-16</td><td>UI มือถือใช้ง่าย ตัวหนังสือ/ปุ่มชัด ใช้ได้ขณะเดินหรือยืนรอรถ</td><td>ผู้โดยสาร</td><td>5 pts</td></tr>
+          <tr><td>REQ-17</td><td>หน้าจอคนขับเรียบง่าย แจ้งเตือนชัด ปุ่มใหญ่ ไม่เสียสมาธิขณะขับ</td><td>พนักงานขับรถ</td><td>5 pts</td></tr>
+        </table>
+      </div>
+
+      <h2>🔗 Traceability Matrix — REG1–17 ↔ UC1–UC10</h2>
+      <div class="tbl-wrap">
+        <table class="tbl nowrap">
+          <tr><th>Req't</th><th>UC1</th><th>UC2</th><th>UC3</th><th>UC4</th><th>UC5</th><th>UC6</th><th>UC7</th><th>UC8</th><th>UC9</th><th>UC10</th></tr>
+          <tr><td><strong>REG1</strong></td><td class="x">X</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td><strong>REG2</strong></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="x">X</td><td></td><td></td><td></td></tr>
+          <tr><td><strong>REG3</strong></td><td class="x">X</td><td class="x">X</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td><strong>REG4</strong></td><td></td><td class="x">X</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td><strong>REG5</strong></td><td></td><td></td><td class="x">X</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td><strong>REG6</strong></td><td></td><td></td><td></td><td class="x">X</td><td></td><td></td><td></td><td></td><td></td><td class="x">X</td></tr>
+          <tr><td><strong>REG7</strong></td><td></td><td></td><td></td><td class="x">X</td><td class="x">X</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td><strong>REG8</strong></td><td></td><td></td><td></td><td></td><td class="x">X</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td><strong>REG9</strong></td><td></td><td></td><td></td><td class="x">X</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td><strong>REG10</strong></td><td></td><td></td><td></td><td></td><td></td><td class="x">X</td><td></td><td></td><td></td><td class="x">X</td></tr>
+          <tr><td><strong>REG11</strong></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="x">X</td></tr>
+          <tr><td><strong>REG12</strong></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="x">X</td><td></td><td class="x">X</td></tr>
+          <tr><td><strong>REG13</strong></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="x">X</td><td></td><td class="x">X</td></tr>
+          <tr><td><strong>REG14</strong></td><td class="x">X</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="x">X</td><td></td></tr>
+          <tr><td><strong>REG15</strong></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="x">X</td></tr>
+          <tr><td><strong>REG16</strong></td><td class="x">X</td><td class="x">X</td><td class="x">X</td><td class="x">X</td><td class="x">X</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td><strong>REG17</strong></td><td></td><td></td><td></td><td class="x">X</td><td></td><td class="x">X</td><td></td><td></td><td></td><td></td></tr>
+        </table>
+      </div>
+      <div class="box box-basics">
+        <p class="box-title">วิธีอ่าน (ตอบอาจารย์ได้ 3 จุด)</p>
+        <ul>
+          <li><strong>แนวนอน</strong>: ทุก REG ต้องมี X อย่างน้อย 1 ช่อง = ความต้องการทุกข้อถูกครอบคลุมโดย UC</li>
+          <li><strong>แนวตั้ง</strong>: ทุก UC มีที่มาจาก REQ (UC4 หนาแน่นสุด: REG6, REG7, REG9, REG16, REG17) = ไม่มี UC ไร้ที่มา + รู้ว่า UC ไหนสำคัญสุด</li>
+          <li><strong>จัดลำดับงาน</strong>: UC4/UC10 ถูกอ้างถึงเยอะ จึงต้องมีตาราง BELL_REQUESTS + SP_RING_BELL + SP_LOGIN ให้เสร็จก่อน</li>
+        </ul>
+      </div>
+
+      <h2>🧭 จับคู่ UC ↔ ตาราง + PL/SQL ฉบับ implement จริง (Smart Bus Bell — ใช้ตอบ "ตารางนี้ทำไมมี")</h2>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>UC (Business Domain)</th><th>ตารางที่รองรับ (จริงบน server)</th><th>PL/SQL ที่เกี่ยว</th></tr>
+          <tr><td>UC04 กดกริ่งลงรถ ⭐ ใจกลางระบบ</td><td>USERS (+USER_TYPE ตรวจบทบาท) · BELL_REQUEST (SENDING/SUCCESS/CANCELLED + ALIGHT_TIME) · <strong>VEHICLE_BELL_REQUEST (junction N:M ส่งถึงรถ)</strong></td><td><strong>SP_PRESS_BELL</strong> (3 DML ใน 1 transaction) · SP_COMPLETE_ALIGHT (ยืนยันลง) · SP_CANCEL_BELL (ยกเลิก)</td></tr>
+          <tr><td>UC05 รับการแจ้งเตือน</td><td>DIGITAL_BELL_SIGNAL · VEHICLE_DIGITAL_SIGNAL (junction กริ่งดิจิตอล) · ALERT_STATISTICS (สถิติต่อรถต่อวัน)</td><td>SP_SEND_DIGITAL_SIGNAL + MERGE สถิติ</td></tr>
+          <tr><td>UC01 ดูตำแหน่งรถ</td><td>IOT_BOX (weak entity — พิกัด LAT/LONG + LAST_PING_AT ตำแหน่งล่าสุด)</td><td>— (อ่านด้วยรายงาน/junction)</td></tr>
+          <tr><td>UC10 เข้าสู่ระบบ / บทบาท</td><td>USER_TYPE (ADMIN/DRIVER/PASSENGER) · USERS (PHONE UNIQUE)</td><td>SP_PRESS_BELL ตรวจบทบาท PASSENGER ก่อนกดกริ่ง (-20001)</td></tr>
+          <tr><td>REQ-13 มอบหมายคนขับ / รถ-สายเดินรถ</td><td>VEHICLE (PLATE_NO UNIQUE + ROUTE_NO)</td><td>—</td></tr>
+          <tr><td>REQ-17/REQ-09 ปุ่มบนรถ/การแจ้งคนขับ</td><td>BELL_BUTTON · VEHICLE_BELL_BUTTON (junction รถ↔ปุ่ม + INSTALLED_AT)</td><td>—</td></tr>
+          <tr><td>สถิติการแจ้งเตือน (รายงาน)</td><td>ALERT_STATISTICS (UNIQUE รถ+วัน → ใช้ MERGE Upsert)</td><td>MERGE ใน SP_PRESS_BELL / SP_SEND_DIGITAL_SIGNAL</td></tr>
+        </table>
+      </div>
+      <div class="box box-mem">
+        <p class="box-title">🧠 3 กฎแปลง E/R → ตาราง (โจทย์ ER ข้อนี้ — เจาะลึกในหน้าถัดไป)</p>
+        <p><strong>① N:M → Junction Table</strong> (PK = คู่ FK) · <strong>② Weak Entity → composite PK</strong> (PK เจ้าของ + Partial Key — กล่อง IoT) ·
+        <strong>③ Derived Attribute → ไม่เก็บคอลัมน์</strong> ("จำนวนคนบนรถ" ไม่อยู่ใน VEHICLE) — และ ER ฉบับ implement ตัด APP/LOG ออก (LOG ชนตารางงานอื่นบน server)</p>
+      </div>
+
+      <div class="quiz" data-answer="1">
+        <p class="quiz-q"><span class="qno">Q1</span> UC04 กดกริ่ง มี Extensions 1a = ยังไม่ได้เข้าสู่ระบบ — ในระบบที่ deploy จริงเราป้องกันจุดนี้ด้วยอะไร?</p>
+        <div class="quiz-opts">
+          <button class="quiz-opt">UNIQUE (BUS_ID, STOP_ID)</button>
+          <button class="quiz-opt">SP_PRESS_BELL ตรวจบทบาทผู้กดผ่าน JOIN USERS×USER_TYPE ต้องเป็น PASSENGER เท่านั้น ไม่ใช่ raise ORA-20001</button>
+          <button class="quiz-opt">CHECK ที่คอลัมน์ NOTIFY_STATUS</button>
+          <button class="quiz-opt">MERGE สถิติ</button>
+        </div>
+        <div class="quiz-explain"><strong>เฉลย:</strong> Extension 1a ของ UC04 คือกันกดกริ่งโดยไม่ยืนยันตัวตน — SP_PRESS_BELL เช็คบทบาทของผู้กดเป็นขั้นแรกสุด (SELECT ROLE_NAME → ไม่ใช่ PASSENGER → ORA-20001)</div>
+      </div>
+
+      <div class="quiz" data-answer="2">
+        <p class="quiz-q"><span class="qno">Q2</span> จาก Traceability: UC09 (ประวัติรอบวิ่ง) ถูกอ้างอิงโดย REG ข้อใด?</p>
+        <div class="quiz-opts">
+          <button class="quiz-opt">REG-06</button>
+          <button class="quiz-opt">REG-01</button>
+          <button class="quiz-opt">REG-14 (ดูและดาวน์โหลดประวัติรอบวิ่ง) — โผล่ทั้ง UC1 และ UC9</button>
+          <button class="quiz-opt">REG-15</button>
+        </div>
+        <div class="quiz-explain"><strong>เฉลย:</strong> แถว REG14 มี X ที่ UC1 (เห็นตำแหน่ง/รอบวิ่งแบบเรียลไทม์ต่อเนื่อง) และ UC9 (รายงาน/ดาวน์โหลด)</div>
+      </div>
+
+      <div class="prevnext">
+        <a href="p1-join.html">ก่อนหน้า: Part I — SQL JOIN<small>🔗 จบ Part I แล้ว</small></a>
+        <a class="next" href="p2-er-ddl-dml.html">ต่อไป: E/R + DDL/DML (10 ตาราง)<small>🚏 โค้ด 00–02 ของ Part II เต็ม</small></a>
+      </div>
+
+    </div>
+  </main>
+</div>
+<script src="script.js"></script>
+<script src="tts.js"></script>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true, securityLevel: 'loose', theme: 'base',
+    fontFamily: '"Noto Sans Thai", sans-serif',
+    themeVariables: { primaryColor:'#eef0ff', primaryTextColor:'#1d2333', primaryBorderColor:'#4f46e5', lineColor:'#5b6474' }
+  });
+</script>
+</body>
+</html>

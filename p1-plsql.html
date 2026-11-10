@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Part I · PL/SQL Transaction Processing — เว็บติวสอบ Project Database</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-tts="1">
+<div id="progressBar"></div>
+<div class="backdrop"></div>
+
+<header class="topbar">
+  <button class="hamburger" aria-label="เปิดเมนู">☰</button>
+  <div class="topbar-title">🎓 ติวสอบ Project Database</div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="เมนูหลัก">
+    <div class="side-brand">🎓 Project DB Prep<small>สอบ Project Face-to-face • 2 Business Domain</small></div>
+    <div class="side-note">💡 <b>กฎเหล็ก:</b> ลำดับรัน 00→05 • DROP ให้อาจารย์ดู • ทุกคนตอบ "ทำไม" ได้เหมือนกัน</div>
+    <a class="nav-link" href="index.html"><span class="nav-emoji">🏠</span> หน้าแรก + โจทย์อาจารย์</a>
+    <div class="side-group">PART I — อ.อู๊ด (เวียน + ประกาศ)</div>
+    <a class="nav-link" href="p1-usecase.html"><span class="nav-emoji">📋</span> Use Case + Traceability</a>
+    <a class="nav-link" href="p1-er-ddl-dml.html"><span class="nav-emoji">🗄️</span> E/R + DDL/DML <span class="nav-pts">11 ตาราง</span></a>
+    <a class="nav-link" href="p1-plsql.html"><span class="nav-emoji">⚙️</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p1-join.html"><span class="nav-emoji">🔗</span> SQL JOIN 6 ข้อ</a>
+    <div class="side-group">PART II — อ.ผึ้ง (Public Transit)</div>
+    <a class="nav-link" href="p2-usecase.html"><span class="nav-emoji">🚌</span> Use Case + REG1–17</a>
+    <a class="nav-link" href="p2-er-ddl-dml.html"><span class="nav-emoji">🚏</span> E/R + DDL/DML <span class="nav-pts">10 ตาราง</span></a>
+    <a class="nav-link" href="p2-plsql.html"><span class="nav-emoji">🚦</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p2-join.html"><span class="nav-emoji">🧭</span> SQL JOIN 6 ข้อ</a>
+    <div class="side-group">สาธิตหน้าห้อง</div>
+    <a class="nav-link" href="verify-demo.html"><span class="nav-emoji">🎤</span> ลำดับ demo + Q&A</a>
+  </nav>
+
+  <main class="main">
+    <div class="content">
+
+      <section class="page-head">
+        <p class="crumb"><a href="index.html">หน้าแรก</a> • PART I — ระบบแจ้งข้อความเวียน + ประกาศภายในองค์กร (อ.อู๊ด)</p>
+        <h1>⚙️ PL/SQL Transaction Processing — Trigger 1 + Procedure 4 ครอบทั้ง Flow ของระบบ</h1>
+        <div class="head-meta">
+          <span class="badge">TRG 1 + SP 4</span><span class="badge">COMMIT / ROLLBACK / EXCEPTION</span><span class="badge gold">สถานะเอกสาร 8 ค่า</span>
+        </div>
+      </section>
+
+      <div class="box box-exam">
+        <p class="box-title">① อาจารย์ต้องการอะไร (โจทย์ข้อนี้)</p>
+        <p>"<strong>2- เขียน PL/SQL ตามโจทย์หลักของระบบงาน (Transaction Processing)</strong>" —
+        แปลว่าโค้ดต้องครอบการทำงานหลักจริงของระบบ (ส่งอนุมัติ → อนุมัติ/ตีกลับ → ลงนาม → กระจาย → ยืนยัน → เตือน SLA) และทุกขั้นต้องประกาศได้ว่า
+        <strong>Transaction อยู่ตรงไหน · เมื่อไร COMMIT · เมื่อไร ROLLBACK · จับ error ยังไง</strong> — ไม่ใช่เขียน SP เพื่อโชว์ว่ารันได้เฉย ๆ</p>
+      </div>
+
+      <h2>🧠 พื้นฐานที่ต้องพูดให้ออกก่อนรันโค้ด</h2>
+      <div class="box box-basics">
+        <p class="box-title">Transaction คืออะไร — แล้วเกี่ยวกับ Atomicity ยังไง</p>
+        <p><strong>Transaction</strong> = ชุดคำสั่งที่ต้อง "สำเร็จทั้งหมดหรือไม่สำเร็จทั้งหมด" (All-or-Nothing = คุณสมบัติ Atomicity ของ ACID) —
+        ในระบบนี้ SP_DECIDE_APPROVAL คือ Transaction ขนาดใหญ่ที่สุด: บันทึกผลพิจารณา + ลงนาม + กระจายหลายช่องทาง + แจ้งเตือนทุกคน
+        — ถ้าตายกลางทางขั้นไหน <code>ROLLBACK</code> จะย้อนทุกอย่างกลับ ข้อมูลไม่มีวันเป็น "ครึ่ง ๆ กลาง ๆ" เช่น ลงนามแล้วแต่ไม่กระจาย</p>
+      </div>
+      <div class="term">
+        <p><span class="term-word">PROCEDURE</span> — โปรแกรมเก็บในฐานข้อมูล เรียกใช้ด้วย <code>EXEC SP_XXX(...)</code> — เป็นที่ที่ Transaction ถูกเขียนเป็นชุดเดียว</p>
+        <p><span class="term-word">TRIGGER</span> — โปรแกรมที่ฐานข้อมูล "ยิงเองอัตโนมัติ" เมื่อเกิดเหตุการณ์ (เช่น หลัง UPDATE คอลัมน์ STATUS) — เราไม่เรียกมันเอง</p>
+        <p><span class="term-word">FOR UPDATE</span> — ล็อกแถวที่ SELECT ไว้จนจบ Transaction กันคนอื่นแก้ทับขณะเรากำลังตัดสินใจ (Concurrency Control)</p>
+        <p><span class="term-word">RAISE_APPLICATION_ERROR(-20001, '...')</span> — โยน error ของเราเอง (ช่วงเลข -20000 ถึง -20999) พร้อมข้อความไทยให้ผู้ใช้เข้าใจ</p>
+      </div>
+
+      <h2 id="read-proc">🌱 อ่านโครง PROCEDURE แบบมือใหม่ (รู้โครง = อ่านทุกตัวในหน้านี้ได้)</h2>
+      <p>Procedure ทั้ง 4 ตัวของ Part I (และทั้ง 5 ตัวของ Part II) เขียนในโครงเดียวกันเป๊ะ — จำโครง 4 ชั้นนี้แล้วอ่านโค้ดเป็นภาษาไทยได้เลย:</p>
+      <pre class="code sql"><span class="kw">CREATE</span></span></span></span></span> <span class="kw">OR</span></span></span></span></span> <span class="kw">REPLACE</span></span></span></span></span> <span class="kw">PROCEDURE</span></span></span></span></span> ชื่อ (ค่าที่ส่งเข้า <span class="kw">IN</span></span></span></span></span> ..., ค่าที่ได้กลับ <span class="kw">OUT</span></span></span></span></span> ...) <span class="kw">IS</span></span></span></span></span>
+<span class="cm">    -- ชั้น 1: ประกาศตัวแปร (กระดาษทดของเรา)</span></span></span></span></span>
+<span class="kw">BEGIN</span></span></span></span></span>
+<span class="cm">    -- ชั้น 2: ทำงานตามลำดับบนลงล่าง (อ่าน, เช็คเงื่อนไข, เขียนข้อมูล)</span></span></span></span></span>
+<span class="cm">    -- ชั้น 2 จบด้วย COMMIT ถ้าสำเร็จทุกขั้น</span></span></span></span></span>
+<span class="kw">EXCEPTION</span></span></span></span></span>
+<span class="cm">    -- ชั้น 3: จับ error — พังกลางทาง → ROLLBACK (ย้อนทุกอย่าง)</span></span></span></span></span>
+<span class="kw">END</span></span></span></span></span>;
+/</pre>
+      <ul>
+        <li><strong>ชั้น 1 (ประกาศตัวแปร)</strong> — เช่น <code>V_STATUS VARCHAR2(12)</code> = "กล่องเก็บค่าชั่วคราว 1 ใบ ชื่อ V_STATUS ใส่ข้อความได้ ≤12 ตัว" (V = ตัวแปรของเรา ไม่ใช่คอลัมน์ตาราง)</li>
+        <li><strong>ชั้น 2 (BEGIN)</strong> — อ่านคำสั่งเป็นประโยคเล่าเรื่อง: <code>SELECT ... INTO V_STATUS</code> = "ดึงค่าจากตารางมาเก็บในกล่อง" (ต้องได้แถวเดียวเท่านั้น — ไม่เจอแถวเลยจะโยน <code>NO_DATA_FOUND</code>) · <code>IF ... THEN</code> = ตรวจเงื่อนไข · <code>INSERT/UPDATE</code> = เขียนข้อมูล · <code>COMMIT</code> = บันทึกถาวร</li>
+        <li><strong>ชั้น 3 (EXCEPTION)</strong> — "ถ้าเกิดปัญหาอะไรล่ะ?": <code>WHEN ชนิดปัญหา THEN วิธีจัดการ</code> — ทุกตัวในเว็บนี้ตอบเหมือนกัน: <strong>ROLLBACK ก่อนเสมอ</strong> แล้วค่อยแจ้งข้อความให้ผู้ใช้เข้าใจ</li>
+        <li><strong>เรียกใช้:</strong> <code>EXEC SP_SUBMIT_DOC(5001);</code> = "รัน Procedure ชื่อนี้ โดยส่งค่า 5001 เข้าช่อง P_DOC_ID" — ตัวเลข 5001 คือรหัสเอกสารที่ใส่ไว้ตอน DML (จำตัวเลขที่หน้า DML เตรียมไว้ให้พอดี)</li>
+        <li><strong>IN / OUT</strong> — IN = ช่องใส่ค่าเข้ามา · OUT = ช่องที่ Procedure ใส่ค่าคืนให้เรา (เจอชัด ๆ ที่ SP_LOGIN ของ Part II ซึ่งคืน USER_ID/บทบาท/ชื่อ)</li>
+      </ul>
+
+      <h2>🔄 แผนที่สถานะเอกสาร 8 สถานะ — ใครย้ายสถานะเมื่อไร</h2>
+      <pre class="mermaid">
+stateDiagram-v2
+  [*] --> DRAFT : UC04 ธุรการร่างเอกสาร
+  DRAFT --> PENDING : SP_SUBMIT_DOC (ส่งเสนออนุมัติ)
+  REJECTED --> PENDING : SP_SUBMIT_DOC (แก้แล้วส่งซ้ำ)
+  PENDING --> APPROVED : SP_DECIDE_APPROVAL (อนุมัติ)
+  PENDING --> REJECTED : SP_DECIDE_APPROVAL (ตีกลับ — XOR)
+  APPROVED --> SIGNED : ลงนามอิเล็กทรอนิกส์ (BR-Ann-102)
+  SIGNED --> DISTRIBUTED : AND Gateway กระจายช่องทาง
+  DISTRIBUTED --> COMPLETED : ยืนยันครบ 100% (SP_ACKNOWLEDGE_DOC)
+  COMPLETED --> ARCHIVED : เก็บถาวรเมื่อครบวาระ
+      </pre>
+      <p class="mermaid-caption">ทุกลูกศรย้ายสถานะ Trigger <code>TRG_DOC_STATUS_LOG</code> จะเขียน Log เก่า→ใหม่ลง DOC_STATUS_LOG อัตโนมัติ (Audit Trail)</p>
+
+      <h3>จับคู่ Procedure ↔ Flow BPMN ↔ UC ↔ ตาราง</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>PL/SQL</th><th>จุดใน Flow (BPMN)</th><th>UC ที่รองรับ</th><th>ตารางที่เขียน/อ่าน</th></tr>
+          <tr><td><code>TRG_DOC_STATUS_LOG</code></td><td>ทุกจุดเปลี่ยนสถานะ</td><td>UC03 ดูสถานะย้อนหลัง</td><td>INSERT DOC_STATUS_LOG</td></tr>
+          <tr><td><code>SP_SUBMIT_DOC</code></td><td>Task ส่งเสนออนุมัติ (จากร่าง)</td><td>UC04 → เริ่มกระบวนการอนุมัติ</td><td>UPDATE DOCUMENTS (→ PENDING)</td></tr>
+          <tr><td><code>SP_DECIDE_APPROVAL</code></td><td><strong>XOR Gateway</strong> อนุมัติ/ตีกลับ + <strong>AND Gateway</strong> ลงนาม ∥ กระจาย</td><td>UC07 + UC01 (แจ้งเตือน)</td><td>APPROVALS, SIGNATURES, DISTRIBUTIONS, NOTIFICATIONS, DOCUMENTS</td></tr>
+          <tr><td><code>SP_ACKNOWLEDGE_DOC</code></td><td>ยืนยันรับทราบ → ตรวจครบ 100%</td><td>UC02</td><td>INSERT READ_LOGS + UPDATE DOCUMENTS (→ COMPLETED)</td></tr>
+          <tr><td><code>SP_CHECK_SLA_REMIND</code></td><td><strong>XOR Gateway 2</strong>: เกิน 24 ชม. ยังไม่ครบ → เตือนซ้ำ</td><td>UC02 Ext 1a (แจ้งซ้ำ)</td><td>INSERT NOTIFICATIONS (REMINDER)</td></tr>
+        </table>
+      </div>
+
+      <h2>⚙️ โค้ดไฟล์ 03 เต็ม — อ่านทีละก้อน</h2>
+
+      <h3>ก้อนที่ 1 · TRIGGER — Audit Trail อัตโนมัติ</h3>
+      <span class="file-tag">03_PLSQL.sql · TRIGGER</span>
+      <pre class="code sql"><span class="cm">-- ---------- TRIGGER : บันทึก Audit Trail ทุกครั้งที่สถานะเปลี่ยน (ผ่าน Doc Status Log) ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">OR</span></span></span></span></span></span> <span class="kw">REPLACE</span></span></span></span></span></span> <span class="kw">TRIGGER</span></span></span></span></span></span> TRG_DOC_STATUS_LOG
+<span class="kw">AFTER</span></span></span></span></span></span> <span class="kw">UPDATE</span></span></span></span></span></span> <span class="kw">OF</span></span></span></span></span></span> STATUS <span class="kw">ON</span></span></span></span></span></span> DOCUMENTS
+<span class="kw">FOR</span></span></span></span></span></span> <span class="kw">EACH</span></span></span></span></span></span> <span class="kw">ROW</span></span></span></span></span></span>
+<span class="kw">WHEN</span></span></span></span></span></span> (OLD.STATUS &lt;&gt; NEW.STATUS)
+<span class="kw">BEGIN</span></span></span></span></span></span>
+    <span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> DOC_STATUS_LOG (LOG_ID, DOC_ID, OLD_STATUS, NEW_STATUS, CHANGED_DATE)
+    <span class="kw">VALUES</span></span></span></span></span></span> (SEQ_LOG.<span class="fn">NEXTVAL</span></span></span></span></span></span>, :NEW.DOC_ID, :OLD.STATUS, :NEW.STATUS, <span class="fn">SYSDATE</span></span></span></span></span></span>);
+<span class="kw">END</span></span></span></span></span></span>;
+/</pre>
+      <ul>
+        <li><code>AFTER UPDATE OF STATUS ON DOCUMENTS</code> — ยิงเฉพาะเมื่อ UPDATE โดนคอลัมน์ STATUS (ไม่ใช่ทุก UPDATE)</li>
+        <li><code>FOR EACH ROW</code> — ทำงานราวแถว (ถ้า UPDATE 10 แถวก็ยิง 10 ครั้ง)</li>
+        <li><code>WHEN (OLD.STATUS &lt;&gt; NEW.STATUS)</code> — บันทึกเฉพาะ "ค่าเปลี่ยนจริง" กัน Log เปื่อยจากการ UPDATE ค่าเดิมทับ</li>
+        <li><code>:OLD.STATUS / :NEW.STATUS</code> — ค่าก่อน/หลังของแถวที่ถูกแก้ — นี่คือ "Audit Trail": ใครดูย้อนหลังว่าเอกสารผ่านสถานะอะไรมาแล้ว ตอบ UC03 และกฎ BR-Memo-103 (ห้ามแก้ Log)</li>
+        <li>พูดใน demo: "Trigger ทำงานอัตโนมัติ เราไม่ต้องเรียก — สมมติระบบลืมเขียน log เอง ฐานข้อมูลก็ยังจับได้ครบ"</li>
+      </ul>
+
+      <h3>ก้อนที่ 2 · SP_SUBMIT_DOC — ส่งร่างเสนออนุมัติ</h3>
+      <span class="file-tag">03_PLSQL.sql · PROCEDURE 1</span>
+      <pre class="code sql"><span class="cm">-- ---------- PROCEDURE 1 : ส่งร่างเอกสารเข้าสู่กระบวนการอนุมัติ ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">OR</span></span></span></span></span></span> <span class="kw">REPLACE</span></span></span></span></span></span> <span class="kw">PROCEDURE</span></span></span></span></span></span> SP_SUBMIT_DOC (P_DOC_ID <span class="kw">IN</span></span></span></span></span></span> <span class="kw">NUMBER</span></span></span></span></span></span>) <span class="kw">IS</span></span></span></span></span></span>
+    V_STATUS <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">12</span></span></span></span></span></span>);
+<span class="kw">BEGIN</span></span></span></span></span></span>
+    <span class="kw">SELECT</span></span></span></span></span></span> STATUS <span class="kw">INTO</span></span></span></span></span></span> V_STATUS <span class="kw">FROM</span></span></span></span></span></span> DOCUMENTS <span class="kw">WHERE</span></span></span></span></span></span> DOC_ID = P_DOC_ID <span class="kw">FOR</span></span></span></span></span></span> <span class="kw">UPDATE</span></span></span></span></span></span>;
+
+    <span class="kw">IF</span></span></span></span></span></span> V_STATUS <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">IN</span></span></span></span></span></span> (<span class="st">'DRAFT'</span></span></span></span></span></span>,<span class="st">'REJECTED'</span></span></span></span></span></span>) <span class="kw">THEN</span></span></span></span></span></span>
+        <span class="fn">RAISE_APPLICATION_ERROR</span></span></span></span></span></span>(-<span class="fn">20001</span></span></span></span></span></span>,
+            <span class="st">'เอกสารนี้ไม่อยู่ในสถานะร่าง จึงส่งเสนออนุมัติไม่ได้ (สถานะปัจจุบัน: '</span></span></span></span></span></span> || V_STATUS || <span class="st">')'</span></span></span></span></span></span>);
+    <span class="kw">END</span></span></span></span></span></span> <span class="kw">IF</span></span></span></span></span></span>;
+
+    <span class="kw">UPDATE</span></span></span></span></span></span> DOCUMENTS <span class="kw">SET</span></span></span></span></span></span> STATUS = <span class="st">'PENDING'</span></span></span></span></span></span> <span class="kw">WHERE</span></span></span></span></span></span> DOC_ID = P_DOC_ID;
+    <span class="kw">COMMIT</span></span></span></span></span></span>;   -- Transaction สำเร็จครบทุกขั้นจึง <span class="kw">COMMIT</span></span></span></span></span></span>
+<span class="kw">EXCEPTION</span></span></span></span></span></span>
+    <span class="kw">WHEN</span></span></span></span></span></span> NO_DATA_FOUND <span class="kw">THEN</span></span></span></span></span></span>
+        <span class="kw">ROLLBACK</span></span></span></span></span></span>;
+        <span class="fn">RAISE_APPLICATION_ERROR</span></span></span></span></span></span>(-<span class="fn">20002</span></span></span></span></span></span>, <span class="st">'ไม่พบเอกสารรหัส '</span></span></span></span></span></span> || P_DOC_ID);
+    <span class="kw">WHEN</span></span></span></span></span></span> <span class="kw">OTHERS</span></span></span></span></span></span> <span class="kw">THEN</span></span></span></span></span></span>
+        <span class="kw">ROLLBACK</span></span></span></span></span></span>;   -- ผิดพลาดกลางทาง = ย้อนทุกอย่างกลับ (Atomicity)
+        <span class="kw">RAISE</span></span></span></span></span></span>;
+<span class="kw">END</span></span></span></span></span></span>;
+/</pre>
+      <ul>
+        <li>อ่านสถานะก่อน <strong>พร้อมล็อกแถวด้วย FOR UPDATE</strong> — กันกรณีสองคนกด "ส่งอนุมัติ" เอกสารเดียวกันพร้อมกัน</li>
+        <li>ยอมรับเฉพาะ DRAFT หรือ REJECTED — ตรง Flow: ร่างใหม่ หรือ ร่างที่ถูกตีกลับ (UC06) ส่งได้ · ถ้าสถานะอื่น (เช่น PENDING อยู่แล้ว) raise <strong>-20001</strong> — นี่คือ error ที่ demo โชว์</li>
+        <li>ผ่าน → UPDATE เป็น PENDING แล้ว <strong>COMMIT</strong> — ยิง Trigger เขียน log DRAFT→PENDING อัตโนมัติด้วย</li>
+        <li><code>NO_DATA_FOUND</code> = SELECT INTO ไม่เจอแถว (รหัสเอกสารผิด) → ROLLBACK + raise <strong>-20002</strong> · <code>WHEN OTHERS</code> = ทุก error อื่น → ROLLBACK แล้ว <code>RAISE</code> ส่งต่อให้ผู้เรียกเห็น error จริง</li>
+      </ul>
+      <h3>🌱 ไล่อ่าน SP_SUBMIT_DOC ทีละบรรทัด (แปลเป็นไทยล้วน — ตัวเล็กที่สุด เข้าใจง่ายสุด อ่านแล้วไปต่อได้ทุกก้อน)</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th style="width:52%;">โค้ด (เรียงตามจริง)</th><th>แปลว่าอะไร / ทำไมต้องมี</th></tr>
+          <tr><td><code>PROCEDURE SP_SUBMIT_DOC (P_DOC_ID IN NUMBER)</code></td><td>สร้าง Procedure รับ "รหัสเอกสาร" 1 ค่าเข้ามา (P = ค่าที่รับเข้า)</td></tr>
+          <tr><td><code>V_STATUS VARCHAR2(12);</code></td><td>เตรียมกล่องเก็บสถานะเอกสารที่จะดึงมาดู</td></tr>
+          <tr><td><code>SELECT STATUS INTO V_STATUS ... FOR UPDATE;</code></td><td>ดึงสถานะปัจจุบันของเอกสารใส่กล่อง + <strong>ล็อกแถวนี้ไว้</strong> — กันคนอื่นแก้ทับขณะเรากำลังพิจารณา (เหมือนจับกระดาษไว้ในมือ คนอื่นหยิบไม่ได้)</td></tr>
+          <tr><td><code>IF V_STATUS NOT IN ('DRAFT','REJECTED') THEN</code></td><td>ตรวจ: เอกสารต้องเป็น "ร่างใหม่" หรือ "ที่ถูกตีกลับมาแก้" เท่านั้นถึงส่งได้</td></tr>
+          <tr><td><code>RAISE_APPLICATION_ERROR(-20001, '...');</code></td><td>ถ้าไม่ใช่ 2 สถานะนั้น → หยุดทันที พร้อมข้อความไทยบอกเหตุผล (เลข -20001 = เลข error ที่เราตั้งเอง)</td></tr>
+          <tr><td><code>END IF;</code></td><td>จบเงื่อนไข IF</td></tr>
+          <tr><td><code>UPDATE DOCUMENTS SET STATUS = 'PENDING' ...</code></td><td>ผ่านเช็ค → เปลี่ยนสถานะเอกสารเป็น "รอพิจารณา" (Trigger เขียน log ให้อัตโนมัติ)</td></tr>
+          <tr><td><code>COMMIT;</code></td><td>บันทึกถาวร — ทำครบทุกขั้นแล้วจึงบันทึกครั้งเดียว</td></tr>
+          <tr><td><code>EXCEPTION WHEN NO_DATA_FOUND</code></td><td>ถ้าหารหัสเอกสารไม่เจอเลย → ROLLBACK + แจ้ง -20002 "ไม่พบเอกสารรหัส ..."</td></tr>
+          <tr><td><code>WHEN OTHERS THEN ROLLBACK; RAISE;</code></td><td>error อื่น ๆ ที่คิดไม่ถึง → ย้อนทุกอย่างให้สะอาด + ส่ง error เดิมออกไป (ไม่กลืนหาย)</td></tr>
+          <tr><td><code>END; /</code></td><td>จบ Procedure (เครื่องหมาย / ท้ายบรรทัด = สั่ง SQL Developer รันบล็อกนี้)</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption" style="text-align:left;">💡 สูตรอ่านเท่านี้: "รับค่า → ล็อกแถว → เช็คเงื่อนไข (ผิดแล้วโยน error) → เขียนข้อมูล → COMMIT → พังแล้ว ROLLBACK" — โครงนี้ซ้ำทั้ง 4 ตัวของ Part I และ 5 ตัวของ Part II ต่างกันแค่เงื่อนไขธุรกิจข้างใน</p>
+
+      <div class="box box-tip">
+        <p class="box-title">ทดสอบจริง (พิมพ์ใน SQL Developer / Live SQL)</p>
+        <pre class="code">EXEC SP_SUBMIT_DOC(5001);    -- 5001 เป็น DRAFT → ผ่าน กลายเป็น PENDING
+EXEC SP_SUBMIT_DOC(5001);    -- ส่งซ้ำ → ORA-20001 เอกสารไม่อยู่ในสถานะร่าง (โชว์ error นี้!)
+SELECT DOC_ID, STATUS FROM DOCUMENTS WHERE DOC_ID = 5001;   -- ยืนยันสถานะ PENDING</pre>
+      </div>
+
+      <h3>ก้อนที่ 3 · SP_DECIDE_APPROVAL — Transaction ใหญ่สุดของระบบ (XOR + AND) ⭐</h3>
+      <span class="file-tag">03_PLSQL.sql · PROCEDURE 2</span>
+      <pre class="code sql"><span class="cm">-- ---------- PROCEDURE 2 : พิจารณาอนุมัติ/ตีกลับ (XOR Gateway ของระบบจริง) ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">OR</span></span></span></span></span></span> <span class="kw">REPLACE</span></span></span></span></span></span> <span class="kw">PROCEDURE</span></span></span></span></span></span> SP_DECIDE_APPROVAL (
+    P_DOC_ID    <span class="kw">IN</span></span></span></span></span></span> <span class="kw">NUMBER</span></span></span></span></span></span>,
+    P_APPROVER  <span class="kw">IN</span></span></span></span></span></span> <span class="kw">NUMBER</span></span></span></span></span></span>,
+    P_DECISION  <span class="kw">IN</span></span></span></span></span></span> <span class="kw">VARCHAR2</span></span></span></span></span></span>,
+    P_REASON    <span class="kw">IN</span></span></span></span></span></span> <span class="kw">VARCHAR2</span></span></span></span></span></span>
+) <span class="kw">IS</span></span></span></span></span></span>
+    V_CREATOR  <span class="kw">NUMBER</span></span></span></span></span></span>;
+    V_DOCTYPE  <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">15</span></span></span></span></span></span>);
+    V_PRIORITY <span class="kw">VARCHAR2</span></span></span></span></span></span>(<span class="fn">10</span></span></span></span></span></span>);
+    V_CHANNELS <span class="fn">SYS.ODCIVARCHAR2LIST</span></span></span></span></span></span> := <span class="fn">SYS.ODCIVARCHAR2LIST</span></span></span></span></span></span>();
+    V_EMP      <span class="kw">NUMBER</span></span></span></span></span></span>;
+<span class="kw">BEGIN</span></span></span></span></span></span>
+<span class="cm">    -- ตรวจสอบผู้พิจารณาต้องมีบทบาท APPROVER เท่านั้น (ตาม Lane CEO/Manager)</span></span></span></span></span></span>
+    <span class="kw">SELECT</span></span></span></span></span></span> <span class="fn">COUNT</span></span></span></span></span></span>(*) <span class="kw">INTO</span></span></span></span></span></span> V_CREATOR
+    <span class="kw">FROM</span></span></span></span></span></span> EMPLOYEES <span class="kw">WHERE</span></span></span></span></span></span> EMP_ID = P_APPROVER <span class="kw">AND</span></span></span></span></span></span> ROLE_ID = <span class="fn">3</span></span></span></span></span></span>;
+    <span class="kw">IF</span></span></span></span></span></span> V_CREATOR = <span class="fn">0</span></span></span></span></span></span> <span class="kw">THEN</span></span></span></span></span></span>
+        <span class="fn">RAISE_APPLICATION_ERROR</span></span></span></span></span></span>(-<span class="fn">20003</span></span></span></span></span></span>, <span class="st">'ผู้พิจารณาต้องมีบทบาท Approver เท่านั้น'</span></span></span></span></span></span>);
+    <span class="kw">END</span></span></span></span></span></span> <span class="kw">IF</span></span></span></span></span></span>;
+
+    <span class="kw">SELECT</span></span></span></span></span></span> CREATED_BY, DOC_TYPE, PRIORITY <span class="kw">INTO</span></span></span></span></span></span> V_CREATOR, V_DOCTYPE, V_PRIORITY
+    <span class="kw">FROM</span></span></span></span></span></span> DOCUMENTS <span class="kw">WHERE</span></span></span></span></span></span> DOC_ID = P_DOC_ID <span class="kw">FOR</span></span></span></span></span></span> <span class="kw">UPDATE</span></span></span></span></span></span>;
+
+<span class="cm">    -- บันทึกผลการพิจารณา</span></span></span></span></span></span>
+    <span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> APPROVALS (APPROVAL_ID, DOC_ID, APPROVER_ID, DECISION, REASON, DECIDED_DATE)
+    <span class="kw">VALUES</span></span></span></span></span></span> (SEQ_APPROVAL.<span class="fn">NEXTVAL</span></span></span></span></span></span>, P_DOC_ID, P_APPROVER, P_DECISION, P_REASON, <span class="fn">SYSDATE</span></span></span></span></span></span>);
+
+    <span class="kw">IF</span></span></span></span></span></span> P_DECISION = <span class="st">'REJECTED'</span></span></span></span></span></span> <span class="kw">THEN</span></span></span></span></span></span>
+<span class="cm">        -- ตีกลับให้ธุรการแก้ไข (กลับเข้าสู่สถานะร่าง) — DR-Ann-101</span></span></span></span></span></span>
+        <span class="kw">UPDATE</span></span></span></span></span></span> DOCUMENTS <span class="kw">SET</span></span></span></span></span></span> STATUS = <span class="st">'REJECTED'</span></span></span></span></span></span> <span class="kw">WHERE</span></span></span></span></span></span> DOC_ID = P_DOC_ID;
+    <span class="kw">ELSE</span></span></span></span></span></span>
+<span class="cm">        -- ผ่าน → ลงนามอิเล็กทรอนิกส์ (ห้ามเผยแพร่ก่อนลงนาม = BR-Ann-102)</span></span></span></span></span></span>
+        <span class="kw">UPDATE</span></span></span></span></span></span> DOCUMENTS <span class="kw">SET</span></span></span></span></span></span> STATUS = <span class="st">'APPROVED'</span></span></span></span></span></span> <span class="kw">WHERE</span></span></span></span></span></span> DOC_ID = P_DOC_ID;
+        <span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> SIGNATURES (SIGN_ID, DOC_ID, SIGNER_ID, SIGNATURE_HASH, SIGNED_DATE)
+        <span class="kw">VALUES</span></span></span></span></span></span> (SEQ_SIGN.<span class="fn">NEXTVAL</span></span></span></span></span></span>, P_DOC_ID, P_APPROVER,
+                <span class="st">'SHA256-'</span></span></span></span></span></span> || P_DOC_ID || <span class="st">'-'</span></span></span></span></span></span> || <span class="fn">TO_CHAR</span></span></span></span></span></span>(<span class="fn">SYSDATE</span></span></span></span></span></span>,<span class="st">'YYYYMMDDHH24MISS'</span></span></span></span></span></span>), <span class="fn">SYSDATE</span></span></span></span></span></span>);
+        <span class="kw">UPDATE</span></span></span></span></span></span> DOCUMENTS <span class="kw">SET</span></span></span></span></span></span> STATUS = <span class="st">'SIGNED'</span></span></span></span></span></span> <span class="kw">WHERE</span></span></span></span></span></span> DOC_ID = P_DOC_ID;
+
+<span class="cm">        -- AND Gateway ขา 1 : จัดเก็บ + ออกรหัสอ้างอิง (Doc ID = รหัสเอกสารระบบ)</span></span></span></span></span></span>
+        <span class="kw">UPDATE</span></span></span></span></span></span> DOCUMENTS <span class="kw">SET</span></span></span></span></span></span> STATUS = <span class="st">'SIGNED'</span></span></span></span></span></span> <span class="kw">WHERE</span></span></span></span></span></span> DOC_ID = P_DOC_ID;  -- สถานะคงอยู่ รอกระจาย
+
+<span class="cm">        -- AND Gateway ขา 2 : กระจายตามความเร่งด่วน (OR Channel)</span></span></span></span></span></span>
+<span class="cm">        -- DR: EMERGENCY → EMAIL+APP+SMS , GENERAL → EMAIL+APP</span></span></span></span></span></span>
+        <span class="kw">IF</span></span></span></span></span></span> V_PRIORITY = <span class="st">'EMERGENCY'</span></span></span></span></span></span> <span class="kw">THEN</span></span></span></span></span></span>
+            V_CHANNELS.<span class="fn">EXTEND</span></span></span></span></span></span>(<span class="fn">3</span></span></span></span></span></span>); V_CHANNELS(<span class="fn">1</span></span></span></span></span></span>) := <span class="st">'EMAIL'</span></span></span></span></span></span>; V_CHANNELS(<span class="fn">2</span></span></span></span></span></span>) := <span class="st">'APP'</span></span></span></span></span></span>; V_CHANNELS(<span class="fn">3</span></span></span></span></span></span>) := <span class="st">'SMS'</span></span></span></span></span></span>;
+        <span class="kw">ELSE</span></span></span></span></span></span>
+            V_CHANNELS.<span class="fn">EXTEND</span></span></span></span></span></span>(<span class="fn">2</span></span></span></span></span></span>); V_CHANNELS(<span class="fn">1</span></span></span></span></span></span>) := <span class="st">'EMAIL'</span></span></span></span></span></span>; V_CHANNELS(<span class="fn">2</span></span></span></span></span></span>) := <span class="st">'APP'</span></span></span></span></span></span>;
+        <span class="kw">END</span></span></span></span></span></span> <span class="kw">IF</span></span></span></span></span></span>;
+        <span class="kw">FOR</span></span></span></span></span></span> ch <span class="kw">IN</span></span></span></span></span></span> <span class="fn">1</span></span></span></span></span></span> .. V_CHANNELS.<span class="fn">COUNT</span></span></span></span></span></span> <span class="kw">LOOP</span></span></span></span></span></span>
+            <span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> DISTRIBUTIONS (DIST_ID, DOC_ID, CHANNEL, RECIPIENT_GROUP, SENT_DATE, STATUS)
+            <span class="kw">VALUES</span></span></span></span></span></span> (SEQ_DIST.<span class="fn">NEXTVAL</span></span></span></span></span></span>, P_DOC_ID, V_CHANNELS(ch),
+                    <span class="st">'กลุ่มเป้าหมายตามสิทธิ์ ('</span></span></span></span></span></span> || V_DOCTYPE || <span class="st">')'</span></span></span></span></span></span>, <span class="fn">SYSDATE</span></span></span></span></span></span>, <span class="st">'SENT'</span></span></span></span></span></span>);
+        <span class="kw">END</span></span></span></span></span></span> <span class="kw">LOOP</span></span></span></span></span></span>;
+        <span class="kw">UPDATE</span></span></span></span></span></span> DOCUMENTS <span class="kw">SET</span></span></span></span></span></span> STATUS = <span class="st">'DISTRIBUTED'</span></span></span></span></span></span> <span class="kw">WHERE</span></span></span></span></span></span> DOC_ID = P_DOC_ID;
+
+<span class="cm">        -- แจ้งเตือนรายบุคคลทุกคนในกลุ่มเป้าหมาย (พนักงาน ROLE_ID = 4)</span></span></span></span></span></span>
+        <span class="kw">FOR</span></span></span></span></span></span> r <span class="kw">IN</span></span></span></span></span></span> (<span class="kw">SELECT</span></span></span></span></span></span> EMP_ID <span class="kw">FROM</span></span></span></span></span></span> EMPLOYEES <span class="kw">WHERE</span></span></span></span></span></span> ROLE_ID = <span class="fn">4</span></span></span></span></span></span>) <span class="kw">LOOP</span></span></span></span></span></span>
+            <span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> NOTIFICATIONS (NOTIF_ID, DOC_ID, EMP_ID, CHANNEL, NOTIF_TYPE, SENT_AT)
+            <span class="kw">VALUES</span></span></span></span></span></span> (SEQ_NOTIF.<span class="fn">NEXTVAL</span></span></span></span></span></span>, P_DOC_ID, r.EMP_ID, <span class="st">'EMAIL'</span></span></span></span></span></span>, <span class="st">'NEW'</span></span></span></span></span></span>, <span class="fn">SYSDATE</span></span></span></span></span></span>);
+        <span class="kw">END</span></span></span></span></span></span> <span class="kw">LOOP</span></span></span></span></span></span>;
+    <span class="kw">END</span></span></span></span></span></span> <span class="kw">IF</span></span></span></span></span></span>;
+    <span class="kw">COMMIT</span></span></span></span></span></span>;
+<span class="kw">EXCEPTION</span></span></span></span></span></span>
+    <span class="kw">WHEN</span></span></span></span></span></span> <span class="kw">OTHERS</span></span></span></span></span></span> <span class="kw">THEN</span></span></span></span></span></span>
+        <span class="kw">ROLLBACK</span></span></span></span></span></span>;   -- ถ้ากระจายไม่ครบ/ผิดพลาด ย้อนทั้ง Transaction กันข้อมูลครึ่ง ๆ กลาง ๆ
+        <span class="kw">RAISE</span></span></span></span></span></span>;
+<span class="kw">END</span></span></span></span></span></span>;
+/</pre>
+      <p>อ่านเป็นช่วง ๆ (ท่องจุดนี้ได้ = ตอบอาจารย์ได้เกือบทุกคำถามเรื่อง Transaction):</p>
+      <ol>
+        <li><strong>ตรวจสิทธิ์ผู้พิจารณา</strong> — COUNT คนที่ EMP_ID ตรง <em>และ</em> ROLE_ID = 3 (APPROVER) ถ้าไม่ใช่ raise <strong>-20003</strong> (error demo ที่ 2)</li>
+        <li><strong>ล็อกเอกสาร FOR UPDATE</strong> + ดึงประเภท/ความเร่งด่วนไว้ตัดสินใจช่วงหลัง</li>
+        <li><strong>INSERT APPROVALS</strong> — เก็บผลพิจารณา + เหตุผลตีกลับ (UC07)</li>
+        <li><strong>XOR Gateway</strong>: REJECTED → สถานะ REJECTED (จบ ยันธุรการแก้แล้วส่งใหม่ผ่าน SP_SUBMIT_DOC ตาม DR-Ann-101) · APPROVED → เดินต่อช่วง 5</li>
+        <li><strong>ลงนามอิเล็กทรอนิกส์</strong> — INSERT SIGNATURES (hash จากรหัสเอกสาร+เวลา) ยืนยันกฎ BR-Ann-102: <em>มีลายเซ็นก่อน จึงเผยแพร่ได้</em> — สถานะ APPROVED → SIGNED</li>
+        <li><strong>AND Gateway ขา 1</strong> — จัดเก็บ + Doc ID เป็นรหัสอ้างอิง (สถานะ SIGNED คงอยู่)</li>
+        <li><strong>AND Gateway ขา 2 — กระจายตามความเร่งด่วน</strong>: <code>V_CHANNELS</code> คือ array (ODCIVARCHAR2LIST) — EMERGENCY = EMAIL+APP+SMS (3), GENERAL = EMAIL+APP (2) → วน INSERT DISTRIBUTIONS → สถานะ DISTRIBUTED</li>
+        <li><strong>แจ้งเตือนรายบุคคล</strong> — วนพนักงานทุกคน (ROLE_ID = 4) INSERT NOTIFICATIONS type NEW — เริ่มชีวิต UC01/UC02</li>
+        <li><strong>COMMIT เดียวจบ</strong> — ทั้ง 6 ขั้นข้างบนคือ Transaction เดียว · โดน error อะไรก็แล้วแต่ <code>WHEN OTHERS → ROLLBACK</code> ทิ้งทั้งหมด (Atomicity)</li>
+      </ol>
+      <div class="box box-tip">
+        <p class="box-title">ทดสอบจริง — เดิน Flow ครบ 1 รอบ</p>
+        <pre class="code">-- 1) CEO (1002) อนุมัติเอกสาร 5001
+EXEC SP_DECIDE_APPROVAL(5001, 1002, 'APPROVED', null);
+-- ผล: สถานะ 5001 = DISTRIBUTED · APPROVALS 1 แถว · SIGNATURES 1 แถว
+--     DISTRIBUTIONS 2 แถว (GENERAL: EMAIL+APP) · NOTIFICATIONS 4 แถว (กลุ่มเป้าหมาย 1004–1007)
+
+-- 2) ทดสอบตีกลับ (XOR อีกทาง) เอกสาร 5003 ให้ Manager (1003) ตีกลับพร้อมเหตุผล
+EXEC SP_DECIDE_APPROVAL(5003, 1003, 'REJECTED', 'เนื้อหาไม่ครบ กรุณาเพิ่มรายละเอียดวันอนุญาต');
+-- ผล: สถานะ 5003 = REJECTED · APPROVALS เก็บเหตุผล — ธุรการแก้แล้วส่งใหม่ได้:
+EXEC SP_SUBMIT_DOC(5003);   -- REJECTED → PENDING (วนกลับเข้ากระบวนการตาม Flow)</pre>
+      </div>
+
+      <h3>ก้อนที่ 4 · SP_ACKNOWLEDGE_DOC — ยืนยันรับทราบ + ตรวจครบ 100%</h3>
+      <span class="file-tag">03_PLSQL.sql · PROCEDURE 3</span>
+      <pre class="code sql"><span class="cm">-- ---------- PROCEDURE 3 : พนักงานเปิดอ่าน + กดยืนยันรับทราบ ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">OR</span></span></span></span></span></span> <span class="kw">REPLACE</span></span></span></span></span></span> <span class="kw">PROCEDURE</span></span></span></span></span></span> SP_ACKNOWLEDGE_DOC (
+    P_DOC_ID <span class="kw">IN</span></span></span></span></span></span> <span class="kw">NUMBER</span></span></span></span></span></span>,
+    P_EMP_ID <span class="kw">IN</span></span></span></span></span></span> <span class="kw">NUMBER</span></span></span></span></span></span>,
+    P_IP     <span class="kw">IN</span></span></span></span></span></span> <span class="kw">VARCHAR2</span></span></span></span></span></span>
+) <span class="kw">IS</span></span></span></span></span></span>
+    V_TARGET <span class="kw">NUMBER</span></span></span></span></span></span>;
+    V_DONE   <span class="kw">NUMBER</span></span></span></span></span></span>;
+<span class="kw">BEGIN</span></span></span></span></span></span>
+    <span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> READ_LOGS (LOG_ID, DOC_ID, EMP_ID, READ_AT, IP_ADDRESS)
+    <span class="kw">VALUES</span></span></span></span></span></span> (SEQ_LOG.<span class="fn">NEXTVAL</span></span></span></span></span></span>, P_DOC_ID, P_EMP_ID, <span class="fn">SYSDATE</span></span></span></span></span></span>, P_IP);
+
+<span class="cm">    -- ตรวจสอบสถานะรับทราบว่าครบ 100% หรือยัง (ตาม SLA Metadata ของเอกสาร)</span></span></span></span></span></span>
+    <span class="kw">SELECT</span></span></span></span></span></span> <span class="fn">COUNT</span></span></span></span></span></span>(*) <span class="kw">INTO</span></span></span></span></span></span> V_TARGET <span class="kw">FROM</span></span></span></span></span></span> EMPLOYEES <span class="kw">WHERE</span></span></span></span></span></span> ROLE_ID = <span class="fn">4</span></span></span></span></span></span>;
+    <span class="kw">SELECT</span></span></span></span></span></span> <span class="fn">COUNT</span></span></span></span></span></span>(*) <span class="kw">INTO</span></span></span></span></span></span> V_DONE <span class="kw">FROM</span></span></span></span></span></span> READ_LOGS <span class="kw">WHERE</span></span></span></span></span></span> DOC_ID = P_DOC_ID;
+
+    <span class="kw">IF</span></span></span></span></span></span> V_DONE &gt;= V_TARGET <span class="kw">THEN</span></span></span></span></span></span>
+        <span class="kw">UPDATE</span></span></span></span></span></span> DOCUMENTS <span class="kw">SET</span></span></span></span></span></span> STATUS = <span class="st">'COMPLETED'</span></span></span></span></span></span> <span class="kw">WHERE</span></span></span></span></span></span> DOC_ID = P_DOC_ID;
+    <span class="kw">END</span></span></span></span></span></span> <span class="kw">IF</span></span></span></span></span></span>;
+    <span class="kw">COMMIT</span></span></span></span></span></span>;
+<span class="kw">EXCEPTION</span></span></span></span></span></span>
+    <span class="kw">WHEN</span></span></span></span></span></span> DUP_VAL_ON_INDEX <span class="kw">THEN</span></span></span></span></span></span>
+        <span class="kw">ROLLBACK</span></span></span></span></span></span>;
+        <span class="fn">RAISE_APPLICATION_ERROR</span></span></span></span></span></span>(-<span class="fn">20010</span></span></span></span></span></span>, <span class="st">'พนักงานนี้ยืนยันรับทราบเอกสารนี้ไปแล้ว ห้ามยืนยันซ้ำ (BR-Memo-103)'</span></span></span></span></span></span>);
+    <span class="kw">WHEN</span></span></span></span></span></span> <span class="kw">OTHERS</span></span></span></span></span></span> <span class="kw">THEN</span></span></span></span></span></span>
+        <span class="kw">ROLLBACK</span></span></span></span></span></span>;
+        <span class="kw">RAISE</span></span></span></span></span></span>;
+<span class="kw">END</span></span></span></span></span></span>;
+/</pre>
+      <ul>
+        <li>INSERT ลง READ_LOGS (เก็บ IP เป็นหลักฐาน) — ถ้ายืนยันซ้ำ UNIQUE (DOC_ID, EMP_ID) จะโยน <code>DUP_VAL_ON_INDEX</code> ที่เราจับไว้ → raise <strong>-20010</strong> (error demo ที่ 3) — กันยืนยันซ้ำ 2 ชั้น: DB กันด้วย UNIQUE + โค้ดแปลงเป็นข้อความไทยให้อ่านง่าย</li>
+        <li>เทียบ <strong>จำนวนคนยืนยันแล้ว</strong> (READ_LOGS) กับ <strong>กลุ่มเป้าหมายทั้งหมด</strong> (พนักงาน ROLE_ID = 4) — ครบแล้วย้ายสถานะเป็น COMPLETED ตาม XOR Gateway 2 ขา "Ack_Status = COMPLETED_100%"</li>
+      </ul>
+      <div class="box box-tip">
+        <p class="box-title">ทดสอบจริง</p>
+        <pre class="code">EXEC SP_ACKNOWLEDGE_DOC(5001, 1004, '10.0.0.5');   -- ปกรณ์ (1004) ยืนยัน → 1/4
+EXEC SP_ACKNOWLEDGE_DOC(5001, 1004, '10.0.0.5');   -- ยืนยันซ้ำ! → ORA-20010 (โชว์ error นี้)
+-- ให้ยืนยันครบอีก 3 คน: 1005 กมลวรรณ, 1006 ธนกร, 1007 พิมพ์ชนก
+-- → การยืนยันครั้งที่ 4 (แถวสุดท้าย) จะย้ายสถานะเอกสารเป็น COMPLETED อัตโนมัติ
+SELECT STATUS FROM DOCUMENTS WHERE DOC_ID = 5001;  -- หลังครบ 4/4 = COMPLETED</pre>
+      </div>
+
+      <h3>ก้อนที่ 5 · SP_CHECK_SLA_REMIND — เกิน 24 ชม. ยังไม่ครบ → เตือนซ้ำ</h3>
+      <span class="file-tag">03_PLSQL.sql · PROCEDURE 4</span>
+      <pre class="code sql"><span class="cm">-- ---------- PROCEDURE 4 : ตรวจ SLA — เกิน 24 ชม. ยังไม่ครบ → ส่งการแจ้งเตือนซ้ำ ----------</span></span></span></span></span></span>
+<span class="kw">CREATE</span></span></span></span></span></span> <span class="kw">OR</span></span></span></span></span></span> <span class="kw">REPLACE</span></span></span></span></span></span> <span class="kw">PROCEDURE</span></span></span></span></span></span> SP_CHECK_SLA_REMIND (P_DOC_ID <span class="kw">IN</span></span></span></span></span></span> <span class="kw">NUMBER</span></span></span></span></span></span>) <span class="kw">IS</span></span></span></span></span></span>
+    V_FIRST_SENT <span class="kw">DATE</span></span></span></span></span></span>;
+    V_UNREAD     <span class="kw">NUMBER</span></span></span></span></span></span>;
+<span class="kw">BEGIN</span></span></span></span></span></span>
+    <span class="kw">SELECT</span></span></span></span></span></span> <span class="fn">MIN</span></span></span></span></span></span>(SENT_DATE) <span class="kw">INTO</span></span></span></span></span></span> V_FIRST_SENT <span class="kw">FROM</span></span></span></span></span></span> DISTRIBUTIONS <span class="kw">WHERE</span></span></span></span></span></span> DOC_ID = P_DOC_ID;
+
+    <span class="kw">SELECT</span></span></span></span></span></span> <span class="fn">COUNT</span></span></span></span></span></span>(*) <span class="kw">INTO</span></span></span></span></span></span> V_UNREAD
+    <span class="kw">FROM</span></span></span></span></span></span> EMPLOYEES e
+    <span class="kw">WHERE</span></span></span></span></span></span> e.ROLE_ID = <span class="fn">4</span></span></span></span></span></span>
+      <span class="kw">AND</span></span></span></span></span></span> <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">EXISTS</span></span></span></span></span></span> (<span class="kw">SELECT</span></span></span></span></span></span> <span class="fn">1</span></span></span></span></span></span> <span class="kw">FROM</span></span></span></span></span></span> READ_LOGS r
+                      <span class="kw">WHERE</span></span></span></span></span></span> r.DOC_ID = P_DOC_ID <span class="kw">AND</span></span></span></span></span></span> r.EMP_ID = e.EMP_ID);
+
+    <span class="kw">IF</span></span></span></span></span></span> V_UNREAD &gt; <span class="fn">0</span></span></span></span></span></span> <span class="kw">AND</span></span></span></span></span></span> (<span class="fn">SYSDATE</span></span></span></span></span></span> - V_FIRST_SENT) * <span class="fn">24</span></span></span></span></span></span> &gt;= <span class="fn">24</span></span></span></span></span></span> <span class="kw">THEN</span></span></span></span></span></span>
+        <span class="kw">FOR</span></span></span></span></span></span> r <span class="kw">IN</span></span></span></span></span></span> (<span class="kw">SELECT</span></span></span></span></span></span> e.EMP_ID <span class="kw">FROM</span></span></span></span></span></span> EMPLOYEES e
+                  <span class="kw">WHERE</span></span></span></span></span></span> e.ROLE_ID = <span class="fn">4</span></span></span></span></span></span>
+                    <span class="kw">AND</span></span></span></span></span></span> <span class="kw">NOT</span></span></span></span></span></span> <span class="kw">EXISTS</span></span></span></span></span></span> (<span class="kw">SELECT</span></span></span></span></span></span> <span class="fn">1</span></span></span></span></span></span> <span class="kw">FROM</span></span></span></span></span></span> READ_LOGS r
+                                    <span class="kw">WHERE</span></span></span></span></span></span> r.DOC_ID = P_DOC_ID <span class="kw">AND</span></span></span></span></span></span> r.EMP_ID = e.EMP_ID)) <span class="kw">LOOP</span></span></span></span></span></span>
+            <span class="kw">INSERT</span></span></span></span></span></span> <span class="kw">INTO</span></span></span></span></span></span> NOTIFICATIONS (NOTIF_ID, DOC_ID, EMP_ID, CHANNEL, NOTIF_TYPE, SENT_AT)
+            <span class="kw">VALUES</span></span></span></span></span></span> (SEQ_NOTIF.<span class="fn">NEXTVAL</span></span></span></span></span></span>, P_DOC_ID, r.EMP_ID, <span class="st">'APP'</span></span></span></span></span></span>, <span class="st">'REMINDER'</span></span></span></span></span></span>, <span class="fn">SYSDATE</span></span></span></span></span></span>);
+        <span class="kw">END</span></span></span></span></span></span> <span class="kw">LOOP</span></span></span></span></span></span>;
+        <span class="kw">COMMIT</span></span></span></span></span></span>;
+    <span class="kw">END</span></span></span></span></span></span> <span class="kw">IF</span></span></span></span></span></span>;
+<span class="kw">END</span></span></span></span></span></span>;
+/</pre>
+      <ul>
+        <li><code>MIN(SENT_DATE)</code> จาก DISTRIBUTIONS = เวลาที่กระจายครั้งแรก → จุดเริ่มนับ SLA</li>
+        <li><code>NOT EXISTS</code> = หา "คนที่ยังไม่มีแถวยืนยัน" — เทคนิคเดียวกับ LEFT JOIN ... IS NULL (เจออีกแบบในหน้า JOIN)</li>
+        <li><code>(SYSDATE - V_FIRST_SENT) * 24 &gt;= 24</code> — ใน Oracle วันลบวัน = จำนวนวัน (มีทศนิยม) คูณ 24 = ชั่วโมง — เงื่อนไขตามกฎ BR-Memo-101/DR-Memo-102</li>
+        <li>ผ่านเงื่อนไข → วน INSERT NOTIFICATIONS type <strong>REMINDER</strong> ให้เฉพาะคนที่ยังไม่อ่าน (ไม่รบกวนคนที่อ่านแล้ว — กฎ BR-Memo-102 ส่งเฉพาะกลุ่มเป้าหมาย) แล้ว COMMIT · ถ้ายังไม่เกิน 24 ชม. Procedure จบเงียบ ๆ ไม่ทำอะไร</li>
+      </ul>
+
+      <h2>💥 กรณี error ที่ต้อง demo (สรุปของหน้านี้)</h2>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>สถานการณ์</th><th>คำสั่ง</th><th>ผลที่ต้องเห็น</th><th>จุดในโค้ดที่จับ</th></tr>
+          <tr><td>ส่งเอกสารที่ไม่ใช่ร่าง (เช่น PENDING อยู่แล้ว)</td><td><code>EXEC SP_SUBMIT_DOC(5001);</code> (ครั้งที่ 2)</td><td><code>ORA-20001</code> ไม่อยู่ในสถานะร่าง</td><td>IF ตรวจสถานะ + RAISE_APPLICATION_ERROR</td></tr>
+          <tr><td>คนพิจารณาไม่ใช่ Approver</td><td><code>EXEC SP_DECIDE_APPROVAL(5002, 1004, 'APPROVED', null);</code> (1004 เป็นพนักงาน)</td><td><code>ORA-20003</code> ต้องมีบทบาท Approver เท่านั้น</td><td>COUNT ROLE_ID = 3 = 0 → raise</td></tr>
+          <tr><td>ยืนยันรับทราบซ้ำ</td><td><code>EXEC SP_ACKNOWLEDGE_DOC(5001, 1004, '10.0.0.5');</code> (ครั้งที่ 2)</td><td><code>ORA-20010</code> ห้ามยืนยันซ้ำ</td><td>UNIQUE (DOC_ID,EMP_ID) → DUP_VAL_ON_INDEX</td></tr>
+          <tr><td>ตีกลับแล้วส่งใหม่ (ไม่ใช่ error — คือ Rejected Loop)</td><td><code>EXEC SP_DECIDE_APPROVAL(5003, 1003, 'REJECTED', 'เหตุผล');</code> แล้ว <code>EXEC SP_SUBMIT_DOC(5003);</code></td><td>สถานะ REJECTED → PENDING (วนกลับ Flow)</td><td>XOR ทางตีกลับ + SP_SUBMIT_DOC ยอมรับ REJECTED</td></tr>
+        </table>
+      </div>
+
+      <h2>❓ Q&A ของหน้านี้ (อาจารย์ชอบถามตอนรัน PL/SQL)</h2>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>คำถาม</th><th>คำตอบสั้น</th></tr>
+          <tr><td>Transaction อยู่ตรงไหนของระบบนี้</td><td>SP_DECIDE_APPROVAL — บันทึกผล + ลงนาม + กระจาย + แจ้งเตือน ใน Transaction เดียว จบด้วย COMMIT 1 ครั้ง ผิดพลาด ROLLBACK ทั้งหมด (Atomicity)</td></tr>
+          <tr><td>ทำไมต้อง FOR UPDATE</td><td>ล็อกแถวเอกสารระหว่างอ่านสถานะจนตัดสินใจ — กันสองคนแก้พร้อมกัน (Concurrency Control)</td></tr>
+          <tr><td>Trigger ทำอะไร ต่างจาก Procedure</td><td>Trigger = ฐานข้อมูลยิงเองเมื่อเหตุการณ์เกิด (หลัง UPDATE STATUS) · Procedure = เราเรียกใช้ด้วย EXEC</td></tr>
+          <tr><td>ถ้ากระจายขาดกลางคันเกิดอะไรขึ้น</td><td>EXCEPTION WHEN OTHERS → ROLLBACK — ลงนาม/บันทึกผลที่ทำไปแล้วถูกย้อนหมด ข้อมูลไม่ครึ่ง ๆ กลาง ๆ</td></tr>
+          <tr><td>SLA 24 ชม. ทำงานยังไง</td><td>SP_CHECK_SLA_REMIND: (SYSDATE − เวลากระจายครั้งแรก) × 24 ≥ 24 และยังมีคนไม่ยืนยัน → INSERT NOTIFICATIONS type REMINDER เฉพาะคนที่ยังไม่อ่าน</td></tr>
+          <tr><td>ป้องกันยืนยันซ้ำยังไง</td><td>2 ชั้น — UNIQUE (DOC_ID, EMP_ID) ใน READ_LOGS + EXCEPTION DUP_VAL_ON_INDEX แปลงเป็น ORA-20010</td></tr>
+          <tr><td>Sequence ใช้ตรงไหน</td><td>ออกรหัสอัตโนมัติทุกตารางทรานแซกชัน: SEQ_APPROVAL/SEQ_SIGN/SEQ_DIST/SEQ_NOTIF/SEQ_LOG — ตรง To-Be "จัดเก็บ + ออกรหัสอ้างอิง"</td></tr>
+        </table>
+      </div>
+
+      <div class="quiz" data-answer="1">
+        <p class="quiz-q"><span class="qno">Q</span> ระหว่าง SP_DECIDE_APPROVAL ทำงานอยู่ ถ้า INSERT DISTRIBUTIONS ล้มเหลว (เช่น ตารางพัง) ผลลัพธ์คืออะไร?</p>
+        <div class="quiz-opts">
+          <button class="quiz-opt">เอกสารกลายเป็น SIGNED และรอกระจายทีหลัง</button>
+          <button class="quiz-opt">ROLLBACK ทั้ง Transaction — ไม่มี APPROVALS/SIGNATURES/DISTRIBUTIONS ใหม่ และสถานะไม่เปลี่ยน</button>
+          <button class="quiz-opt">COMMIT เฉพาะส่วนที่สำเร็จแล้ว</button>
+          <button class="quiz-opt">Trigger ช่วยกระจายแทนอัตโนมัติ</button>
+        </div>
+        <div class="quiz-explain"><strong>เฉลย:</strong> WHEN OTHERS → ROLLBACK + RAISE — คุณสมบัติ Atomicity: Transaction ต้องสำเร็จทั้งชุด ไม่มี COMMIT ครึ่ง ๆ</div>
+      </div>
+
+      <div class="prevnext">
+        <a href="p1-er-ddl-dml.html">ก่อนหน้า: E/R + DDL/DML<small>🗄️ 11 ตาราง + Constraint</small></a>
+        <a class="next" href="p1-join.html">ต่อไป: SQL JOIN 6 ข้อ<small>🔗 JOIN มากสุด 6 ตาราง แสดงการทำงานหลัก</small></a>
+      </div>
+
+    </div>
+  </main>
+</div>
+<script src="script.js"></script>
+<script src="tts.js"></script>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true, securityLevel: 'loose', theme: 'base',
+    fontFamily: '"Noto Sans Thai", sans-serif',
+    themeVariables: { primaryColor:'#eef0ff', primaryTextColor:'#1d2333', primaryBorderColor:'#4f46e5', lineColor:'#5b6474' }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Part II · E/R Chen + DDL/DML (11 ตาราง Smart Bus Bell) — เว็บติวสอบ Project Database</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-tts="1">
+<div id="progressBar"></div>
+<div class="backdrop"></div>
+
+<header class="topbar">
+  <button class="hamburger" aria-label="เปิดเมนู">☰</button>
+  <div class="topbar-title">🎓 ติวสอบ Project Database</div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="เมนูหลัก">
+    <div class="side-brand">🎓 Project DB Prep<small>สอบ Project Face-to-face • 2 Business Domain</small></div>
+    <div class="side-note">💡 <b>กฎเหล็ก:</b> ลำดับรัน 00→05 • DROP ให้อาจารย์ดู • ทุกคนตอบ "ทำไม" ได้เหมือนกัน</div>
+    <a class="nav-link" href="index.html"><span class="nav-emoji">🏠</span> หน้าแรก + โจทย์อาจารย์</a>
+    <div class="side-group">PART I — อ.อู๊ด (เวียน + ประกาศ)</div>
+    <a class="nav-link" href="p1-usecase.html"><span class="nav-emoji">📋</span> Use Case + Traceability</a>
+    <a class="nav-link" href="p1-er-ddl-dml.html"><span class="nav-emoji">🗄️</span> E/R + DDL/DML <span class="nav-pts">11 ตาราง</span></a>
+    <a class="nav-link" href="p1-plsql.html"><span class="nav-emoji">⚙️</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p1-join.html"><span class="nav-emoji">🔗</span> SQL JOIN 6 ข้อ</a>
+    <div class="side-group">PART II — อ.ผึ้ง (Smart Bus Bell)</div>
+    <a class="nav-link" href="p2-usecase.html"><span class="nav-emoji">🚌</span> Use Case + REG1–17</a>
+    <a class="nav-link" href="p2-er-ddl-dml.html"><span class="nav-emoji">🚏</span> E/R + DDL/DML <span class="nav-pts">11 ตาราง</span></a>
+    <a class="nav-link" href="p2-plsql.html"><span class="nav-emoji">🚦</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p2-join.html"><span class="nav-emoji">🧭</span> รายงาน SQL 3 แบบ</a>
+    <div class="side-group">สาธิตหน้าห้อง</div>
+    <a class="nav-link" href="verify-demo.html"><span class="nav-emoji">🎤</span> ลำดับ demo + Q&A</a>
+  </nav>
+
+  <main class="main">
+    <div class="content">
+
+      <section class="page-head">
+        <p class="crumb"><a href="index.html">หน้าแรก</a> • PART II — Smart Bus Bell &amp; IoT Tracking System (อ.ผึ้ง)</p>
+        <h1>🚏 E/R Chen → สร้างตาราง 11 ตาราง + ข้อมูล Seed — โค้ด DDL/DML เต็มพร้อมอธิบายทีละบล็อก</h1>
+        <div class="head-meta">
+          <span class="badge">11 ตาราง + 7 Sequence</span><span class="badge">Weak Entity · Junction · Derived</span><span class="badge gold">ไฟล์ 1 → 2 (Oracle 10g R2)</span>
+        </div>
+      </section>
+
+      <div class="box box-exam">
+        <p class="box-title">① อาจารย์ต้องการอะไร (โจทย์ข้อนี้)</p>
+        <p>"<strong>1- DDL , DML ตาม E/R Diagram</strong>" + "ให้ <strong>DROP ทุกตารางแล้วสร้างใหม่ให้ดู</strong> Face-to-face" —
+        สภาพจริงตอนนี้: สคริปต์ <strong>deploy บน server แล้วทั้งหมด</strong> (Oracle 10g R2 ผ่าน iSQL*Plus) — วันสอบแค่ <strong>รับซ้ำตามลำดับไฟล์ 1→5</strong>:
+        ไฟล์ 1 (DDL) จะลบของเดิม <strong>เฉพาะที่ชื่อตรงกับโปรเจกต์นี้</strong> แล้วสร้างใหม่ให้อาจารย์ดูทั้ง 11 ตาราง + 7 Sequence ต่อด้วยไฟล์ 2 (DML ใส่ข้อมูลทดสอบ 27 แถว)</p>
+      </div>
+
+      <div class="box box-basics">
+        <p class="box-title">🌱 มือใหม่อ่านก่อน (สำหรับคนที่ยังไม่เคยเขียน SQL)</p>
+        <ul>
+          <li>โครงโค้ดทั้งหมดในหน้านี้ <strong>เหมือน Part I ทุกบรรทัด</strong> — เปลี่ยนแค่ "ชื่อตาราง/คอลัมน์/ธุรกิจ" ดังนั้นถ้าอ่านหน้า DDL/DML ของ Part I เป็นแล้ว หน้านี้อ่านผ่านเร็วมาก</li>
+          <li>ยังไม่ได้อ่าน? กลับไปดูหัวข้อ <a href="p1-er-ddl-dml.html#read-create">"อ่าน CREATE TABLE ทีละบรรทัด"</a> และ <a href="p1-er-ddl-dml.html#read-select">"SELECT แรกในชีวิต + อ่าน INSERT"</a> ก่อน แล้วกลับมา — ใช้เวลา 10 นาที คุ้มทั้งเทอม</li>
+          <li>สั้น ๆ อีกรอบ: <code>CREATE TABLE</code> = สร้างโครง · <code>INSERT INTO ... VALUES ...</code> = ใส่ข้อมูล 1 แถว · <code>SELECT ... FROM ... WHERE ...</code> = ดึงข้อมูลออกมาดู · <code>COMMIT</code> = บันทึกถาวร</li>
+        </ul>
+      </div>
+
+      <h2>🗺️ ภาพ E/R แบบ Chen Model (ตามที่ส่งอาจารย์ — ฉบับแก้ไขตัด APP/LOG ออก)</h2>
+      <pre class="mermaid">
+flowchart TD
+    USER["USER"]
+    UTYPE["USER TYPE"]
+    BDOWN["การส่งสัญญาณกดกริ่งลง"]
+    BDIG["การส่งสัญญาณไปกริ่งดิจิตอล"]
+    VEH["ข้อมูลรถ / ยานพาหนะ"]
+    BTN["ปุ่มกดแจ้งเตือน"]
+    STAT["บันทึกสถิติการแจ้งเตือน"]
+    IOT[["กล่อง IOT"]]
+    R1{"มี"}
+    R2{"กดกริ่ง"}
+    R3{"กดกริ่ง"}
+    R4{"ส่งสัญญาณ"}
+    R5{"ส่งสัญญาณ"}
+    R6{"มี"}
+    R7{"มี (Identifying)"}
+    R8{"มี"}
+    A1(["IDUSER"])
+    A2(["ชื่อ-นามสกุล"])
+    A3(["เบอร์โทร"])
+    A4(["IDบทบาท"])
+    A5(["ชื่อบทบาท<br/>(ADMIN / DRIVER / PASSENGER)"])
+    A6(["ID"])
+    A7(["DATE TIME"])
+    A8(["สถานะแจ้งเตือน"])
+    A9(["เวลาลง"])
+    A10(["ID"])
+    A11(["DATE"])
+    A12(["ID"])
+    A13(["ทะเบียน"])
+    A14(["สายทางเดินรถ"])
+    A15(["จำนวนคนบนรถ"])
+    A16(["ID"])
+    A17(["พิกัด"])
+    USER ---|N| R1
+    R1 ---|1| UTYPE
+    USER ---|1| R2
+    R2 ---|N| BDOWN
+    USER ---|1| R3
+    R3 ---|N| BDIG
+    BDOWN ---|N| R4
+    R4 ---|M| VEH
+    BDIG ---|N| R5
+    R5 ---|M| VEH
+    VEH ---|1| R6
+    R6 ---|N| STAT
+    VEH ---|1| R7
+    R7 ---|N| IOT
+    VEH ---|N| R8
+    R8 ---|M| BTN
+    USER --- A1
+    USER --- A2
+    USER --- A3
+    UTYPE --- A4
+    UTYPE --- A5
+    BDOWN --- A6
+    BDOWN --- A7
+    BDOWN --- A8
+    R2 --- A9
+    BDIG --- A10
+    BDIG --- A11
+    VEH --- A12
+    VEH --- A13
+    VEH --- A14
+    VEH -.- A15
+    IOT --- A16
+    IOT --- A17
+      </pre>
+      <p class="mermaid-caption">Chen Model: สี่เหลี่ยม = Entity · กรอบซ้อน (กล่อง IOT) = Weak Entity · ข้าวหลามตัด = Relationship · วงรี = Attribute · เส้นประ = Derived Attribute ("จำนวนคนบนรถ" ไม่เก็บคอลัมน์ ต้องคำนวณ)</p>
+
+      <div class="box box-mem">
+        <p class="box-title">🧠 กฎแปลง E/R → ตาราง 3 ข้อ (โดนถามแน่ — ตอบสั้นได้ตรงนี้)</p>
+        <ul>
+          <li><strong>ความสัมพันธ์ N:M → ตารางกลาง (Junction Table)</strong> — เช่น "การกดกริ่ง ส่งสัญญาณ รถ" (N:M) กลายเป็น <code>VEHICLE_BELL_REQUEST</code> โดย PK = คู่ FK ทั้งสอง</li>
+          <li><strong>Weak Entity → composite PK</strong> — "กล่อง IoT" ผูกกับรถแบบ Identifying Relationship → <code>IOT_BOX</code> มี PK = (VEHICLE_ID, BOX_ID) = PK เจ้าของ + Partial Key</li>
+          <li><strong>Derived Attribute → ไม่เก็บคอลัมน์</strong> — "จำนวนคนบนรถ" คำนวณจากแหล่งอื่น (ตัวนับ IoT/แอปคนขับ) จึงไม่มีคอลัมน์ใน <code>VEHICLE</code></li>
+          <li><strong>ทำไม ER ฉบับนี้ตัด APP กับ LOG ออก?</strong> — LOG ชนกับตาราง <code>LOG</code> ของงานอื่นที่มีอยู่แล้วบน server และ APP ไม่ได้ใช้จริง — USER จึงย้ายมาเป็นฝ่ายกดกริ่งเอง (ความสัมพันธ์ 1:N)</li>
+        </ul>
+      </div>
+
+      <h3>สรุป 11 ตาราง — จำสั้น ๆ ว่าเก็บอะไร</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>ตาราง</th><th>เก็บอะไร</th><th>Constraint เด่น</th></tr>
+          <tr><td><code>USER_TYPE</code></td><td>ประเภทผู้ใช้ 3 แบบ: ADMIN / DRIVER / PASSENGER</td><td>ชื่อบทบาท CHECK 3 ค่า + UNIQUE</td></tr>
+          <tr><td><code>USERS</code></td><td>ผู้ใช้งานทุกบทบาท</td><td>PHONE UNIQUE (เบอร์โทร = ตัวระบุคน) · FK → USER_TYPE</td></tr>
+          <tr><td><code>VEHICLE</code></td><td>รถ: ทะเบียน + สายเดินรถ</td><td>PLATE_NO UNIQUE</td></tr>
+          <tr><td><code>BELL_REQUEST</code></td><td>การกดกริ่งลง (สถานะ + เวลาลงเป็น Attribute กำกับความสัมพันธ์)</td><td>CHECK สถานะ 3 ค่า (SENDING/SUCCESS/CANCELLED)</td></tr>
+          <tr><td><code>DIGITAL_BELL_SIGNAL</code></td><td>การส่งสัญญาณไปกริ่งดิจิตอล</td><td>FK → USERS</td></tr>
+          <tr><td><code>VEHICLE_BELL_REQUEST</code></td><td><strong>Junction ของ N:M</strong> กดกริ่ง↔รถ</td><td>PK = (BELL_REQ_ID, VEHICLE_ID) คู่ FK</td></tr>
+          <tr><td><code>VEHICLE_DIGITAL_SIGNAL</code></td><td><strong>Junction</strong> สัญญาณดิจิตอล↔รถ</td><td>PK = (SIGNAL_ID, VEHICLE_ID) คู่ FK</td></tr>
+          <tr><td><code>ALERT_STATISTICS</code></td><td>สถิติการแจ้งเตือนต่อรถต่อวัน</td><td>UNIQUE (VEHICLE_ID, STAT_DATE) — รถละ 1 แถวต่อวัน (ใช้กับ MERGE)</td></tr>
+          <tr><td><code>IOT_BOX</code></td><td><strong>Weak Entity</strong> กล่อง IoT + พิกัด + เวลา ping</td><td>composite PK (VEHICLE_ID, BOX_ID)</td></tr>
+          <tr><td><code>BELL_BUTTON</code></td><td>ปุ่มกริ่ง (โซนหน้า/โซนหลัง)</td><td>—</td></tr>
+          <tr><td><code>VEHICLE_BELL_BUTTON</code></td><td><strong>Junction</strong> รถ↔ปุ่ม (ติดตั้งเมื่อไร)</td><td>PK = (VEHICLE_ID, BUTTON_ID) คู่ FK</td></tr>
+        </table>
+      </div>
+
+      <h2>🧹 ขั้นที่ 0 — DROP ของเดิม "เฉพาะชื่อของโปรเจกต์นี้" (ไฟล์ 1 · ส่วนเปิด)</h2>
+      <div class="big-warn">
+        <p class="box-title">⚠️ ความต่างจากเว็บเก่า — Database User ตัวนี้มี "ของงานอื่น" อยู่ด้วย</p>
+        <ul>
+          <li>Account นี้บน server มีตารางของงานอื่นอยู่รวมกัน: <code>ADMIN, DEPARTMENT, DEPARTMENT_HEAD, DOCUMENT, DOCUMENT_DETAIL, EMPLOYEE, LOG, RECEIPT_RECORD</code> — <strong>ห้ามลบ!</strong></li>
+          <li>สคริปต์จึง <strong>ไม่ DROP ทิ้งทั้ง schema</strong> แต่ลบเฉพาะชื่อที่ตรงกับโปรเจกต์นี้ด้วย <code>WHERE TABLE_NAME IN (...)</code> — ปลอดภัยต่องานอื่น และ <strong>รันซ้ำได้</strong> (idempotent: ไม่เจอก็ข้าม ไม่ error)</li>
+        </ul>
+      </div>
+      <span class="file-tag">oracle_1_ddl.sql · ส่วน [0] ลบของเดิม</span>
+      <pre class="code sql"><span class="cm">-- ---------- [0.1] ลบ TABLE ของโปรเจกต์นี้ (ถ้ามี) ----------</span></span>
+<span class="kw">BEGIN</span></span>
+  <span class="kw">FOR</span></span> r <span class="kw">IN</span></span> (<span class="kw">SELECT</span></span> TABLE_NAME <span class="kw">FROM</span></span> USER_TABLES
+            <span class="kw">WHERE</span></span> TABLE_NAME <span class="kw">IN</span></span> (
+              <span class="st">'VEHICLE_BELL_BUTTON'</span></span>,<span class="st">'BELL_BUTTON'</span></span>,<span class="st">'IOT_BOX'</span></span>,<span class="st">'ALERT_STATISTICS'</span></span>,
+              <span class="st">'VEHICLE_DIGITAL_SIGNAL'</span></span>,<span class="st">'VEHICLE_BELL_REQUEST'</span></span>,<span class="st">'DIGITAL_BELL_SIGNAL'</span></span>,
+              <span class="st">'BELL_REQUEST'</span></span>,<span class="st">'VEHICLE'</span></span>,<span class="st">'USERS'</span></span>,<span class="st">'USER_TYPE'</span></span>)) <span class="kw">LOOP</span></span>
+    <span class="kw">EXECUTE</span></span> <span class="kw">IMMEDIATE</span></span> <span class="st">'DROP TABLE '</span></span>||r.TABLE_NAME||<span class="st">' CASCADE CONSTRAINTS PURGE'</span></span>;
+  <span class="kw">END</span></span> <span class="kw">LOOP</span></span>;
+<span class="kw">END</span></span>;
+/
+
+<span class="cm">-- ---------- [0.2] ลบ SEQUENCE ของโปรเจกต์นี้ (ถ้ามี) ----------</span></span>
+<span class="kw">BEGIN</span></span>
+  <span class="kw">FOR</span></span> s <span class="kw">IN</span></span> (<span class="kw">SELECT</span></span> SEQUENCE_NAME <span class="kw">FROM</span></span> USER_SEQUENCES
+            <span class="kw">WHERE</span></span> SEQUENCE_NAME <span class="kw">IN</span></span> (<span class="st">'SEQ_USERS'</span></span>,<span class="st">'SEQ_VEHICLE'</span></span>,<span class="st">'SEQ_BELL_REQ'</span></span>,
+                                    <span class="st">'SEQ_DIG_SIGNAL'</span></span>,<span class="st">'SEQ_ALERT_STAT'</span></span>,<span class="st">'SEQ_IOT_BOX'</span></span>,
+                                    <span class="st">'SEQ_BUTTON'</span></span>)) <span class="kw">LOOP</span></span>
+    <span class="kw">EXECUTE</span></span> <span class="kw">IMMEDIATE</span></span> <span class="st">'DROP SEQUENCE '</span></span>||s.SEQUENCE_NAME;
+  <span class="kw">END</span></span> <span class="kw">LOOP</span></span>;
+<span class="kw">END</span></span>;
+/
+
+<span class="cm">-- ---------- [0.3] ลบ VIEW รายงานของโปรเจกต์นี้ (ถ้ามี) ----------</span></span>
+<span class="kw">BEGIN</span></span>
+  <span class="kw">FOR</span></span> v <span class="kw">IN</span></span> (<span class="kw">SELECT</span></span> VIEW_NAME <span class="kw">FROM</span></span> USER_VIEWS <span class="kw">WHERE</span></span> VIEW_NAME = <span class="st">'VW_BELL_REPORT'</span></span>) <span class="kw">LOOP</span></span>
+    <span class="kw">EXECUTE</span></span> <span class="kw">IMMEDIATE</span></span> <span class="st">'DROP VIEW '</span></span>||v.VIEW_NAME;
+  <span class="kw">END</span></span> <span class="kw">LOOP</span></span>;
+<span class="kw">END</span></span>;
+/</pre>
+      <ul>
+        <li><code>FOR r IN (SELECT ...)</code> = วนทีละชื่อที่เจอ · <code>EXECUTE IMMEDIATE 'DROP TABLE ...'</code> = สั่ง SQL ที่ประกอบขึ้นระหว่างรัน (Dynamic SQL) — จำเป็นเพราะชื่อตารางมาจากผล SELECT พิมพ์ DROP ตายตัวไม่ได้</li>
+        <li><code>CASCADE CONSTRAINTS PURGE</code> — ลบ FK ที่ชี้มาทิ้งพร้อมกัน ไม่ต้องกังวลลำดับลูก-แม่ + ไม่เก็บ recycle bin (สร้างชื่อซ้ำได้ทันที)</li>
+        <li>พูดใน demo: "ผมลบเฉพาะตารางของโปรเจกต์นี้ตามชื่อ เพื่อไม่กระทบตารางงานอื่นใน User เดียวกัน — รันซ้ำกี่ครั้งก็ได้ เพราะถ้าไม่เจอชื่อ ลูปจะไม่วน"</li>
+      </ul>
+
+      <h2>🏗️ ขั้นที่ 1 — CREATE ตารางทีละใบ (ไฟล์ 1 · DDL)</h2>
+      <p>ชื่อ Constraint ทั้งหมดตั้งแบบ <code>PK_/FK_/UQ_/CK_ + ตาราง</code> เพื่ออ่านผล script ตรวจสอบ (ไฟล์ 5) ได้ง่าย</p>
+
+      <h3>1. USER_TYPE — ประเภทผู้ใช้ (เล็กสุด ใช้เป็นตัวอย่างอ่านทีละบรรทัด)</h3>
+      <pre class="code sql"><span class="cm">-- USER TYPE : ประเภทผู้ใช้   [N]---มี---[1]</span></span>
+<span class="kw">CREATE</span></span> <span class="kw">TABLE</span></span> USER_TYPE (
+  ROLE_ID    <span class="kw">NUMBER</span></span>(<span class="fn">4</span></span>)     <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,        -- IDบทบาท (PK)
+  ROLE_NAME  <span class="kw">VARCHAR2</span></span>(<span class="fn">20</span></span>)  <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,        -- ชื่อบทบาท
+  <span class="kw">CONSTRAINT</span></span> PK_USER_TYPE      <span class="kw">PRIMARY</span></span> <span class="kw">KEY</span></span> (ROLE_ID),
+  <span class="kw">CONSTRAINT</span></span> CK_USER_TYPE_NAME <span class="kw">CHECK</span></span> (ROLE_NAME <span class="kw">IN</span></span> (<span class="st">'ADMIN'</span></span>,<span class="st">'DRIVER'</span></span>,<span class="st">'PASSENGER'</span></span>)),
+  <span class="kw">CONSTRAINT</span></span> UQ_USER_TYPE_NAME <span class="kw">UNIQUE</span></span> (ROLE_NAME)
+);</pre>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th style="width:55%;">บรรทัดโค้ด</th><th>แปลเป็นไทยล้วน</th></tr>
+          <tr><td><code>CREATE TABLE USER_TYPE (</code></td><td>"สร้างตารางใหม่ชื่อ USER_TYPE"</td></tr>
+          <tr><td><code>ROLE_ID NUMBER(4) NOT NULL,</code></td><td>คอลัมน์รหัสบทบาท เลข ≤ 4 หลัก ห้ามว่าง</td></tr>
+          <tr><td><code>ROLE_NAME VARCHAR2(20) NOT NULL,</code></td><td>คอลัมน์ชื่อบทบาท ข้อความ ≤ 20 ตัว ห้ามว่าง</td></tr>
+          <tr><td><code>CONSTRAINT PK_USER_TYPE PRIMARY KEY (ROLE_ID),</code></td><td>ROLE_ID = รหัสประจำตัวของแถว (ไม่ซ้ำ ไม่ว่าง)</td></tr>
+          <tr><td><code>CONSTRAINT CK_USER_TYPE_NAME CHECK (...IN ('ADMIN','DRIVER','PASSENGER')),</code></td><td>ชื่อบทบาทต้องเป็น 1 ใน 3 ค่านี้เท่านั้น (พิมพ์อื่น DB ปฏิเสธ)</td></tr>
+          <tr><td><code>CONSTRAINT UQ_USER_TYPE_NAME UNIQUE (ROLE_NAME)</code></td><td>ชื่อบทบาทห้ามซ้ำ (DRIVER มีได้แถวเดียว)</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption" style="text-align:left;">💡 อ่านตารางอื่นใช้โครงนี้ทั้งหมด — คอลัมน์ + ชนิด + NOT NULL + Constraint ชื่อ PK_/CK_/UQ_/FK_</p>
+
+      <h3>2. USERS — ผู้ใช้งาน (PHONE = ตัวระบุคน)</h3>
+      <pre class="code sql"><span class="cm">-- USER : ผู้ใช้งาน   [N]---มี---[1] USER_TYPE</span></span>
+<span class="kw">CREATE</span></span> <span class="kw">TABLE</span></span> USERS (
+  USER_ID    <span class="kw">NUMBER</span></span>(<span class="fn">10</span></span>)    <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,        -- IDUSER (PK)
+  FULL_NAME  <span class="kw">VARCHAR2</span></span>(<span class="fn">150</span></span>) <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,        -- ชื่อ-นามสกุล
+  PHONE      <span class="kw">VARCHAR2</span></span>(<span class="fn">20</span></span>),                 -- เบอร์โทร
+  ROLE_ID    <span class="kw">NUMBER</span></span>(<span class="fn">4</span></span>)     <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,       -- FK -&gt; USER_TYPE
+  <span class="kw">CONSTRAINT</span></span> PK_USERS       <span class="kw">PRIMARY</span></span> <span class="kw">KEY</span></span> (USER_ID),
+  <span class="kw">CONSTRAINT</span></span> UQ_USERS_PHONE <span class="kw">UNIQUE</span></span> (PHONE),
+  <span class="kw">CONSTRAINT</span></span> FK_USERS_ROLE  <span class="kw">FOREIGN</span></span> <span class="kw">KEY</span></span> (ROLE_ID) <span class="kw">REFERENCES</span></span> USER_TYPE (ROLE_ID)
+);</pre>
+      <ul>
+        <li><code>UQ_USERS_PHONE</code> — เบอร์โทรไม่ซ้ำ เพราะทั้งระบบใช้เบอร์โทรเป็น "ชื่อธรรมชาติ" หาคน (DML หา USER_ID ด้วย subquery จาก PHONE)</li>
+        <li><code>FK_USERS_ROLE</code> — ทุกคนต้องมีบทบาทที่มีจริงใน USER_TYPE (กันพิมพ์รหัสบทบาทมั่ว)</li>
+      </ul>
+
+      <h3>3. VEHICLE — รถ (จำนวนคนบนรถ = Derived → ไม่เก็บคอลัมน์)</h3>
+      <pre class="code sql"><span class="cm">-- VEHICLE : ข้อมูลรถ / ยานพาหนะ  ("จำนวนคนบนรถ" = Derived Attribute -&gt; ไม่เก็บคอลัมน์)</span></span>
+<span class="kw">CREATE</span></span> <span class="kw">TABLE</span></span> VEHICLE (
+  VEHICLE_ID <span class="kw">NUMBER</span></span>(<span class="fn">10</span></span>)    <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,       -- ID (PK)
+  PLATE_NO   <span class="kw">VARCHAR2</span></span>(<span class="fn">20</span></span>)  <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,       -- ทะเบียน
+  ROUTE_NO   <span class="kw">VARCHAR2</span></span>(<span class="fn">20</span></span>)  <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,       -- สายทางเดินรถ
+  <span class="kw">CONSTRAINT</span></span> PK_VEHICLE       <span class="kw">PRIMARY</span></span> <span class="kw">KEY</span></span> (VEHICLE_ID),
+  <span class="kw">CONSTRAINT</span></span> UQ_VEHICLE_PLATE <span class="kw">UNIQUE</span></span> (PLATE_NO)
+);</pre>
+      <ul>
+        <li><strong>จุดอภิปรายของอาจารย์:</strong> "จำนวนคนบนรถ" อยู่ใน ER เป็น Derived Attribute (วงรีเส้นประ) — ไม่เก็บคอลัมน์ เพราะค่าคำนวณได้จากตัวนับ IoT/แอปคนขับ ถ้าเก็บจะ stale (ไม่ตรงจริงเสมอ)</li>
+      </ul>
+
+      <h3>4. BELL_REQUEST — การกดกริ่งลง (มี Attribute กำกับความสัมพันธ์)</h3>
+      <pre class="code sql"><span class="cm">-- BELL_REQUEST : การส่งสัญญาณกดกริ่งลง   USER [1]---กดกริ่ง---[N]</span></span>
+<span class="kw">CREATE</span></span> <span class="kw">TABLE</span></span> BELL_REQUEST (
+  BELL_REQ_ID   <span class="kw">NUMBER</span></span>(<span class="fn">12</span></span>)   <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,      -- ID (PK)
+  USER_ID       <span class="kw">NUMBER</span></span>(<span class="fn">10</span></span>)   <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,      -- FK -&gt; USERS
+  REQ_TIME      <span class="kw">DATE</span></span>         <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,      -- <span class="kw">DATE</span></span> TIME
+  NOTIFY_STATUS <span class="kw">VARCHAR2</span></span>(<span class="fn">12</span></span>) <span class="kw">DEFAULT</span></span> <span class="st">'SENDING'</span></span> <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,  -- สถานะแจ้งเตือน
+  ALIGHT_TIME   <span class="kw">DATE</span></span>,                       -- เวลาลง (แอตทริบิวต์กำกับความสัมพันธ์ "กดกริ่ง")
+  <span class="kw">CONSTRAINT</span></span> PK_BELL_REQUEST <span class="kw">PRIMARY</span></span> <span class="kw">KEY</span></span> (BELL_REQ_ID),
+  <span class="kw">CONSTRAINT</span></span> CK_BELL_STATUS  <span class="kw">CHECK</span></span> (NOTIFY_STATUS <span class="kw">IN</span></span> (<span class="st">'SENDING'</span></span>,<span class="st">'SUCCESS'</span></span>,<span class="st">'CANCELLED'</span></span>)),
+  <span class="kw">CONSTRAINT</span></span> FK_BELL_USER    <span class="kw">FOREIGN</span></span> <span class="kw">KEY</span></span> (USER_ID) <span class="kw">REFERENCES</span></span> USERS (USER_ID)
+);</pre>
+      <ul>
+        <li><strong>ชีวิตของกริ่ง 3 สถานะ</strong>: SENDING (กดแล้วรอคนขับยืนยัน) → SUCCESS (ลงแล้ว) หรือ CANCELLED (ยกเลิก) — CHECK ครอบทั้ง 3 ค่า</li>
+        <li><code>DEFAULT 'SENDING'</code> — กดใหม่ไม่ต้องระบุสถานะ ได้ SENDING อัตโนมัติ</li>
+        <li><code>ALIGHT_TIME</code> — ตาม ER เป็นวงรีแขวนที่ Relationship "กดกริ่ง" (Attribute กำกับความสัมพันธ์) จึงเก็บในตารางนี้ ไม่ใช่ใน USERS หรือ VEHICLE</li>
+      </ul>
+
+      <h3>5. DIGITAL_BELL_SIGNAL — การส่งสัญญาณไปกริ่งดิจิตอล</h3>
+      <pre class="code sql"><span class="cm">-- DIGITAL_BELL_SIGNAL : การส่งสัญญาณไปกริ่งดิจิตอล   USER [1]---กดกริ่ง---[N]</span>
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> DIGITAL_BELL_SIGNAL (
+  SIGNAL_ID   <span class="kw">NUMBER</span>(<span class="fn">12</span>)  <span class="kw">NOT</span> <span class="kw">NULL</span>,          -- ID (PK)
+  USER_ID     <span class="kw">NUMBER</span>(<span class="fn">10</span>)  <span class="kw">NOT</span> <span class="kw">NULL</span>,          -- FK -&gt; USERS
+  SIGNAL_DATE <span class="kw">DATE</span>        <span class="kw">NOT</span> <span class="kw">NULL</span>,          -- <span class="kw">DATE</span>
+  <span class="kw">CONSTRAINT</span> PK_DIG_SIGNAL <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (SIGNAL_ID),
+  <span class="kw">CONSTRAINT</span> FK_DIG_USER   <span class="kw">FOREIGN</span> <span class="kw">KEY</span> (USER_ID) <span class="kw">REFERENCES</span> USERS (USER_ID)
+);</pre>
+      <ul>
+        <li>โครงเดียวกับ BELL_REQUEST แต่ง่ายกว่า (ไม่มีสถานะ/เวลาลง) — เก็บ "ครั้งที่ส่งสัญญาณไปกริ่งดิจิตอลของแต่ละคน" แล้วจับคู่รถผ่าน junction ด้านล่าง</li>
+      </ul>
+
+      <h3>6–7. Junction Tables ×2 — ตารางกลางของ N:M ⭐</h3>
+      <pre class="code sql"><span class="cm">-- VEHICLE_BELL_REQUEST : [N:M] "ส่งสัญญาณ" -&gt; Junction Table</span></span>
+<span class="kw">CREATE</span></span> <span class="kw">TABLE</span></span> VEHICLE_BELL_REQUEST (
+  BELL_REQ_ID <span class="kw">NUMBER</span></span>(<span class="fn">12</span></span>) <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,
+  VEHICLE_ID  <span class="kw">NUMBER</span></span>(<span class="fn">10</span></span>) <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,
+  SENT_AT     <span class="kw">DATE</span></span>       <span class="kw">DEFAULT</span></span> <span class="fn">SYSDATE</span></span> <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,
+  <span class="kw">CONSTRAINT</span></span> PK_VEH_BELL_REQ <span class="kw">PRIMARY</span></span> <span class="kw">KEY</span></span> (BELL_REQ_ID, VEHICLE_ID),
+  <span class="kw">CONSTRAINT</span></span> FK_VBR_BELLREQ  <span class="kw">FOREIGN</span></span> <span class="kw">KEY</span></span> (BELL_REQ_ID) <span class="kw">REFERENCES</span></span> BELL_REQUEST (BELL_REQ_ID),
+  <span class="kw">CONSTRAINT</span></span> FK_VBR_VEHICLE  <span class="kw">FOREIGN</span></span> <span class="kw">KEY</span></span> (VEHICLE_ID)  <span class="kw">REFERENCES</span></span> VEHICLE (VEHICLE_ID)
+);
+
+<span class="cm">-- VEHICLE_DIGITAL_SIGNAL : [N:M] "ส่งสัญญาณ" -&gt; Junction Table</span></span>
+<span class="kw">CREATE</span></span> <span class="kw">TABLE</span></span> VEHICLE_DIGITAL_SIGNAL (
+  SIGNAL_ID  <span class="kw">NUMBER</span></span>(<span class="fn">12</span></span>) <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,
+  VEHICLE_ID <span class="kw">NUMBER</span></span>(<span class="fn">10</span></span>) <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,
+  SENT_AT    <span class="kw">DATE</span></span>       <span class="kw">DEFAULT</span></span> <span class="fn">SYSDATE</span></span> <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,
+  <span class="kw">CONSTRAINT</span></span> PK_VEH_DIG_SIG <span class="kw">PRIMARY</span></span> <span class="kw">KEY</span></span> (SIGNAL_ID, VEHICLE_ID),
+  <span class="kw">CONSTRAINT</span></span> FK_VDS_SIGNAL  <span class="kw">FOREIGN</span></span> <span class="kw">KEY</span></span> (SIGNAL_ID)  <span class="kw">REFERENCES</span></span> DIGITAL_BELL_SIGNAL (SIGNAL_ID),
+  <span class="kw">CONSTRAINT</span></span> FK_VDS_VEHICLE <span class="kw">FOREIGN</span></span> <span class="kw">KEY</span></span> (VEHICLE_ID) <span class="kw">REFERENCES</span></span> VEHICLE (VEHICLE_ID)
+);</pre>
+      <ul>
+        <li><strong>PK = คู่ FK ทั้งสอง</strong> (composite) — ตอบ "ทำไม Junction Table": ความสัมพันธ์ N:M แปลงเป็นตารางกลาง 1 แถว = 1 คู่ (กริ่งนี้ → รถนี้) + SENT_AT เป็นข้อมูลของความสัมพันธ์</li>
+        <li>สายสัญญาณแยก 2 ทาง (กดกริ่งผ่านแอป / กริ่งดิจิตอล) เพราะข้อมูลต่างกัน (REQ_TIME + สถานะ vs SIGNAL_DATE)</li>
+      </ul>
+
+      <h3>8. ALERT_STATISTICS — สถิติต่อรถต่อวัน (คู่กับ MERGE)</h3>
+      <pre class="code sql"><span class="cm">-- ALERT_STATISTICS : บันทึกสถิติการแจ้งเตือน   VEHICLE [1]---มี---[N]</span></span>
+<span class="kw">CREATE</span></span> <span class="kw">TABLE</span></span> ALERT_STATISTICS (
+  STAT_ID     <span class="kw">NUMBER</span></span>(<span class="fn">12</span></span>) <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,
+  VEHICLE_ID  <span class="kw">NUMBER</span></span>(<span class="fn">10</span></span>) <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,
+  STAT_DATE   <span class="kw">DATE</span></span>       <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,
+  ALERT_COUNT <span class="kw">NUMBER</span></span>(<span class="fn">8</span></span>)  <span class="kw">DEFAULT</span></span> <span class="fn">0</span></span> <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,
+  <span class="kw">CONSTRAINT</span></span> PK_ALERT_STAT  <span class="kw">PRIMARY</span></span> <span class="kw">KEY</span></span> (STAT_ID),
+  <span class="kw">CONSTRAINT</span></span> UQ_ALERT_VDATE <span class="kw">UNIQUE</span></span> (VEHICLE_ID, STAT_DATE),
+  <span class="kw">CONSTRAINT</span></span> FK_ALERT_VEH   <span class="kw">FOREIGN</span></span> <span class="kw">KEY</span></span> (VEHICLE_ID) <span class="kw">REFERENCES</span></span> VEHICLE (VEHICLE_ID)
+);</pre>
+      <ul>
+        <li><code>UNIQUE (VEHICLE_ID, STAT_DATE)</code> — รถ 1 คัน วันเดียว มีสถิติ <strong>แถวเดียว</strong> — เป็นกฎที่ทำให้ <strong>MERGE (Upsert)</strong> ใช้ได้: มีแถวแล้ว → UPDATE +1, ยังไม่มี → INSERT 1 (ดูหน้า PL/SQL)</li>
+      </ul>
+
+      <h3>9. IOT_BOX — Weak Entity (composite PK) ⭐</h3>
+      <pre class="code sql"><span class="cm">-- IOT_BOX : กล่อง IoT (Weak Entity, Identifying Relationship)   VEHICLE [1]---มี---[N]</span></span>
+<span class="cm">-- PK แบบ Composite = PK ของเจ้าของ + Partial Key ตามกฎ Weak Entity</span></span>
+<span class="kw">CREATE</span></span> <span class="kw">TABLE</span></span> IOT_BOX (
+  VEHICLE_ID   <span class="kw">NUMBER</span></span>(<span class="fn">10</span></span>)  <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,        -- PK ของเจ้าของ (รถ)
+  BOX_ID       <span class="kw">NUMBER</span></span>(<span class="fn">10</span></span>)  <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,        -- ID (Partial Key)
+  LATITUDE     <span class="kw">NUMBER</span></span>(<span class="fn">10</span></span>,<span class="fn">7</span></span>),                -- พิกัด (lat)
+  LONGITUDE    <span class="kw">NUMBER</span></span>(<span class="fn">10</span></span>,<span class="fn">7</span></span>),                -- พิกัด (lng)
+  LAST_PING_AT <span class="kw">DATE</span></span>,
+  <span class="kw">CONSTRAINT</span></span> PK_IOT_BOX     <span class="kw">PRIMARY</span></span> <span class="kw">KEY</span></span> (VEHICLE_ID, BOX_ID),
+  <span class="kw">CONSTRAINT</span></span> FK_IOT_VEHICLE <span class="kw">FOREIGN</span></span> <span class="kw">KEY</span></span> (VEHICLE_ID) <span class="kw">REFERENCES</span></span> VEHICLE (VEHICLE_ID)
+);</pre>
+      <ul>
+        <li><strong>ตอบเด็ดขาด:</strong> "ทำไม PK เป็น (VEHICLE_ID, BOX_ID)?" — กล่อง IoT เป็น Weak Entity ผูกกับรถแบบ Identifying Relationship → PK = PK เจ้าของ + Partial Key · BOX_ID รถ A กับรถ B ซ้ำกันได้ แต่ในรถเดียวกันซ้ำไม่ได้</li>
+        <li>พิกัด NUMBER(10,7) = ทศนิยม 7 ตำแหน่ง (ละเอียดระดับเซนติเมตร) + LAST_PING_AT = ตำแหน่งล่าสุดของรถ (ตอบ UC ดูตำแหน่งรถ)</li>
+      </ul>
+
+      <h3>10–11. BELL_BUTTON + VEHICLE_BELL_BUTTON — ปุ่มกริ่ง N:M "มี"</h3>
+      <pre class="code sql"><span class="cm">-- BELL_BUTTON : ปุ่มกดแจ้งเตือน   VEHICLE [N:M]---มี</span></span>
+<span class="kw">CREATE</span></span> <span class="kw">TABLE</span></span> BELL_BUTTON (
+  BUTTON_ID    <span class="kw">NUMBER</span></span>(<span class="fn">10</span></span>) <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,
+  BUTTON_LABEL <span class="kw">VARCHAR2</span></span>(<span class="fn">50</span></span>),
+  <span class="kw">CONSTRAINT</span></span> PK_BELL_BUTTON <span class="kw">PRIMARY</span></span> <span class="kw">KEY</span></span> (BUTTON_ID)
+);
+
+<span class="kw">CREATE</span></span> <span class="kw">TABLE</span></span> VEHICLE_BELL_BUTTON (
+  VEHICLE_ID   <span class="kw">NUMBER</span></span>(<span class="fn">10</span></span>) <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,
+  BUTTON_ID    <span class="kw">NUMBER</span></span>(<span class="fn">10</span></span>) <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,
+  INSTALLED_AT <span class="kw">DATE</span></span>       <span class="kw">DEFAULT</span></span> <span class="fn">SYSDATE</span></span> <span class="kw">NOT</span></span> <span class="kw">NULL</span></span>,
+  <span class="kw">CONSTRAINT</span></span> PK_VEH_BELL_BTN <span class="kw">PRIMARY</span></span> <span class="kw">KEY</span></span> (VEHICLE_ID, BUTTON_ID),
+  <span class="kw">CONSTRAINT</span></span> FK_VBB_VEHICLE  <span class="kw">FOREIGN</span></span> <span class="kw">KEY</span></span> (VEHICLE_ID) <span class="kw">REFERENCES</span></span> VEHICLE (VEHICLE_ID),
+  <span class="kw">CONSTRAINT</span></span> FK_VBB_BUTTON   <span class="kw">FOREIGN</span></span> <span class="kw">KEY</span></span> (BUTTON_ID)  <span class="kw">REFERENCES</span></span> BELL_BUTTON (BUTTON_ID)
+);</pre>
+      <ul>
+        <li>ปุ่มเดียวติดได้หลายรถ · รถเดียวมีหลายปุ่ม → N:M → Junction + INSTALLED_AT (ติดตั้งเมื่อไร) เป็นข้อมูลของความสัมพันธ์</li>
+      </ul>
+
+      <h3>SEQUENCES — 7 ตัว (Oracle 10g ไม่มี AUTO_INCREMENT)</h3>
+      <pre class="code sql"><span class="kw">CREATE</span></span> <span class="kw">SEQUENCE</span></span> SEQ_USERS       <span class="kw">START</span></span> <span class="kw">WITH</span></span> <span class="fn">1</span></span> <span class="kw">INCREMENT</span></span> <span class="kw">BY</span></span> <span class="fn">1</span></span> <span class="kw">NOCACHE</span></span>;
+<span class="kw">CREATE</span></span> <span class="kw">SEQUENCE</span></span> SEQ_VEHICLE     <span class="kw">START</span></span> <span class="kw">WITH</span></span> <span class="fn">1</span></span> <span class="kw">INCREMENT</span></span> <span class="kw">BY</span></span> <span class="fn">1</span></span> <span class="kw">NOCACHE</span></span>;
+<span class="kw">CREATE</span></span> <span class="kw">SEQUENCE</span></span> SEQ_BELL_REQ    <span class="kw">START</span></span> <span class="kw">WITH</span></span> <span class="fn">1</span></span> <span class="kw">INCREMENT</span></span> <span class="kw">BY</span></span> <span class="fn">1</span></span> <span class="kw">NOCACHE</span></span>;
+<span class="kw">CREATE</span></span> <span class="kw">SEQUENCE</span></span> SEQ_DIG_SIGNAL  <span class="kw">START</span></span> <span class="kw">WITH</span></span> <span class="fn">1</span></span> <span class="kw">INCREMENT</span></span> <span class="kw">BY</span></span> <span class="fn">1</span></span> <span class="kw">NOCACHE</span></span>;
+<span class="kw">CREATE</span></span> <span class="kw">SEQUENCE</span></span> SEQ_ALERT_STAT  <span class="kw">START</span></span> <span class="kw">WITH</span></span> <span class="fn">1</span></span> <span class="kw">INCREMENT</span></span> <span class="kw">BY</span></span> <span class="fn">1</span></span> <span class="kw">NOCACHE</span></span>;
+<span class="kw">CREATE</span></span> <span class="kw">SEQUENCE</span></span> SEQ_IOT_BOX     <span class="kw">START</span></span> <span class="kw">WITH</span></span> <span class="fn">1</span></span> <span class="kw">INCREMENT</span></span> <span class="kw">BY</span></span> <span class="fn">1</span></span> <span class="kw">NOCACHE</span></span>;
+<span class="kw">CREATE</span></span> <span class="kw">SEQUENCE</span></span> SEQ_BUTTON      <span class="kw">START</span></span> <span class="kw">WITH</span></span> <span class="fn">1</span></span> <span class="kw">INCREMENT</span></span> <span class="kw">BY</span></span> <span class="fn">1</span></span> <span class="kw">NOCACHE</span></span>;</pre>
+      <div class="term">
+        <p><span class="term-word">SEQUENCE</span> — เครื่องนับเลขอัตโนมัติ · <code>NEXTVAL</code> = ขอเลขถัดไป · Oracle 10g ไม่มี AUTO_INCREMENT เหมือน MySQL จึงต้องสร้าง SEQUENCE ต่อตาราง (คำตอบ "ทำไมมี SEQUENCE" ที่อาจารย์ถาม) · <code>START WITH 1</code> เลขแรกคือ 1</p>
+      </div>
+
+      <h2>🔢 ขั้นที่ 2 — INSERT Seed Data 27 แถว (ไฟล์ 2 · DML)</h2>
+      <p>จำนวนต่อตาราง (เทียบผลตรวจนับท้ายไฟล์): USER_TYPE 3 · USERS 4 · VEHICLE 2 · BELL_REQUEST 3 · DIGITAL_BELL_SIGNAL 2 · VEHICLE_BELL_REQUEST 3 · VEHICLE_DIGITAL_SIGNAL 2 · ALERT_STATISTICS 1 · IOT_BOX 2 · BELL_BUTTON 2 · VEHICLE_BELL_BUTTON 3 = <strong>รวม 27 แถว</strong></p>
+
+      <h3>📜 โค้ดไฟล์ 2 เต็มทุกบรรทัด (แบ่งเป็นบล็อกตามหัวข้อของไฟล์จริง)</h3>
+      <p class="file-tag" style="background:#101736;color:#7dd3fc;font-family:'JetBrains Mono',Consolas,monospace;">oracle_2_dml.sql · เปิด session — ปรับรูปแบบวันที่</p>
+      <pre class="code sql"><span class="cm">-- ============================================================================</span>
+<span class="cm">-- [2/5] DML Script — ข้อมูลตัวอย่าง (Seed Data) | Oracle 10g R2</span>
+<span class="cm">-- หลักการ: PK ใช้ SEQUENCE.NEXTVAL / FK อ้างอิงด้วย subquery ตาม natural key</span>
+<span class="cm">--          (เบอร์โทร, ทะเบียนรถ, ชื่อบทบาท) จึงไม่ผูกกับเลข ID แบบหยุดนิ่ง</span>
+<span class="cm">-- ============================================================================</span>
+
+<span class="kw">ALTER</span> <span class="kw">SESSION</span> <span class="kw">SET</span> NLS_DATE_FORMAT = &#x27;DD/MM/YYYY HH24:MI:SS&#x27;;</pre>
+      <p class="file-tag" style="background:#101736;color:#7dd3fc;font-family:'JetBrains Mono',Consolas,monospace;">oracle_2_dml.sql · USER_TYPE (lookup table 3 แถว ใส่ค่าตรง)</p>
+      <pre class="code sql"><span class="cm">-- ---------- USER_TYPE (lookup table 3 แถว ใส่ค่าตรง) ----------</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> USER_TYPE (ROLE_ID, ROLE_NAME) <span class="kw">VALUES</span> (<span class="fn">1</span>, &#x27;ADMIN&#x27;);
+<span class="kw">INSERT</span> <span class="kw">INTO</span> USER_TYPE (ROLE_ID, ROLE_NAME) <span class="kw">VALUES</span> (<span class="fn">2</span>, &#x27;DRIVER&#x27;);
+<span class="kw">INSERT</span> <span class="kw">INTO</span> USER_TYPE (ROLE_ID, ROLE_NAME) <span class="kw">VALUES</span> (<span class="fn">3</span>, &#x27;PASSENGER&#x27;);</pre>
+      <p class="file-tag" style="background:#101736;color:#7dd3fc;font-family:'JetBrains Mono',Consolas,monospace;">oracle_2_dml.sql · USERS</p>
+      <pre class="code sql"><span class="cm">-- ---------- USERS ----------</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> USERS (USER_ID, FULL_NAME, PHONE, ROLE_ID) <span class="kw">VALUES</span>
+  (SEQ_USERS.<span class="fn">NEXTVAL</span>, &#x27;Admin ระบบขนส่ง&#x27;, &#x27;<span class="fn">0800000001</span>&#x27;,
+   (<span class="kw">SELECT</span> ROLE_ID <span class="kw">FROM</span> USER_TYPE <span class="kw">WHERE</span> ROLE_NAME = &#x27;ADMIN&#x27;));
+<span class="kw">INSERT</span> <span class="kw">INTO</span> USERS (USER_ID, FULL_NAME, PHONE, ROLE_ID) <span class="kw">VALUES</span>
+  (SEQ_USERS.<span class="fn">NEXTVAL</span>, &#x27;วิชัย ขับดี&#x27;, &#x27;<span class="fn">0800000002</span>&#x27;,
+   (<span class="kw">SELECT</span> ROLE_ID <span class="kw">FROM</span> USER_TYPE <span class="kw">WHERE</span> ROLE_NAME = &#x27;DRIVER&#x27;));
+<span class="kw">INSERT</span> <span class="kw">INTO</span> USERS (USER_ID, FULL_NAME, PHONE, ROLE_ID) <span class="kw">VALUES</span>
+  (SEQ_USERS.<span class="fn">NEXTVAL</span>, &#x27;สมหญิง เดินทาง&#x27;, &#x27;<span class="fn">0800000003</span>&#x27;,
+   (<span class="kw">SELECT</span> ROLE_ID <span class="kw">FROM</span> USER_TYPE <span class="kw">WHERE</span> ROLE_NAME = &#x27;PASSENGER&#x27;));
+<span class="kw">INSERT</span> <span class="kw">INTO</span> USERS (USER_ID, FULL_NAME, PHONE, ROLE_ID) <span class="kw">VALUES</span>
+  (SEQ_USERS.<span class="fn">NEXTVAL</span>, &#x27;มานะ รอรถ&#x27;, &#x27;<span class="fn">0800000004</span>&#x27;,
+   (<span class="kw">SELECT</span> ROLE_ID <span class="kw">FROM</span> USER_TYPE <span class="kw">WHERE</span> ROLE_NAME = &#x27;PASSENGER&#x27;));</pre>
+      <p class="file-tag" style="background:#101736;color:#7dd3fc;font-family:'JetBrains Mono',Consolas,monospace;">oracle_2_dml.sql · VEHICLE</p>
+      <pre class="code sql"><span class="cm">-- ---------- VEHICLE ----------</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> VEHICLE (VEHICLE_ID, PLATE_NO, ROUTE_NO) <span class="kw">VALUES</span> (SEQ_VEHICLE.<span class="fn">NEXTVAL</span>, &#x27;กท <span class="fn">1234</span>&#x27;, &#x27;<span class="fn">8</span>&#x27;);
+<span class="kw">INSERT</span> <span class="kw">INTO</span> VEHICLE (VEHICLE_ID, PLATE_NO, ROUTE_NO) <span class="kw">VALUES</span> (SEQ_VEHICLE.<span class="fn">NEXTVAL</span>, &#x27;กท <span class="fn">5678</span>&#x27;, &#x27;<span class="fn">34</span>&#x27;);</pre>
+      <p class="file-tag" style="background:#101736;color:#7dd3fc;font-family:'JetBrains Mono',Consolas,monospace;">oracle_2_dml.sql · BELL_REQUEST : การส่งสัญญาณกดกริ่งลง (3 สถานะให้ครบเพื่อ demo)</p>
+      <pre class="code sql"><span class="cm">-- ---------- BELL_REQUEST : การส่งสัญญาณกดกริ่งลง (3 สถานะให้ครบเพื่อ demo) ----------</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> BELL_REQUEST (BELL_REQ_ID, USER_ID, REQ_TIME, NOTIFY_STATUS, ALIGHT_TIME) <span class="kw">VALUES</span>
+  (SEQ_BELL_REQ.<span class="fn">NEXTVAL</span>,
+   (<span class="kw">SELECT</span> USER_ID <span class="kw">FROM</span> USERS <span class="kw">WHERE</span> PHONE = &#x27;<span class="fn">0800000003</span>&#x27;),
+   <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span> <span class="fn">08</span>:<span class="fn">15</span>:<span class="fn">00</span>&#x27;,&#x27;DD/MM/YYYY HH24:MI:SS&#x27;),
+   &#x27;SUCCESS&#x27;, <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span> <span class="fn">08</span>:<span class="fn">32</span>:<span class="fn">00</span>&#x27;,&#x27;DD/MM/YYYY HH24:MI:SS&#x27;));
+
+<span class="kw">INSERT</span> <span class="kw">INTO</span> BELL_REQUEST (BELL_REQ_ID, USER_ID, REQ_TIME, NOTIFY_STATUS) <span class="kw">VALUES</span>
+  (SEQ_BELL_REQ.<span class="fn">NEXTVAL</span>,
+   (<span class="kw">SELECT</span> USER_ID <span class="kw">FROM</span> USERS <span class="kw">WHERE</span> PHONE = &#x27;<span class="fn">0800000004</span>&#x27;),
+   <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span> <span class="fn">09</span>:<span class="fn">05</span>:<span class="fn">00</span>&#x27;,&#x27;DD/MM/YYYY HH24:MI:SS&#x27;),
+   &#x27;SENDING&#x27;);
+
+<span class="kw">INSERT</span> <span class="kw">INTO</span> BELL_REQUEST (BELL_REQ_ID, USER_ID, REQ_TIME, NOTIFY_STATUS) <span class="kw">VALUES</span>
+  (SEQ_BELL_REQ.<span class="fn">NEXTVAL</span>,
+   (<span class="kw">SELECT</span> USER_ID <span class="kw">FROM</span> USERS <span class="kw">WHERE</span> PHONE = &#x27;<span class="fn">0800000003</span>&#x27;),
+   <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span> <span class="fn">09</span>:<span class="fn">40</span>:<span class="fn">00</span>&#x27;,&#x27;DD/MM/YYYY HH24:MI:SS&#x27;),
+   &#x27;CANCELLED&#x27;);</pre>
+      <p class="file-tag" style="background:#101736;color:#7dd3fc;font-family:'JetBrains Mono',Consolas,monospace;">oracle_2_dml.sql · DIGITAL_BELL_SIGNAL : ส่งสัญญาณไปกริ่งดิจิตอล</p>
+      <pre class="code sql"><span class="cm">-- ---------- DIGITAL_BELL_SIGNAL : ส่งสัญญาณไปกริ่งดิจิตอล ----------</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> DIGITAL_BELL_SIGNAL (SIGNAL_ID, USER_ID, SIGNAL_DATE) <span class="kw">VALUES</span>
+  (SEQ_DIG_SIGNAL.<span class="fn">NEXTVAL</span>,
+   (<span class="kw">SELECT</span> USER_ID <span class="kw">FROM</span> USERS <span class="kw">WHERE</span> PHONE = &#x27;<span class="fn">0800000003</span>&#x27;),
+   <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span>&#x27;,&#x27;DD/MM/YYYY&#x27;));
+<span class="kw">INSERT</span> <span class="kw">INTO</span> DIGITAL_BELL_SIGNAL (SIGNAL_ID, USER_ID, SIGNAL_DATE) <span class="kw">VALUES</span>
+  (SEQ_DIG_SIGNAL.<span class="fn">NEXTVAL</span>,
+   (<span class="kw">SELECT</span> USER_ID <span class="kw">FROM</span> USERS <span class="kw">WHERE</span> PHONE = &#x27;<span class="fn">0800000004</span>&#x27;),
+   <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span>&#x27;,&#x27;DD/MM/YYYY&#x27;));</pre>
+      <p class="file-tag" style="background:#101736;color:#7dd3fc;font-family:'JetBrains Mono',Consolas,monospace;">oracle_2_dml.sql · VEHICLE_BELL_REQUEST : N:M &quot;ส่งสัญญาณ&quot;</p>
+      <pre class="code sql"><span class="cm">-- ---------- VEHICLE_BELL_REQUEST : N:M &quot;ส่งสัญญาณ&quot; ----------</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> VEHICLE_BELL_REQUEST (BELL_REQ_ID, VEHICLE_ID, SENT_AT) <span class="kw">VALUES</span>
+  ((<span class="kw">SELECT</span> BELL_REQ_ID <span class="kw">FROM</span> BELL_REQUEST b <span class="kw">JOIN</span> USERS u <span class="kw">ON</span> u.USER_ID = b.USER_ID
+     <span class="kw">WHERE</span> u.PHONE = &#x27;<span class="fn">0800000003</span>&#x27; <span class="kw">AND</span> b.REQ_TIME = <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span> <span class="fn">08</span>:<span class="fn">15</span>:<span class="fn">00</span>&#x27;,&#x27;DD/MM/YYYY HH24:MI:SS&#x27;)),
+   (<span class="kw">SELECT</span> VEHICLE_ID <span class="kw">FROM</span> VEHICLE <span class="kw">WHERE</span> PLATE_NO = &#x27;กท <span class="fn">1234</span>&#x27;),
+   <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span> <span class="fn">08</span>:<span class="fn">15</span>:<span class="fn">01</span>&#x27;,&#x27;DD/MM/YYYY HH24:MI:SS&#x27;));
+
+<span class="kw">INSERT</span> <span class="kw">INTO</span> VEHICLE_BELL_REQUEST (BELL_REQ_ID, VEHICLE_ID, SENT_AT) <span class="kw">VALUES</span>
+  ((<span class="kw">SELECT</span> BELL_REQ_ID <span class="kw">FROM</span> BELL_REQUEST b <span class="kw">JOIN</span> USERS u <span class="kw">ON</span> u.USER_ID = b.USER_ID
+     <span class="kw">WHERE</span> u.PHONE = &#x27;<span class="fn">0800000004</span>&#x27; <span class="kw">AND</span> b.REQ_TIME = <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span> <span class="fn">09</span>:<span class="fn">05</span>:<span class="fn">00</span>&#x27;,&#x27;DD/MM/YYYY HH24:MI:SS&#x27;)),
+   (<span class="kw">SELECT</span> VEHICLE_ID <span class="kw">FROM</span> VEHICLE <span class="kw">WHERE</span> PLATE_NO = &#x27;กท <span class="fn">5678</span>&#x27;),
+   <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span> <span class="fn">09</span>:<span class="fn">05</span>:<span class="fn">01</span>&#x27;,&#x27;DD/MM/YYYY HH24:MI:SS&#x27;));
+
+<span class="kw">INSERT</span> <span class="kw">INTO</span> VEHICLE_BELL_REQUEST (BELL_REQ_ID, VEHICLE_ID, SENT_AT) <span class="kw">VALUES</span>
+  ((<span class="kw">SELECT</span> BELL_REQ_ID <span class="kw">FROM</span> BELL_REQUEST b <span class="kw">JOIN</span> USERS u <span class="kw">ON</span> u.USER_ID = b.USER_ID
+     <span class="kw">WHERE</span> u.PHONE = &#x27;<span class="fn">0800000003</span>&#x27; <span class="kw">AND</span> b.REQ_TIME = <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span> <span class="fn">09</span>:<span class="fn">40</span>:<span class="fn">00</span>&#x27;,&#x27;DD/MM/YYYY HH24:MI:SS&#x27;)),
+   (<span class="kw">SELECT</span> VEHICLE_ID <span class="kw">FROM</span> VEHICLE <span class="kw">WHERE</span> PLATE_NO = &#x27;กท <span class="fn">1234</span>&#x27;),
+   <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span> <span class="fn">09</span>:<span class="fn">40</span>:<span class="fn">01</span>&#x27;,&#x27;DD/MM/YYYY HH24:MI:SS&#x27;));</pre>
+      <p class="file-tag" style="background:#101736;color:#7dd3fc;font-family:'JetBrains Mono',Consolas,monospace;">oracle_2_dml.sql · VEHICLE_DIGITAL_SIGNAL : N:M &quot;ส่งสัญญาณ&quot;</p>
+      <pre class="code sql"><span class="cm">-- ---------- VEHICLE_DIGITAL_SIGNAL : N:M &quot;ส่งสัญญาณ&quot; ----------</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> VEHICLE_DIGITAL_SIGNAL (SIGNAL_ID, VEHICLE_ID, SENT_AT) <span class="kw">VALUES</span>
+  ((<span class="kw">SELECT</span> SIGNAL_ID <span class="kw">FROM</span> DIGITAL_BELL_SIGNAL d <span class="kw">JOIN</span> USERS u <span class="kw">ON</span> u.USER_ID = d.USER_ID
+     <span class="kw">WHERE</span> u.PHONE = &#x27;<span class="fn">0800000003</span>&#x27; <span class="kw">AND</span> d.SIGNAL_DATE = <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span>&#x27;,&#x27;DD/MM/YYYY&#x27;)),
+   (<span class="kw">SELECT</span> VEHICLE_ID <span class="kw">FROM</span> VEHICLE <span class="kw">WHERE</span> PLATE_NO = &#x27;กท <span class="fn">1234</span>&#x27;),
+   <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span> <span class="fn">08</span>:<span class="fn">14</span>:<span class="fn">50</span>&#x27;,&#x27;DD/MM/YYYY HH24:MI:SS&#x27;));
+
+<span class="kw">INSERT</span> <span class="kw">INTO</span> VEHICLE_DIGITAL_SIGNAL (SIGNAL_ID, VEHICLE_ID, SENT_AT) <span class="kw">VALUES</span>
+  ((<span class="kw">SELECT</span> SIGNAL_ID <span class="kw">FROM</span> DIGITAL_BELL_SIGNAL d <span class="kw">JOIN</span> USERS u <span class="kw">ON</span> u.USER_ID = d.USER_ID
+     <span class="kw">WHERE</span> u.PHONE = &#x27;<span class="fn">0800000004</span>&#x27; <span class="kw">AND</span> d.SIGNAL_DATE = <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span>&#x27;,&#x27;DD/MM/YYYY&#x27;)),
+   (<span class="kw">SELECT</span> VEHICLE_ID <span class="kw">FROM</span> VEHICLE <span class="kw">WHERE</span> PLATE_NO = &#x27;กท <span class="fn">5678</span>&#x27;),
+   <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span> <span class="fn">09</span>:<span class="fn">04</span>:<span class="fn">50</span>&#x27;,&#x27;DD/MM/YYYY HH24:MI:SS&#x27;));</pre>
+      <p class="file-tag" style="background:#101736;color:#7dd3fc;font-family:'JetBrains Mono',Consolas,monospace;">oracle_2_dml.sql · ALERT_STATISTICS (ข้อมูลย้อนหลัง 1 วัน สำหรับรายงาน)</p>
+      <pre class="code sql"><span class="cm">-- ---------- ALERT_STATISTICS (ข้อมูลย้อนหลัง 1 วัน สำหรับรายงาน) ----------</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> ALERT_STATISTICS (STAT_ID, VEHICLE_ID, STAT_DATE, ALERT_COUNT) <span class="kw">VALUES</span>
+  (SEQ_ALERT_STAT.<span class="fn">NEXTVAL</span>,
+   (<span class="kw">SELECT</span> VEHICLE_ID <span class="kw">FROM</span> VEHICLE <span class="kw">WHERE</span> PLATE_NO = &#x27;กท <span class="fn">1234</span>&#x27;),
+   <span class="fn">TO_DATE</span>(&#x27;<span class="fn">09</span>/<span class="fn">11</span>/<span class="fn">2026</span>&#x27;,&#x27;DD/MM/YYYY&#x27;), <span class="fn">5</span>);</pre>
+      <p class="file-tag" style="background:#101736;color:#7dd3fc;font-family:'JetBrains Mono',Consolas,monospace;">oracle_2_dml.sql · IOT_BOX : Weak Entity (PK = VEHICLE_ID + BOX_ID)</p>
+      <pre class="code sql"><span class="cm">-- ---------- IOT_BOX : Weak Entity (PK = VEHICLE_ID + BOX_ID) ----------</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> IOT_BOX (VEHICLE_ID, BOX_ID, LATITUDE, LONGITUDE, LAST_PING_AT) <span class="kw">VALUES</span>
+  ((<span class="kw">SELECT</span> VEHICLE_ID <span class="kw">FROM</span> VEHICLE <span class="kw">WHERE</span> PLATE_NO = &#x27;กท <span class="fn">1234</span>&#x27;), SEQ_IOT_BOX.<span class="fn">NEXTVAL</span>,
+   <span class="fn">13.7563000</span>, <span class="fn">100.5018000</span>, <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span> <span class="fn">08</span>:<span class="fn">00</span>:<span class="fn">00</span>&#x27;,&#x27;DD/MM/YYYY HH24:MI:SS&#x27;));
+<span class="kw">INSERT</span> <span class="kw">INTO</span> IOT_BOX (VEHICLE_ID, BOX_ID, LATITUDE, LONGITUDE, LAST_PING_AT) <span class="kw">VALUES</span>
+  ((<span class="kw">SELECT</span> VEHICLE_ID <span class="kw">FROM</span> VEHICLE <span class="kw">WHERE</span> PLATE_NO = &#x27;กท <span class="fn">5678</span>&#x27;), SEQ_IOT_BOX.<span class="fn">NEXTVAL</span>,
+   <span class="fn">13.7299000</span>, <span class="fn">100.7754000</span>, <span class="fn">TO_DATE</span>(&#x27;<span class="fn">10</span>/<span class="fn">11</span>/<span class="fn">2026</span> <span class="fn">09</span>:<span class="fn">00</span>:<span class="fn">00</span>&#x27;,&#x27;DD/MM/YYYY HH24:MI:SS&#x27;));</pre>
+      <p class="file-tag" style="background:#101736;color:#7dd3fc;font-family:'JetBrains Mono',Consolas,monospace;">oracle_2_dml.sql · BELL_BUTTON + VEHICLE_BELL_BUTTON : N:M &quot;มี&quot;</p>
+      <pre class="code sql"><span class="cm">-- ---------- BELL_BUTTON + VEHICLE_BELL_BUTTON : N:M &quot;มี&quot; ----------</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> BELL_BUTTON (BUTTON_ID, BUTTON_LABEL) <span class="kw">VALUES</span> (SEQ_BUTTON.<span class="fn">NEXTVAL</span>, &#x27;ปุ่มโซนหน้า&#x27;);
+<span class="kw">INSERT</span> <span class="kw">INTO</span> BELL_BUTTON (BUTTON_ID, BUTTON_LABEL) <span class="kw">VALUES</span> (SEQ_BUTTON.<span class="fn">NEXTVAL</span>, &#x27;ปุ่มโซนหลัง&#x27;);
+
+<span class="kw">INSERT</span> <span class="kw">INTO</span> VEHICLE_BELL_BUTTON (VEHICLE_ID, BUTTON_ID) <span class="kw">VALUES</span>
+  ((<span class="kw">SELECT</span> VEHICLE_ID <span class="kw">FROM</span> VEHICLE <span class="kw">WHERE</span> PLATE_NO = &#x27;กท <span class="fn">1234</span>&#x27;),
+   (<span class="kw">SELECT</span> BUTTON_ID <span class="kw">FROM</span> BELL_BUTTON <span class="kw">WHERE</span> BUTTON_LABEL = &#x27;ปุ่มโซนหน้า&#x27;));
+<span class="kw">INSERT</span> <span class="kw">INTO</span> VEHICLE_BELL_BUTTON (VEHICLE_ID, BUTTON_ID) <span class="kw">VALUES</span>
+  ((<span class="kw">SELECT</span> VEHICLE_ID <span class="kw">FROM</span> VEHICLE <span class="kw">WHERE</span> PLATE_NO = &#x27;กท <span class="fn">1234</span>&#x27;),
+   (<span class="kw">SELECT</span> BUTTON_ID <span class="kw">FROM</span> BELL_BUTTON <span class="kw">WHERE</span> BUTTON_LABEL = &#x27;ปุ่มโซนหลัง&#x27;));
+<span class="kw">INSERT</span> <span class="kw">INTO</span> VEHICLE_BELL_BUTTON (VEHICLE_ID, BUTTON_ID) <span class="kw">VALUES</span>
+  ((<span class="kw">SELECT</span> VEHICLE_ID <span class="kw">FROM</span> VEHICLE <span class="kw">WHERE</span> PLATE_NO = &#x27;กท <span class="fn">5678</span>&#x27;),
+   (<span class="kw">SELECT</span> BUTTON_ID <span class="kw">FROM</span> BELL_BUTTON <span class="kw">WHERE</span> BUTTON_LABEL = &#x27;ปุ่มโซนหน้า&#x27;));
+
+<span class="kw">COMMIT</span>;</pre>
+      <p class="file-tag" style="background:#101736;color:#7dd3fc;font-family:'JetBrains Mono',Consolas,monospace;">oracle_2_dml.sql · ตรวจนับจำนวนข้อมูลทุกตาราง</p>
+      <pre class="code sql"><span class="cm">-- ---------- ตรวจนับจำนวนข้อมูลทุกตาราง ----------</span>
+<span class="kw">SELECT</span> &#x27;USER_TYPE&#x27; <span class="kw">AS</span> TABLE_NAME, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> ROWS_CNT <span class="kw">FROM</span> USER_TYPE
+UNION ALL <span class="kw">SELECT</span> &#x27;USERS&#x27;,                  <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> USERS
+UNION ALL <span class="kw">SELECT</span> &#x27;VEHICLE&#x27;,                <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> VEHICLE
+UNION ALL <span class="kw">SELECT</span> &#x27;BELL_REQUEST&#x27;,           <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> BELL_REQUEST
+UNION ALL <span class="kw">SELECT</span> &#x27;DIGITAL_BELL_SIGNAL&#x27;,    <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> DIGITAL_BELL_SIGNAL
+UNION ALL <span class="kw">SELECT</span> &#x27;VEHICLE_BELL_REQUEST&#x27;,   <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> VEHICLE_BELL_REQUEST
+UNION ALL <span class="kw">SELECT</span> &#x27;VEHICLE_DIGITAL_SIGNAL&#x27;, <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> VEHICLE_DIGITAL_SIGNAL
+UNION ALL <span class="kw">SELECT</span> &#x27;ALERT_STATISTICS&#x27;,       <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> ALERT_STATISTICS
+UNION ALL <span class="kw">SELECT</span> &#x27;IOT_BOX&#x27;,                <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> IOT_BOX
+UNION ALL <span class="kw">SELECT</span> &#x27;BELL_BUTTON&#x27;,            <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> BELL_BUTTON
+UNION ALL <span class="kw">SELECT</span> &#x27;VEHICLE_BELL_BUTTON&#x27;,    <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> VEHICLE_BELL_BUTTON;</pre>
+
+      <h3>เทคนิค 3 อย่างในไฟล์นี้ (โดนถามได้)</h3>
+      <pre class="code sql"><span class="kw">ALTER</span></span> <span class="kw">SESSION</span></span> <span class="kw">SET</span></span> NLS_DATE_FORMAT = <span class="st">'DD/MM/YYYY HH24:MI:SS'</span></span>;</pre>
+      <ul>
+        <li><strong>① ปรับรูปแบบวันที่ของ session</strong> — พิมพ์วันที่แบบวัน/เดือน/ปี ชั่วโมง:นาที:วินาที ได้ตลอดไฟล์ (เป็นค่าต่อ session เท่านั้น ไม่กระทบคนอื่น)</li>
+        <li><strong>② FK อ้างด้วย subquery ตาม natural key</strong> — ไม่ hard-code เลข ID:</li>
+      </ul>
+      <pre class="code sql"><span class="kw">INSERT</span></span> <span class="kw">INTO</span></span> USERS (USER_ID, FULL_NAME, PHONE, ROLE_ID) <span class="kw">VALUES</span></span>
+  (SEQ_USERS.<span class="fn">NEXTVAL</span></span>, <span class="st">'สมหญิง เดินทาง'</span></span>, <span class="st">'0800000003'</span></span>,
+   (<span class="kw">SELECT</span></span> ROLE_ID <span class="kw">FROM</span></span> USER_TYPE <span class="kw">WHERE</span></span> ROLE_NAME = <span class="st">'PASSENGER'</span></span>));</pre>
+      <ul>
+        <li>อ่านว่า: "สร้างผู้ใช้ใหม่ รหัสจากเครื่องนับ ชื่อ สมหญิง เบอร์ 0800000003 บทบาท = <em>หารหัสของบทบาทชื่อ PASSENGER มาเอง</em>" — ถ้าเลข ROLE_ID เปลี่ยนในอนาคต สคริปต์ไม่พัง (ดีกว่าพิมพ์ 3 ตรง ๆ)</li>
+        <li><strong>③ วันที่ใช้ TO_DATE เสมอ</strong> — <code>TO_DATE('10/11/2026 08:15:00','DD/MM/YYYY HH24:MI:SS')</code> = "สตริงนี้คือวันที่ตามรูปแบบนี้" — กันปัญหา locale สลับวัน/เดือน</li>
+      </ul>
+      <div class="term">
+        <p><span class="term-word">natural key</span> — คอลัมน์ที่โลกจริงใช้ระบุของอยู่แล้ว (เบอร์โทร, ทะเบียนรถ, ชื่อบทบาท) ต่างจาก surrogate key (เลขจาก SEQUENCE) ที่มีไว้เพื่อ DB — DML นี้ใช้ natural key "หา" surrogate key ด้วย subquery ทุกครั้ง</p>
+      </div>
+
+      <h3>ตัวละครประจำงาน — จำตัวเลขไว้ทดสอบ PL/SQL (หน้าถัดไป)</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>USER_ID</th><th>ชื่อ</th><th>PHONE</th><th>บทบาท</th></tr>
+          <tr><td>1</td><td>Admin ระบบขนส่ง</td><td>0800000001</td><td>ADMIN</td></tr>
+          <tr><td>2</td><td>วิชัย ขับดี</td><td>0800000002</td><td>DRIVER</td></tr>
+          <tr><td>3</td><td>สมหญิง เดินทาง</td><td>0800000003</td><td>PASSENGER</td></tr>
+          <tr><td>4</td><td>มานะ รอรถ</td><td>0800000004</td><td>PASSENGER</td></tr>
+        </table>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>VEHICLE_ID</th><th>ทะเบียน</th><th>สาย</th></tr>
+          <tr><td>1</td><td>กท 1234</td><td>8</td></tr>
+          <tr><td>2</td><td>กท 5678</td><td>34</td></tr>
+        </table>
+      </div>
+      <ul>
+        <li>กริ่ง 3 รายการ: <strong>ID=1</strong> สมหญิง (SUCCESS มีเวลาลง) · <strong>ID=2</strong> มานะ (SENDING — ค้างรอยืนยัน ใช้ทดสอบ SP_COMPLETE_ALIGHT จริง) · <strong>ID=3</strong> สมหญิง (CANCELLED)</li>
+        <li>สถิติย้อนหลัง 1 แถว: กท 1234 วันที่ 09/11/2026 นับ 5 ครั้ง (ไว้โชว์รายงานว่า "วันนี้ 0 ต่างจากเมื่อวาน 5")</li>
+      </ul>
+
+      <h2>🌱 SELECT ตัวอย่างจริง — รันแล้วผลตรงแบบนี้ทุกครั้ง</h2>
+      <pre class="code sql"><span class="kw">SELECT</span></span> USER_ID, FULL_NAME, PHONE
+<span class="kw">FROM</span></span>   USERS
+<span class="kw">ORDER</span></span>  <span class="kw">BY</span></span> USER_ID;</pre>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>USER_ID</th><th>FULL_NAME</th><th>PHONE</th></tr>
+          <tr><td>1</td><td>Admin ระบบขนส่ง</td><td>0800000001</td></tr>
+          <tr><td>2</td><td>วิชัย ขับดี</td><td>0800000002</td></tr>
+          <tr><td>3</td><td>สมหญิง เดินทาง</td><td>0800000003</td></tr>
+          <tr><td>4</td><td>มานะ รอรถ</td><td>0800000004</td></tr>
+        </table>
+      </div>
+      <ul>
+        <li>คัดแถวเดียว: <code>SELECT * FROM USERS WHERE PHONE = '0800000003';</code> → สมหญิง USER_ID=3 — เบอร์นี้คือ natural key ที่ทุกไฟล์ใช้อ้างอิงคน · นับจำนวน: <code>SELECT COUNT(*) FROM BELL_REQUEST;</code> → 3</li>
+      </ul>
+
+      <h2>📐 Constraint นับให้ได้ (ใช้ชี้ผลไฟล์ 5)</h2>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>ประเภท</th><th>นับ</th><th>ตัวอย่างจริง</th></tr>
+          <tr><td><strong>P</strong> Primary Key</td><td>11</td><td>ทุกตารางมี 1 · <strong>composite 4 ตัว</strong>: PK_VEH_BELL_REQ · PK_VEH_DIG_SIG · PK_IOT_BOX · PK_VEH_BELL_BTN (junction + weak entity)</td></tr>
+          <tr><td><strong>R</strong> Foreign Key</td><td>11</td><td>FK_USERS_ROLE · ตาราง junction มี FK 2 ตัวเสมอ (FK_VBR_BELLREQ + FK_VBR_VEHICLE)</td></tr>
+          <tr><td><strong>U</strong> Unique</td><td>4</td><td>UQ_USERS_PHONE · UQ_VEHICLE_PLATE · UQ_USER_TYPE_NAME · UQ_ALERT_VDATE (รถ+วัน)</td></tr>
+          <tr><td><strong>C</strong> Check / Not Null</td><td>33</td><td>CK_USER_TYPE_NAME · CK_BELL_STATUS + NOT NULL 31 ตัวที่ไม่ตั้งชื่อ → Oracle ตั้งให้เองเป็น <code>SYS_Cxxxxxxxx</code></td></tr>
+        </table>
+      </div>
+      <div class="box box-tip">
+        <p class="box-title">💡 SYS_C คืออะไร (เจอจริงบนจอ — โจทย์ซักถาม)</p>
+        <p>NOT NULL ที่เขียน inline โดยไม่ตั้งชื่อ constraint จะโผล่ในผลตรวจเป็น <code>SYS_C007...</code> ฯลฯ — ตอบได้ว่า "Oracle ตั้งชื่ออัตโนมัติให้ NOT NULL ที่เราไม่ได้ตั้งชื่อ ส่วน PK/FK/UQ/CHECK เราตั้งชื่อเองแบบมีระบบเพื่ออ่านผลง่าย"</p>
+      </div>
+
+      <h2>💥 กรณี error ที่ demo โชว์ได้จาก DDL นี้</h2>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>ทดสอบ</th><th>คำสั่งพิมพ์</th><th>ผลที่ต้องเห็น</th><th>อธิบายอาจารย์ว่า</th></tr>
+          <tr><td>บทบาทผิดจากชุด (CHECK)</td><td><code>INSERT INTO USER_TYPE VALUES (9,'STUDENT');</code></td><td><code>ORA-02290: check constraint (CK_USER_TYPE_NAME) violated</code></td><td>"บทบาทมีแค่ ADMIN/DRIVER/PASSENGER"</td></tr>
+          <tr><td>ชื่อบทบาทซ้ำ (UNIQUE)</td><td><code>INSERT INTO USER_TYPE VALUES (4,'ADMIN');</code></td><td><code>ORA-00001: unique constraint (UQ_USER_TYPE_NAME) violated</code></td><td>"บทบาท 1 ชื่อ 1 แถว"</td></tr>
+          <tr><td>เบอร์โทรซ้ำ (UNIQUE)</td><td>INSERT USERS ด้วย PHONE '0800000003' อีกครั้ง</td><td><code>ORA-00001: unique constraint (UQ_USERS_PHONE) violated</code></td><td>"เบอร์โทรคือตัวระบุคน — ซ้ำไม่ได้"</td></tr>
+          <tr><td>บทบาทไม่มีจริง (FK)</td><td><code>INSERT INTO USERS (USER_ID,FULL_NAME,PHONE,ROLE_ID) VALUES (99,'ทด FK','0999999999',99);</code></td><td><code>ORA-02291: integrity constraint (FK_USERS_ROLE) violated - parent key not found</code></td><td>"ไม่มี ROLE_ID 99 ใน USER_TYPE — FK กันอ้างของที่ไม่มี"</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption" style="text-align:left;">💡 โชว์แล้วปิดท้ายด้วย ROLLBACK เสมอ ให้ข้อมูลกลับสู่สภาพ seed เดิมก่อนไปขั้น PL/SQL</p>
+
+      <div class="quiz" data-answer="1">
+        <p class="quiz-q"><span class="qno">Q</span> ทำไม IOT_BOX ถึงมี PK เป็น (VEHICLE_ID, BOX_ID) แบบ composite?</p>
+        <div class="quiz-opts">
+          <button class="quiz-opt">เพราะ Oracle 10g ห้าม PK คอลัมน์เดียว</button>
+          <button class="quiz-opt">เพราะกล่อง IoT เป็น Weak Entity ผูกกับรถแบบ Identifying Relationship — PK = PK เจ้าของ (รถ) + Partial Key (BOX_ID)</button>
+          <button class="quiz-opt">เพราะ VEHICLE_ID เป็น FK ห้ามเป็น PK</button>
+          <button class="quiz-opt">เพราะ BOX_ID อาจเป็น NULL</button>
+        </div>
+        <div class="quiz-explain"><strong>เฉลย:</strong> กฎ Weak Entity — กล่องไม่มีตัวตนอิสระนอกรถเจ้าของ รหัสกล่องจึงสมบูรณ์เมื่อผูกกับรหัสรถ (BOX_ID คนละรถซ้ำกันได้ แต่รถเดียวกันซ้ำไม่ได้)</div>
+      </div>
+
+      <div class="quiz" data-answer="2">
+        <p class="quiz-q"><span class="qno">Q</span> "จำนวนคนบนรถ" ใน ER ทำไมไม่มีคอลัมน์ในตาราง VEHICLE?</p>
+        <div class="quiz-opts">
+          <button class="quiz-opt">เพราะ Oracle เก็บไม่ได้</button>
+          <button class="quiz-opt">เพราะข้อมูลไม่สำคัญ</button>
+          <button class="quiz-opt">เพราะเป็น Derived Attribute — ค่าคำนวณได้จากแหล่งอื่น (ตัวนับ IoT/แอปคนขับ) เก็บแล้วจะไม่ตรงความจริงเสมอ</button>
+          <button class="quiz-opt">เพราะลืมใส่</button>
+        </div>
+        <div class="quiz-explain"><strong>เฉลย:</strong> กฎ Derived Attribute → ไม่เก็บคอลัมน์ วาด ER เป็นวงรีเส้นประ — คำตอบที่อาจารย์รอฟังในโจทย์ ER ข้อนี้</div>
+      </div>
+
+      <div class="prevnext">
+        <a href="p2-usecase.html">ก่อนหน้า: Use Case + REG1–17<small>🚌 โครงระบบ Part II</small></a>
+        <a class="next" href="p2-plsql.html">ต่อไป: PL/SQL Transaction Processing<small>🚦 SP 4 ตัว + ข้อจำกัด Oracle 10g</small></a>
+      </div>
+
+    </div>
+  </main>
+</div>
+<script src="script.js"></script>
+<script src="tts.js"></script>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true, securityLevel: 'loose', theme: 'base',
+    fontFamily: '"Noto Sans Thai", sans-serif',
+    themeVariables: { primaryColor:'#eef0ff', primaryTextColor:'#1d2333', primaryBorderColor:'#4f46e5', lineColor:'#5b6474' }
+  });
+</script>
+</body>
+</html>

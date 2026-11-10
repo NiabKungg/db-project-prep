@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Part I · SQL JOIN 6 ข้อ — เว็บติวสอบ Project Database</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-tts="1">
+<div id="progressBar"></div>
+<div class="backdrop"></div>
+
+<header class="topbar">
+  <button class="hamburger" aria-label="เปิดเมนู">☰</button>
+  <div class="topbar-title">🎓 ติวสอบ Project Database</div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="เมนูหลัก">
+    <div class="side-brand">🎓 Project DB Prep<small>สอบ Project Face-to-face • 2 Business Domain</small></div>
+    <div class="side-note">💡 <b>กฎเหล็ก:</b> ลำดับรัน 00→05 • DROP ให้อาจารย์ดู • ทุกคนตอบ "ทำไม" ได้เหมือนกัน</div>
+    <a class="nav-link" href="index.html"><span class="nav-emoji">🏠</span> หน้าแรก + โจทย์อาจารย์</a>
+    <div class="side-group">PART I — อ.อู๊ด (เวียน + ประกาศ)</div>
+    <a class="nav-link" href="p1-usecase.html"><span class="nav-emoji">📋</span> Use Case + Traceability</a>
+    <a class="nav-link" href="p1-er-ddl-dml.html"><span class="nav-emoji">🗄️</span> E/R + DDL/DML <span class="nav-pts">11 ตาราง</span></a>
+    <a class="nav-link" href="p1-plsql.html"><span class="nav-emoji">⚙️</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p1-join.html"><span class="nav-emoji">🔗</span> SQL JOIN 6 ข้อ</a>
+    <div class="side-group">PART II — อ.ผึ้ง (Public Transit)</div>
+    <a class="nav-link" href="p2-usecase.html"><span class="nav-emoji">🚌</span> Use Case + REG1–17</a>
+    <a class="nav-link" href="p2-er-ddl-dml.html"><span class="nav-emoji">🚏</span> E/R + DDL/DML <span class="nav-pts">10 ตาราง</span></a>
+    <a class="nav-link" href="p2-plsql.html"><span class="nav-emoji">🚦</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p2-join.html"><span class="nav-emoji">🧭</span> SQL JOIN 6 ข้อ</a>
+    <div class="side-group">สาธิตหน้าห้อง</div>
+    <a class="nav-link" href="verify-demo.html"><span class="nav-emoji">🎤</span> ลำดับ demo + Q&A</a>
+  </nav>
+
+  <main class="main">
+    <div class="content">
+
+      <section class="page-head">
+        <p class="crumb"><a href="index.html">หน้าแรก</a> • PART I — ระบบแจ้งข้อความเวียน + ประกาศภายในองค์กร (อ.อู๊ด)</p>
+        <h1>🔗 SQL JOIN แสดงการทำงานหลัก — 6 ข้อจากโครงสร้าง 11 ตาราง</h1>
+        <div class="head-meta">
+          <span class="badge">มากสุด 6 ตาราง</span><span class="badge">LEFT JOIN หาของที่ขาด</span><span class="badge gold">Aggregate + HAVING</span>
+        </div>
+      </section>
+
+      <div class="box box-exam">
+        <p class="box-title">① อาจารย์ต้องการอะไร (โจทย์ข้อนี้)</p>
+        <p>"<strong>3- เขียน SQL : JOIN แสดงข้อมูลการทำงานหลัก ( JOIN ตารางมากๆ)</strong>" — โจทย์เน้นคำว่า <em>JOIN ตารางมาก ๆ</em> —
+        ทุกข้อต้องตอบคำถามธุรกิจจริงของระบบ (ไม่ใช่ SELECT * จากตารางเดียว) และอาจารย์มักจิ้มถามว่า
+        "<strong>JOIN อะไรกับอะไร ทำไมต้อง LEFT JOIN ข้อนี้</strong>" — เตรียมคำตอบทุกข้อตามที่อธิบายด้านล่าง</p>
+      </div>
+
+      <div class="term">
+        <p><span class="term-word">JOIN (INNER)</span> — ดึงเฉพาะแถวที่ "เจอกันทั้งสองตาราง" — ใช้เมื่อข้อมูลต้องมีคู่เสมอ</p>
+        <p><span class="term-word">LEFT JOIN</span> — แถวฝั่งซ้ายอยู่ครบเสมอ ฝั่งขวาไม่เจอจะเติม NULL — ใช้เมื่อ "ไม่มีก็ต้องโผล่" เช่น เอกสารที่ยังไม่ถูกพิจารณา, คนที่ยังไม่ยืนยัน</p>
+        <p><span class="term-word">CROSS JOIN</span> — ผลคูณทุกแถว ใช้เมื่อต้องการ "ชุดเป้าหมายอ้างอิง" ทั้งหมดเทียบกับสิ่งที่ทำแล้ว</p>
+        <p><span class="term-word">Aggregate + GROUP BY</span> — COUNT/SUM/MIN รวมแถวเป็นตัวเลขต่อกลุ่ม · กรองหลังรวมด้วย <strong>HAVING</strong> (กรองก่อนรวมใช้ WHERE)</p>
+      </div>
+
+      <h2 id="join-lab">🌱 ห้องทดลอง JOIN จิ๋ว — เห็นผลก่อนอ่านโค้ดจริง (3 นาที ข้อมูลจริงจากไฟล์ 02)</h2>
+      <p>JOIN = "นำ 2 ตารางมาต่อกันด้วยคอลัมน์ที่เป็นคู่กัน" — ด้วยข้อมูลจริงของเรา (หลังเดิน Flow ทดสอบครบ 1 รอบตามหน้า PL/SQL):</p>
+      <div class="grid grid-2">
+        <div class="tbl-wrap"><table class="tbl compact">
+          <tr><th colspan="2">ตาราง DOCUMENTS (ฝั่งซ้าย — เอกสาร 4 ฉบับ)</th></tr>
+          <tr><th>DOC_ID</th><th>TITLE</th></tr>
+          <tr><td>5001</td><td>ประกาศวันหยุดสงกรานต์</td></tr>
+          <tr><td>5002</td><td>ข้อความเวียน: ปิดประตู</td></tr>
+          <tr><td>5003</td><td>ประกาศนโยบาย WFH</td></tr>
+          <tr><td>5004</td><td>เรียนเชิญประชุมไตรมาส</td></tr>
+        </table></div>
+        <div class="tbl-wrap"><table class="tbl compact">
+          <tr><th colspan="3">ตาราง APPROVALS (ฝั่งขวา — ผลพิจารณามีแค่ 2 แถว)</th></tr>
+          <tr><th>DOC_ID</th><th>DECISION</th><th>APPROVER</th></tr>
+          <tr><td>5001</td><td>APPROVED</td><td>อรุณ (CEO)</td></tr>
+          <tr><td>5003</td><td>REJECTED</td><td>มาลี (Manager)</td></tr>
+        </table></div>
+      </div>
+      <p>ต่อสองตารางด้วยคอลัมน์คู่ <code>DOC_ID</code> — สังเกตว่า <strong>เอกสาร 5002 กับ 5004 ไม่มีผลพิจารณาเลย</strong> (ยัง DRAFT/PENDING) — ทางเลือกการต่อมี 2 แบบ:</p>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th style="width:45%;">คำสั่ง</th><th>ผลลัพธ์บนจอ (นับแถวให้ดูเลย)</th></tr>
+          <tr><td><code>FROM DOCUMENTS d JOIN APPROVALS a ON a.DOC_ID = d.DOC_ID</code><br>(INNER JOIN)</td><td><strong>ได้ 2 แถว</strong> — 5001 กับ 5003 เท่านั้น · 5002/5004 <em>หายไปเงียบ ๆ</em> เพราะไม่มีคู่</td></tr>
+          <tr><td><code>FROM DOCUMENTS d LEFT JOIN APPROVALS a ON a.DOC_ID = d.DOC_ID</code><br>(LEFT JOIN)</td><td><strong>ได้ครบ 4 แถว</strong> — 5002/5004 ยังอยู่ แต่ฝั่งขวาเติม <strong>NULL</strong> (ตีความ: "ยังไม่ถูกพิจารณา")</td></tr>
+        </table>
+      </div>
+      <div class="box box-mem">
+        <p class="box-title">🧠 จำแบบเด็ก ๆ: JOIN = จับคู่ · INNER = จับคู่ได้ค่อยอยู่ (ไม่มีคู่ทิ้ง) · LEFT = ฝั่งซ้ายอยู่ครบเสมอ ไม่มีคู่ก็ใส่ว่าง</p>
+        <p><strong>NULL</strong> อ่านว่า "ว่าง/ไม่มีข้อมูล" — ไม่ใช่ 0 ไม่ใช่ช่องว่าง — เช็คด้วย <code>IS NULL</code> เท่านั้น ห้ามใช้ = NULL (โจทย์ Q2 ใช้เทคนิคนี้พอดี)</p>
+      </div>
+
+      <h2 id="select-order">🌱 อ่านคำสั่ง SELECT ยาว ๆ เป็น 7 ขั้น (อ่านผิดลำดับ = งงเปล่า ๆ)</h2>
+      <p>อย่าอ่านโค้ด SELECT จากซ้ายไปขวา! อ่านตามลำดับที่ฐานข้อมูลทำงานจริง — ใช้โค้ด Q3 ของเราเดินทีละขั้นให้เห็นจำนวนแถวจริง:</p>
+      <div class="tbl-wrap">
+        <table class="tbl nowrap">
+          <tr><th>ขั้น</th><th>คำสั่งในโค้ด</th><th>ทำอะไร</th><th>ข้อมูลของเรากลายเป็น</th></tr>
+          <tr><td>1</td><td><code>FROM DOCUMENTS d</code></td><td>ตั้งต้นจากตารางเอกสาร</td><td>4 แถว (5001–5004)</td></tr>
+          <tr><td>2</td><td><code>LEFT JOIN READ_LOGS lg</code></td><td>ต่อบันทึกการอ่าน (ไม่มีคู่ก็คงอยู่เป็น NULL)</td><td>ยัง 4 แถว (5001 มีข้อมูลอ่าน, ที่เหลือ NULL)</td></tr>
+          <tr><td>3</td><td><code>CROSS JOIN ROLES r</code></td><td>ผสมทุกแถวกับตารางบทบาท (4 บทบาท)</td><td>4 × 4 = 16 แถว</td></tr>
+          <tr><td>4</td><td><code>JOIN EMPLOYEES e ... WHERE r.ROLE_NAME='EMPLOYEE'</code></td><td>ต่อคนของแต่ละบทบาท + คัดเอาเฉพาะบทบาทพนักงาน</td><td>16 แถว = เอกสาร 4 ฉบับ × พนักงานกลุ่มเป้าหมาย 4 คน</td></tr>
+          <tr><td>5</td><td><code>GROUP BY d.DOC_ID, ...</code></td><td>จับกลุ่ม "ต่อ 1 เอกสาร" แล้วนับรวม (COUNT)</td><td>เหลือ 4 กลุ่ม (กลุ่มละเอกสาร)</td></tr>
+          <tr><td>6</td><td><code>SELECT ... ROUND(...) AS ACK_PCT</code></td><td>คำนวณ % แล้วตั้งชื่อคอลัมน์ผลว่า ACK_PCT</td><td>5001 = 1/4 = 25.0 · ที่เหลือ = 0.0</td></tr>
+          <tr><td>7</td><td><code>ORDER BY d.DOC_ID</code></td><td>เรียงผลตามรหัสเอกสาร</td><td>แสดง 5001 → 5004 บนจอ</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption" style="text-align:left;">💡 WHERE/JOIN ทำงาน "ก่อน" รวมคะแนน (GROUP BY) — HAVING ทำงาน "หลัง" — นี่คือเหตุผลที่กรองชนิดเอกสารใช้ WHERE แต่กรอง "เกิน SLA" (ต้องนับเวลาก่อน) ใช้ HAVING</p>
+
+      <h3>สรุป 6 ข้อ — ข้อไหนตอบคำถามอะไร</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>ข้อ</th><th>คำถามธุรกิจ</th><th>ตารางที่ JOIN</th><th>เทคนิคเด่น</th></tr>
+          <tr><td>Q1</td><td>ติดตามผลการพิจารณาอนุมัติของเอกสารทุกฉบับ</td><td>6 ตาราง: DOCUMENTS+EMPLOYEES+ROLES+APPROVALS+EMPLOYEES(อีกรอบ)+SIGNATURES</td><td>LEFT JOIN ×3 — เอกสารยังไม่ถูกพิจารณาก็ต้องโผล่</td></tr>
+          <tr><td>Q2</td><td>ใครยังไม่เปิดอ่าน-ยืนยันเอกสาร</td><td>4 ตาราง: DOCUMENTS+NOTIFICATIONS+EMPLOYEES+READ_LOGS</td><td>LEFT JOIN + IS NULL (Anti-Join)</td></tr>
+          <tr><td>Q3</td><td>อัตราการรับทราบต่อเอกสาร (%)</td><td>5 ตาราง + ROLES</td><td>CROSS JOIN + COUNT(DISTINCT) + ROUND</td></tr>
+          <tr><td>Q4</td><td>เอกสารที่เกิน SLA ของตัวเอง</td><td>3 ตาราง</td><td>GROUP BY + HAVING เทียบ MIN สองค่า</td></tr>
+          <tr><td>Q5</td><td>ประวัติเปลี่ยนสถานะ (Audit Trail)</td><td>4 ตาราง</td><td>อ่านตาราง Log ที่ Trigger เขียน</td></tr>
+          <tr><td>Q6</td><td>สิทธิ์เข้าถึงของพนักงานแต่ละคน</td><td>4 ตาราง</td><td>JOIN ลูกโซ่ EMPLOYEES→DEPARTMENTS→ROLES→ACCESS_MATRIX</td></tr>
+        </table>
+      </div>
+
+      <h2>Q1 · ติดตามผลการพิจารณาอนุมัติ (6 ตาราง) ⭐ ตัวเด่นสุดของโจทย์</h2>
+      <span class="file-tag">04_JOIN_QUERIES.sql · Q1</span>
+      <pre class="code sql"><span class="cm">-- ---------------------------------------------------------------------</span></span></span></span></span></span>
+<span class="cm">-- Q1 (6 ตาราง) : ติดตามผลการพิจารณาอนุมัติ — เอกสาร × ผู้ร่าง × ผู้อนุมัติ × ผล × ลายเซ็น</span></span></span></span></span></span>
+<span class="cm">-- ---------------------------------------------------------------------</span></span></span></span></span></span>
+<span class="kw">SELECT</span></span></span></span></span></span> d.DOC_ID,
+       d.TITLE,
+       d.DOC_TYPE,
+       d.STATUS,
+       c.EMP_NAME  <span class="kw">AS</span></span></span></span></span></span> CREATOR_NAME,
+       cr.ROLE_NAME <span class="kw">AS</span></span></span></span></span></span> CREATOR_ROLE,
+       ap.EMP_NAME <span class="kw">AS</span></span></span></span></span></span> APPROVER_NAME,
+       a.DECISION,
+       a.REASON,
+       s.SIGNATURE_HASH,
+       s.SIGNED_DATE
+<span class="kw">FROM</span></span></span></span></span></span>   DOCUMENTS d
+<span class="kw">JOIN</span></span></span></span></span></span>   EMPLOYEES c    <span class="kw">ON</span></span></span></span></span></span> c.EMP_ID = d.CREATED_BY
+<span class="kw">JOIN</span></span></span></span></span></span>   ROLES cr       <span class="kw">ON</span></span></span></span></span></span> cr.ROLE_ID = c.ROLE_ID
+<span class="kw">LEFT</span></span></span></span></span></span>   <span class="kw">JOIN</span></span></span></span></span></span> APPROVALS a <span class="kw">ON</span></span></span></span></span></span> a.DOC_ID = d.DOC_ID
+<span class="kw">LEFT</span></span></span></span></span></span>   <span class="kw">JOIN</span></span></span></span></span></span> EMPLOYEES ap <span class="kw">ON</span></span></span></span></span></span> ap.EMP_ID = a.APPROVER_ID
+<span class="kw">LEFT</span></span></span></span></span></span>   <span class="kw">JOIN</span></span></span></span></span></span> SIGNATURES s <span class="kw">ON</span></span></span></span></span></span> s.DOC_ID = d.DOC_ID
+<span class="kw">ORDER</span></span></span></span></span></span>  <span class="kw">BY</span></span></span></span></span></span> d.DOC_ID, a.DECIDED_DATE;</pre>
+      <ul>
+        <li>เดินลูกโซ่: DOCUMENTS → EMPLOYEES (ผู้ร่าง ผ่าน CREATED_BY) → ROLES (บทบาทผู้ร่าง) — สองตารางนี้ <strong>INNER JOIN</strong> เพราะทุกเอกสารต้องมีผู้ร่างเสมอ</li>
+        <li>แต่ APPROVALS / SIGNATURES เป็น <strong>LEFT JOIN</strong> — จุดขายสำคัญ: เอกสารที่ยังเป็น DRAFT/PENDING ยังไม่มีผลพิจารณาและไม่มีลายเซ็น ถ้าใช้ INNER JOIN แถวพวกนี้จะ <em>หายไปเงียบ ๆ</em> — แถว LEFT JOIN ไม่เจอฝั่งขวาจะมีค่า NULL ซึ่งตีความได้ว่า "ยังไม่ถูกพิจารณา"</li>
+        <li><code>EMPLOYEES</code> ถูก JOIN 2 รอบ (alias <code>c</code> = creator, <code>ap</code> = approver) — อธิบายอาจารย์: "ตารางเดียวแต่ 2 บทบาท ต้องตั้ง alias แยกกัน"</li>
+      </ul>
+
+      <h2>Q2 · ใครยังไม่ยืนยัน — LEFT JOIN + IS NULL (Anti-Join)</h2>
+      <span class="file-tag">04_JOIN_QUERIES.sql · Q2</span>
+      <pre class="code sql"><span class="cm">-- ---------------------------------------------------------------------</span></span></span></span></span></span>
+<span class="cm">-- Q2 (4 ตาราง) : ใครยังไม่เปิดอ่าน-ยืนยันเอกสาร (LEFT JOIN + IS NULL หาของที่ขาด)</span></span></span></span></span></span>
+<span class="cm">-- ---------------------------------------------------------------------</span></span></span></span></span></span>
+<span class="kw">SELECT</span></span></span></span></span></span> d.DOC_ID,
+       d.TITLE,
+       e.EMP_NAME,
+       e.EMAIL,
+       n.CHANNEL,
+       n.NOTIF_TYPE,
+       n.SENT_AT
+<span class="kw">FROM</span></span></span></span></span></span>   DOCUMENTS d
+<span class="kw">JOIN</span></span></span></span></span></span>   NOTIFICATIONS n <span class="kw">ON</span></span></span></span></span></span> n.DOC_ID = d.DOC_ID
+<span class="kw">JOIN</span></span></span></span></span></span>   EMPLOYEES e     <span class="kw">ON</span></span></span></span></span></span> e.EMP_ID = n.EMP_ID
+<span class="kw">LEFT</span></span></span></span></span></span>   <span class="kw">JOIN</span></span></span></span></span></span> READ_LOGS r <span class="kw">ON</span></span></span></span></span></span> r.DOC_ID = d.DOC_ID <span class="kw">AND</span></span></span></span></span></span> r.EMP_ID = e.EMP_ID
+<span class="kw">WHERE</span></span></span></span></span></span>  r.LOG_ID <span class="kw">IS</span></span></span></span></span></span> <span class="kw">NULL</span></span></span></span></span></span>          -- ยังไม่มีบันทึกอ่าน = ยังไม่ยืนยัน
+<span class="kw">ORDER</span></span></span></span></span></span>  <span class="kw">BY</span></span></span></span></span></span> d.DOC_ID, e.EMP_ID;</pre>
+      <ul>
+        <li>จุดเริ่มจาก NOTIFICATIONS (ใครได้รับแจ้งเตือนแล้ว) — คนที่ยังไม่ได้รับแจ้งจะไม่นับ เพราะยังไม่ใช่เขตความรับผิดชอบของ SLA</li>
+        <li><strong>เงื่อนไข 2 คอลัมน์ใน ON ของ LEFT JOIN</strong> (<code>r.DOC_ID = d.DOC_ID AND r.EMP_ID = e.EMP_ID</code>) — จับคู่ "คนกับเอกสารเดียวกัน" แล้วค่อยกรอง <code>r.LOG_ID IS NULL</code> = ไม่เจอแถวยืนยัน → นี่คือคนที่ยังไม่ยืนยัน</li>
+        <li>ถ้าย้ายเงื่อนไขลง WHERE แบบ <code>WHERE r.EMP_ID = e.EMP_ID</code> จะกลายเป็น INNER JOIN ทันที (ผล NULL ถูกกรองทิ้ง) — กับดักคลาสสิก อาจารย์ชอบถาม</li>
+        <li>เทียบกับ <code>NOT EXISTS</code> ใน SP_CHECK_SLA_REMIND — สองเทคนิคได้ผลเดียวกัน</li>
+      </ul>
+
+      <h2>Q3 · อัตราการรับทราบต่อเอกสาร (%)</h2>
+      <span class="file-tag">04_JOIN_QUERIES.sql · Q3</span>
+      <pre class="code sql"><span class="cm">-- ---------------------------------------------------------------------</span></span></span></span></span></span>
+<span class="cm">-- Q3 (5 ตาราง + Aggregate) : อัตราการรับทราบต่อเอกสารเทียบกลุ่มเป้าหมาย</span></span></span></span></span></span>
+<span class="cm">-- ---------------------------------------------------------------------</span></span></span></span></span></span>
+<span class="kw">SELECT</span></span></span></span></span></span> d.DOC_ID,
+       d.TITLE,
+       r.ROLE_NAME <span class="kw">AS</span></span></span></span></span></span> TARGET_ROLE,
+       <span class="fn">COUNT</span></span></span></span></span></span>(<span class="kw">DISTINCT</span></span></span></span></span></span> lg.EMP_ID) <span class="kw">AS</span></span></span></span></span></span> ACK_COUNT,
+       <span class="fn">COUNT</span></span></span></span></span></span>(<span class="kw">DISTINCT</span></span></span></span></span></span> e.EMP_ID)  <span class="kw">AS</span></span></span></span></span></span> TARGET_COUNT,
+       <span class="fn">ROUND</span></span></span></span></span></span>(<span class="fn">COUNT</span></span></span></span></span></span>(<span class="kw">DISTINCT</span></span></span></span></span></span> lg.EMP_ID) / <span class="fn">COUNT</span></span></span></span></span></span>(<span class="kw">DISTINCT</span></span></span></span></span></span> e.EMP_ID) * <span class="fn">100</span></span></span></span></span></span>, <span class="fn">1</span></span></span></span></span></span>) <span class="kw">AS</span></span></span></span></span></span> ACK_PCT
+<span class="kw">FROM</span></span></span></span></span></span>   DOCUMENTS d
+<span class="kw">LEFT</span></span></span></span></span></span>   <span class="kw">JOIN</span></span></span></span></span></span> READ_LOGS lg <span class="kw">ON</span></span></span></span></span></span> lg.DOC_ID = d.DOC_ID
+<span class="kw">CROSS</span></span></span></span></span></span>  <span class="kw">JOIN</span></span></span></span></span></span> ROLES r
+<span class="kw">JOIN</span></span></span></span></span></span>   EMPLOYEES e <span class="kw">ON</span></span></span></span></span></span> e.ROLE_ID = r.ROLE_ID
+<span class="kw">WHERE</span></span></span></span></span></span>  r.ROLE_NAME = <span class="st">'EMPLOYEE'</span></span></span></span></span></span>
+<span class="kw">GROUP</span></span></span></span></span></span>  <span class="kw">BY</span></span></span></span></span></span> d.DOC_ID, d.TITLE, r.ROLE_NAME,
+          (<span class="kw">SELECT</span></span></span></span></span></span> <span class="fn">COUNT</span></span></span></span></span></span>(*) <span class="kw">FROM</span></span></span></span></span></span> EMPLOYEES <span class="kw">WHERE</span></span></span></span></span></span> ROLE_ID = <span class="fn">4</span></span></span></span></span></span>)
+<span class="kw">ORDER</span></span></span></span></span></span>  <span class="kw">BY</span></span></span></span></span></span> d.DOC_ID;</pre>
+      <ul>
+        <li><code>CROSS JOIN ROLES</code> + <code>WHERE r.ROLE_NAME = 'EMPLOYEE'</code> = เลือกชุดเป้าหมาย "พนักงานทุกคน" เป็นตัวหารของ %</li>
+        <li><code>COUNT(DISTINCT ...)</code> — DISTINCT จำเป็น เพราะ LEFT JOIN READ_LOGS กับ CROSS JOIN ทำให้แถวซ้ำ (คน 1 คนเจอหลายแถว) นับไม่ DISTINCT จะบวม</li>
+        <li><code>ROUND(..., 1)</code> — ปัดเปอร์เซ็นต์ 1 ตำแหน่ง · ใน Oracle จำนวนเต็มหารจำนวนเต็มค่อยขยายเป็นทศนิยมด้วย * 100</li>
+        <li>กฎ GROUP BY: คอลัมน์ใน SELECT ที่ไม่ได้ถูก aggregate ต้องอยู่ใน GROUP BY เสมอ (d.DOC_ID, d.TITLE, r.ROLE_NAME) — ไฟล์แทรก subquery นับจำนวนพนักงาน role 4 ไว้ใน GROUP BY ด้วยเพื่อเทียบตัวเลขเป้าหมาย</li>
+      </ul>
+
+      <h2>Q4 · เอกสารที่เกิน SLA — HAVING เทียบก่อน/หลังรวม</h2>
+      <span class="file-tag">04_JOIN_QUERIES.sql · Q4</span>
+      <pre class="code sql"><span class="cm">-- ---------------------------------------------------------------------</span></span></span></span></span></span>
+<span class="cm">-- Q4 (3 ตาราง + Subquery) : เอกสารที่เกิน SLA 24 ชม. ยังยืนยันไม่ครบ</span></span></span></span></span></span>
+<span class="cm">-- ---------------------------------------------------------------------</span></span></span></span></span></span>
+<span class="kw">SELECT</span></span></span></span></span></span> d.DOC_ID,
+       d.TITLE,
+       d.STATUS,
+       <span class="fn">MIN</span></span></span></span></span></span>(n.SENT_AT) <span class="kw">AS</span></span></span></span></span></span> FIRST_SENT,
+       <span class="fn">ROUND</span></span></span></span></span></span>((<span class="fn">SYSDATE</span></span></span></span></span></span> - <span class="fn">MIN</span></span></span></span></span></span>(n.SENT_AT)) * <span class="fn">24</span></span></span></span></span></span>, <span class="fn">1</span></span></span></span></span></span>) <span class="kw">AS</span></span></span></span></span></span> ELAPSED_HOURS
+<span class="kw">FROM</span></span></span></span></span></span>   DOCUMENTS d
+<span class="kw">JOIN</span></span></span></span></span></span>   NOTIFICATIONS n <span class="kw">ON</span></span></span></span></span></span> n.DOC_ID = d.DOC_ID
+<span class="kw">WHERE</span></span></span></span></span></span>  d.DOC_TYPE = <span class="st">'MEMO'</span></span></span></span></span></span>
+<span class="kw">GROUP</span></span></span></span></span></span>  <span class="kw">BY</span></span></span></span></span></span> d.DOC_ID, d.TITLE, d.STATUS, d.SLA_HOURS
+<span class="kw">HAVING</span></span></span></span></span></span> (<span class="fn">SYSDATE</span></span></span></span></span></span> - <span class="fn">MIN</span></span></span></span></span></span>(n.SENT_AT)) * <span class="fn">24</span></span></span></span></span></span> &gt;= <span class="fn">MIN</span></span></span></span></span></span>(d.SLA_HOURS)
+<span class="kw">ORDER</span></span></span></span></span></span>  <span class="kw">BY</span></span></span></span></span></span> ELAPSED_HOURS <span class="kw">DESC</span></span></span></span></span></span>;</pre>
+      <ul>
+        <li><strong>WHERE vs HAVING</strong> (โดนถามแน่): WHERE กรองแถวดิบ <em>ก่อน</em> GROUP BY (เอาเฉพาะ MEMO) · HAVING กรอง "กลุ่มหลังรวมแล้ว" เพราะเงื่อนไขใช้ aggregate MIN()</li>
+        <li><code>MIN(d.SLA_HOURS)</code> ใน HAVING = เอา SLA ของเอกสารแต่ละฉบับมาเทียบ (ไม่ hard-code 24) — ยืดหยุ่นตามที่ธุรการตั้งใน UC04</li>
+        <li><code>(SYSDATE - MIN(n.SENT_AT)) * 24</code> — วันลบวันใน Oracle = จำนวนวันแบบทศนิยม คูณ 24 = ชั่วโมงที่ผ่านไป</li>
+        <li>เรียง <code>ELAPSED_HOURS DESC</code> = เกินกว่ามากสุดขึ้นก่อน — ใช้เป็นรายงาน "ต้องเร่งแจ้งซ้ำตัวไหนก่อน"</li>
+      </ul>
+
+      <h2>Q5 · Audit Trail — อ่าน Log ที่ Trigger เขียน</h2>
+      <span class="file-tag">04_JOIN_QUERIES.sql · Q5</span>
+      <pre class="code sql"><span class="cm">-- ---------------------------------------------------------------------</span></span></span></span></span></span>
+<span class="cm">-- Q5 (4 ตาราง) : ประวัติการเปลี่ยนสถานะเอกสาร (Audit Trail จาก Trigger)</span></span></span></span></span></span>
+<span class="cm">-- ---------------------------------------------------------------------</span></span></span></span></span></span>
+<span class="kw">SELECT</span></span></span></span></span></span> d.DOC_ID,
+       d.TITLE,
+       lg.OLD_STATUS,
+       lg.NEW_STATUS,
+       lg.CHANGED_DATE
+<span class="kw">FROM</span></span></span></span></span></span>   DOC_STATUS_LOG lg
+<span class="kw">JOIN</span></span></span></span></span></span>   DOCUMENTS d <span class="kw">ON</span></span></span></span></span></span> d.DOC_ID = lg.DOC_ID
+<span class="kw">ORDER</span></span></span></span></span></span>  <span class="kw">BY</span></span></span></span></span></span> lg.DOC_ID, lg.CHANGED_DATE;</pre>
+      <ul>
+        <li>ตารางหลักคือ <strong>DOC_STATUS_LOG</strong> (ข้อมูลที่ Trigger TRG_DOC_STATUS_LOG เขียนอัตโนมัติ) แล้ว JOIN DOCUMENTS เอาชื่อเอกสารมาแสดง</li>
+        <li>เล่าให้อาจารย์ฟังเป็นเรื่อง: "รัน SP_DECIDE_APPROVAL แล้วมาเปิดข้อนี้ จะเห็นสายสถานะ DRAFT → PENDING → APPROVED → SIGNED → DISTRIBUTED ครบทุกจุด เป็นหลักฐาน Audit ตาม UC03"</li>
+      </ul>
+
+      <h2>Q6 · สิทธิ์เข้าถึงของพนักงาน (Access Matrix)</h2>
+      <span class="file-tag">04_JOIN_QUERIES.sql · Q6</span>
+      <pre class="code sql"><span class="cm">-- ---------------------------------------------------------------------</span></span></span></span></span></span>
+<span class="cm">-- Q6 (4 ตาราง) : สิทธิ์การเข้าถึงของพนักงานแต่ละคน (Access Matrix × Role × Employee × Dept)</span></span></span></span></span></span>
+<span class="cm">-- ---------------------------------------------------------------------</span></span></span></span></span></span>
+<span class="kw">SELECT</span></span></span></span></span></span> e.EMP_NAME,
+       dept.DEPT_NAME,
+       r.ROLE_NAME,
+       a.DOC_TYPE,
+       a.CAN_VIEW
+<span class="kw">FROM</span></span></span></span></span></span>   EMPLOYEES e
+<span class="kw">JOIN</span></span></span></span></span></span>   DEPARTMENTS dept <span class="kw">ON</span></span></span></span></span></span> dept.DEPT_ID = e.DEPT_ID
+<span class="kw">JOIN</span></span></span></span></span></span>   ROLES r <span class="kw">ON</span></span></span></span></span></span> r.ROLE_ID = e.ROLE_ID
+<span class="kw">JOIN</span></span></span></span></span></span>   ACCESS_MATRIX a <span class="kw">ON</span></span></span></span></span></span> a.ROLE_ID = r.ROLE_ID
+<span class="kw">ORDER</span></span></span></span></span></span>  <span class="kw">BY</span></span></span></span></span></span> e.EMP_ID, a.DOC_TYPE;</pre>
+      <ul>
+        <li>JOIN ลูกโซ่ 4 ตารางแบบมาตรฐาน: พนักงาน → แผนก → บทบาท → แถวสิทธิ์ของบทบาทนั้น — ผลออกมาเป็น "ใคร อยู่ไหน มี role อะไร เห็นเอกสารประเภทไหน"</li>
+        <li>ตอบ UC08 (กำหนดสิทธิ์) — อาจารย์ถาม "สิทธิ์เก็บที่ไหน" ตอบ: ตาราง ACCESS_MATRIX ผ่าน ROLE_ID ของ EMPLOYEES</li>
+      </ul>
+
+      <h2>⚠️ กับดัก JOIN ที่พังตอน demo (ซ้อมแล้วจำอาการไว้)</h2>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>อาการ</th><th>สาเหตุ</th><th>แก้ยังไง</th></tr>
+          <tr><td>ผลลัพธ์พัน ๆ แถว ซ้ำมั่ว</td><td>JOIN แล้วลืมเงื่อนไข ON หรือ ON ไม่ unique → Cartesian Product</td><td>ทุก JOIN ต้องมี ON ที่ลูกโซ่ PK–FK ถูกต้อง เช่น <code>a.DOC_ID = d.DOC_ID</code></td></tr>
+          <tr><td><code>ORA-00979: not a GROUP BY expression</code></td><td>SELECT คอลัมน์ที่ไม่ aggregate แต่ไม่ใส่ใน GROUP BY</td><td>ใส่คอลัมน์ที่ไม่ aggregate ให้ครบใน GROUP BY</td></tr>
+          <tr><td>ใช้ aggregate ใน WHERE แล้ว error</td><td>WHERE กรองก่อนรวม จึงห้ามใช้ MIN/COUNT</td><td>ย้ายเงื่อนไข aggregate ไปที่ HAVING</td></tr>
+          <tr><td>Q2 ออก "คนที่ยืนยันแล้ว" แทนที่จะเป็นคนที่ยังไม่ยืนยัน</td><td>ย้ายเงื่อนไขคู่ออกจาก ON ของ LEFT JOIN ไป WHERE จนกลายเป็น INNER</td><td>เงื่อนไขฝั่ง "ไม่เจอ" ต้องอยู่ใน ON เสมอ + กรอง IS NULL ใน WHERE</td></tr>
+        </table>
+      </div>
+
+      <h2>👀 ผลที่จะเห็นจริงบนจอของทุกข้อ (สภาพหลังเดิน Flow ตามหน้า PL/SQL ครบ 1 รอบ)</h2>
+      <p>ตารางนี้ทำให้ demo ไม่ต้องเดา: รู้ก่อนรันว่าจะโผล่กี่แถว — ถ้าไม่ตรงแปลว่ามีขั้นไหนยังไม่ได้รัน (กลับไปเช็คหน้า PL/SQL):</p>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>ข้อ</th><th>จำนวนแถวที่จะเห็น</th><th>ค่าที่ต้องชี้ให้อาจารย์ดู</th></tr>
+          <tr><td>Q1</td><td><strong>4 แถว</strong> (เอกสารครบทุกฉบับ ไม่หาย)</td><td>5001 มีผล APPROVED จาก "อรุณ" + มี hash ลายเซ็น · 5003 มี REJECTED + เหตุผล · <strong>5002/5004 ฝั่งขวาเป็น (null) ทั้งแถว = ยังไม่ถูกพิจารณา</strong></td></tr>
+          <tr><td>Q2</td><td><strong>3 แถว</strong></td><td>กมลวรรณ (1005), ธนกร (1006), พิมพ์ชนก (1007) — ยังไม่ยืนยันเอกสาร 5001 (ปกรณ์ 1004 ยืนยันแล้วจึงไม่โผล่)</td></tr>
+          <tr><td>Q3</td><td><strong>4 แถว</strong></td><td>5001 = ACK 1 จาก 4 = <strong>25.0%</strong> · 5002/5003/5004 = 0.0%</td></tr>
+          <tr><td>Q4</td><td><strong>อาจว่างเปล่า — และนั่นถูกต้อง!</strong></td><td>ผลขึ้นกับเวลาจริง: ยังไม่มีเอกสาร MEMO เกิน SLA 24 ชม. → ว่าง = ระบบทำงานถูก (ตอบอาจารย์ได้: "ถ้ารอเกิน 24 ชม. แถวจะโผล่เอง")</td></tr>
+          <tr><td>Q5</td><td><strong>7 แถว</strong> (Log จาก Trigger)</td><td>5001: DRAFT→PENDING→APPROVED→SIGNED→DISTRIBUTED→COMPLETED (5 แถว) · 5003: DRAFT→REJECTED→PENDING (2 แถว)</td></tr>
+          <tr><td>Q6</td><td><strong>11 แถว</strong></td><td>สมชาย(IT) 1 · สมศรี(ธุรการ) 2 · อรุณ+มาลี 2+2 · พนักงานกลุ่มเป้าหมาย 4 คน × 1 = 11 — ทุกคน CAN_VIEW 'Y'</td></tr>
+        </table>
+      </div>
+      <div class="box box-tip">
+        <p class="box-title">💡 เกริ่นหน้ารันทุกข้อ (สั้น กระชับ อาจารย์ชอบ)</p>
+        <p>"ข้อนี้ JOIN n ตาราง ตอบคำถามธุรกิจว่า ... · จุดสำคัญคือ [INNER/LEFT/MAX/HAVING] เพราะ ... · ผลที่ควรเห็นคือ n แถว โดยแถวแรกคือ ..." — ครบ 3 ประโยคนี้ = อธิบายโค้ดเป็น</p>
+      </div>
+
+      <div class="quiz" data-answer="2">
+        <p class="quiz-q"><span class="qno">Q</span> ใน Q1 ทำไม APPROVALS ต้อง LEFT JOIN ไม่ใช่ JOIN ธรรมดา?</p>
+        <div class="quiz-opts">
+          <button class="quiz-opt">เพราะ APPROVALS มีแถวเยอะกว่า</button>
+          <button class="quiz-opt">เพราะ DOC_ID ไม่ใช่ Primary Key</button>
+          <button class="quiz-opt">เพราะเอกสารบางฉบับ (DRAFT/PENDING) ยังไม่มีผลพิจารณา — INNER JOIN จะทำให้แถวเอกสารเหล่านี้หายไปจากรายงาน</button>
+          <button class="quiz-opt">เพราะต้องการเรียงตามวันที่</button>
+        </div>
+        <div class="quiz-explain"><strong>เฉลย:</strong> LEFT JOIN ให้เอกสารทุกฉบับอยู่ครบ ฝั่งที่ไม่มีผลพิจารณาจะเติม NULL (ตีความ: ยังไม่ถูกพิจารณา) — รายงานติดตามจึงเห็นภาพครบทั้งระบบ</div>
+      </div>
+
+      <div class="quiz" data-answer="0">
+        <p class="quiz-q"><span class="qno">Q</span> อยากได้ "เอกสาร MEMO ที่ผ่านไปแล้วเกิน SLA ของมันเอง" ควรวางเงื่อนไขยังไง?</p>
+        <div class="quiz-opts">
+          <button class="quiz-opt">WHERE กรอง DOC_TYPE='MEMO' (ก่อนรวม) + HAVING เทียบเวลาผ่านไปกับ MIN(SLA_HOURS) (หลังรวม)</button>
+          <button class="quiz-opt">ใส่เงื่อนไขทั้งหมดใน WHERE ก็ได้</button>
+          <button class="quiz-opt">ใส่เงื่อนไขทั้งหมดใน HAVING</button>
+          <button class="quiz-opt">ใช้ ORDER BY กรองแทน</button>
+        </div>
+        <div class="quiz-explain"><strong>เฉลย:</strong> เงื่อนไขระดับแถว (ชนิดเอกสาร) → WHERE · เงื่อนไขระดับกลุ่มที่ใช้ aggregate (เทียบ MIN เวลากับ MIN SLA) → HAVING</div>
+      </div>
+
+      <div class="prevnext">
+        <a href="p1-plsql.html">ก่อนหน้า: PL/SQL Transaction<small>⚙️ Trigger + Procedure Part I</small></a>
+        <a class="next" href="p2-usecase.html">ต่อไป: Part II — Use Case + REG1–17<small>🚌 เริ่ม Business Domain ที่ 2: Public Transit</small></a>
+      </div>
+
+    </div>
+  </main>
+</div>
+<script src="script.js"></script>
+<script src="tts.js"></script>
+</body>
+</html>

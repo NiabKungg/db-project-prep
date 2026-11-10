@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Part I · Use Case + Traceability — เว็บติวสอบ Project Database</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-tts="1">
+<div id="progressBar"></div>
+<div class="backdrop"></div>
+
+<header class="topbar">
+  <button class="hamburger" aria-label="เปิดเมนู">☰</button>
+  <div class="topbar-title">🎓 ติวสอบ Project Database</div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="เมนูหลัก">
+    <div class="side-brand">🎓 Project DB Prep<small>สอบ Project Face-to-face • 2 Business Domain</small></div>
+    <div class="side-note">💡 <b>กฎเหล็ก:</b> ลำดับรัน 00→05 • DROP ให้อาจารย์ดู • ทุกคนตอบ "ทำไม" ได้เหมือนกัน</div>
+    <a class="nav-link" href="index.html"><span class="nav-emoji">🏠</span> หน้าแรก + โจทย์อาจารย์</a>
+    <div class="side-group">PART I — อ.อู๊ด (เวียน + ประกาศ)</div>
+    <a class="nav-link" href="p1-usecase.html"><span class="nav-emoji">📋</span> Use Case + Traceability</a>
+    <a class="nav-link" href="p1-er-ddl-dml.html"><span class="nav-emoji">🗄️</span> E/R + DDL/DML <span class="nav-pts">11 ตาราง</span></a>
+    <a class="nav-link" href="p1-plsql.html"><span class="nav-emoji">⚙️</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p1-join.html"><span class="nav-emoji">🔗</span> SQL JOIN 6 ข้อ</a>
+    <div class="side-group">PART II — อ.ผึ้ง (Public Transit)</div>
+    <a class="nav-link" href="p2-usecase.html"><span class="nav-emoji">🚌</span> Use Case + REG1–17</a>
+    <a class="nav-link" href="p2-er-ddl-dml.html"><span class="nav-emoji">🚏</span> E/R + DDL/DML <span class="nav-pts">10 ตาราง</span></a>
+    <a class="nav-link" href="p2-plsql.html"><span class="nav-emoji">🚦</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p2-join.html"><span class="nav-emoji">🧭</span> SQL JOIN 6 ข้อ</a>
+    <div class="side-group">สาธิตหน้าห้อง</div>
+    <a class="nav-link" href="verify-demo.html"><span class="nav-emoji">🎤</span> ลำดับ demo + Q&A</a>
+  </nav>
+
+  <main class="main">
+    <div class="content">
+
+      <section class="page-head">
+        <p class="crumb"><a href="index.html">หน้าแรก</a> • PART I — ระบบแจ้งข้อความเวียน + ประกาศภายในองค์กร (อ.อู๊ด)</p>
+        <h1>📋 Use Case 9 ตัว + Traceability — โครงระบบที่ต้องเล่าให้อาจารย์ฟังก่อนแตะ SQL</h1>
+        <div class="head-meta">
+          <span class="badge">4 Actor</span><span class="badge">9 Use Case</span><span class="badge">ทุก UC «include» UC09</span><span class="badge gold">US1–US10 ↔ UC</span>
+        </div>
+      </section>
+
+      <div class="box box-exam">
+        <p class="box-title">① อาจารย์ต้องการอะไร (โจทย์ข้อนี้บอกว่าอะไร)</p>
+        <p>โจทย์ข้อ 1 คือ <strong>"DDL , DML ตาม E/R Diagram"</strong> — และปิดท้ายว่า <em>"สมาชิกในกลุ่มต้องเข้าใจทุกเรื่องเหมือนกัน"</em> —
+        Use Case จึงเป็น "แผนที่" ที่ทุกคนต้องเล่าได้ก่อน: ใคร (Actor) ใช้ระบบทำอะไร (UC) เพราะตารางทุกตารางและ Procedure ทุกตัวใน Part I มีที่มาจาก UC นี้ทั้งหมด
+        อาจารย์มักถามกลาง demo ว่า "ตารางนี้รองรับฟังก์ชันอะไร" — ตอบได้จากหน้านี้ทั้งหมด</p>
+      </div>
+
+      <h2>📨 ระบบนี้ทำอะไร (เล่าเปิด demo 30 วินาที)</h2>
+      <p><strong>ระบบแจ้งข้อความเวียนและประกาศภายในองค์กร</strong> — เดิมทำงานด้วยเอกสารกระดาษ: ฝ่าย HR กำหนดผู้รับ →
+      เจ้าหน้าที่ธุรการร่างประกาศ/จดหมายเวียน → เลขาเดินเอกสารส่ง CEO/Manager พิจารณาลงนาม → เดินกลับไปกระจายให้พนักงานเปิดอ่าน เซ็นรับทราบ ส่งต่อกันจนครบ —
+      ช้า ตามไม่ทัน และไม่มีหลักฐานว่าใครยังไม่รับทราบ</p>
+      <p>ระบบใหม่ (To-Be) ทำบนฐานข้อมูล: ร่างด้วยแม่แบบ + ตั้ง SLA → อนุมัติ/ตีกลับบนระบบ (XOR Gateway) →
+      ลงนามอิเล็กทรอนิกส์ (กฎ BR-Ann-102: ห้ามเผยแพร่ก่อนลงนาม) → กระจายหลายช่องทาง (EMAIL/APP/SMS ตามความเร่งด่วน) →
+      พนักงานยืนยันรับทราบ + เก็บ Timestamp เป็นหลักฐาน → ครบ 100% จบ, ยังไม่ครบและเกิน 24 ชม. (SLA) → ระบบเตือนซ้ำอัตโนมัติ</p>
+
+      <h2>🧩 Use Case Diagram — 4 Actor, 9 UC, รวมศูนย์ที่ UC09</h2>
+      <pre class="mermaid">
+flowchart LR
+  A1["👤 พนักงานกลุ่มเป้าหมาย"]
+  A2["🗂️ เจ้าหน้าที่ธุรการส่วนกลาง"]
+  A3["🛠️ ผู้ดูแลระบบ IT"]
+  A4["👔 ฝ่ายบริหาร / ผู้อนุมัติ"]
+  U1(["UC01 รับแจ้งเตือน + เปิดอ่าน"])
+  U2(["UC02 อ่าน + ยืนยันรับทราบ"])
+  U3(["UC03 ดูประกาศย้อนหลัง + สถานะ"])
+  U4(["UC04 ร่างเอกสาร + ตั้ง SLA"])
+  U5(["UC05 แปลงประกาศเป็นข้อความเวียน"])
+  U6(["UC06 แก้ไขร่างกรณีถูกตีกลับ"])
+  U7(["UC07 ตรวจสอบ + อนุมัติ/ตีกลับ"])
+  U8(["UC08 กำหนดสิทธิ์เข้าถึงเอกสาร"])
+  U9(["UC09 เข้าสู่ระบบ"])
+  A1 --> U1
+  A1 --> U2
+  A1 --> U3
+  A2 --> U4
+  A2 --> U5
+  A2 --> U6
+  A3 --> U8
+  A4 --> U7
+  U1 -. «include» .-> U9
+  U2 -. «include» .-> U9
+  U3 -. «include» .-> U9
+  U4 -. «include» .-> U9
+  U5 -. «include» .-> U9
+  U6 -. «include» .-> U9
+  U7 -. «include» .-> U9
+  U8 -. «include» .-> U9
+      </pre>
+      <p class="mermaid-caption">ทุกฟังก์ชัน «include» UC09 เข้าสู่ระบบ — ยืนยันตัวตนก่อนใช้งานทุกกรณี</p>
+
+      <div class="term">
+        <p><span class="term-word">«include»</span> <span class="term-read">อ่านว่า "อินคลูด"</span> — Base UC เรียกใช้ Subroutine <strong>ทุกครั้ง</strong>ที่รัน ไม่มีเงื่อนไข —
+        UC01–08 ทุกตัวต้องผ่าน UC09 (ยืนยันตัวตน) ก่อนเสมอ จึงลากเส้น «include» ไปหา UC09 หมด</p>
+        <p><span class="term-word">ต่างจาก «extend» (ถ้าโดนถาม)</span> — «extend» = เส้นที่ "เกิดเฉพาะบางเงื่อนไข" (เช่น ตอนพิมพ์เอกสารถึงจะเรียกฟังก์ชันแปลงเป็น PDF) ·
+        จำง่าย ๆ: <strong>«include» = ทุกครั้ง (จำเป็น)</strong> · <strong>«extend» = บางครั้ง (เสริม)</strong> — ใน diagram ของ Part I มีแต่ «include»</p>
+      </div>
+      <div class="box box-tip">
+        <p class="box-title">🎤 เล่า UC Diagram เปิด demo ด้วย 4 ประโยค (ท่องได้ = เริ่มอย่างมั่นใจ)</p>
+        <ol>
+          <li>"ระบบนี้มี 4 Actor: พนักงานกลุ่มเป้าหมาย (รับ-อ่าน-ยืนยัน), ธุรการ (ร่าง-แก้), ผู้บริหาร (อนุมัติ-ตีกลับ), และ IT (จัดการสิทธิ์)"</li>
+          <li>"มี 9 Use Case ครอบตั้งแต่ร่างเอกสารจนถึงยืนยันรับทราบ โดยทุก UC «include» UC09 เข้าสู่ระบบ"</li>
+          <li>"Flow หลักคือ: ร่าง → ส่งอนุมัติ → อนุมัติ/ตีกลับ (XOR) → ลงนาม → กระจาย → ยืนยันครบ 100% หรือเตือนซ้ำเกิน SLA"</li>
+          <li>"ทุก UC นี้แปลงเป็นตาราง 11 ตารางและ PL/SQL 4 ตัวหน้าถัดไป — เช่น UC02 ยืนยันรับทราบ คือตาราง READ_LOGS + SP_ACKNOWLEDGE_DOC"</li>
+        </ol>
+      </div>
+
+      <h3>Actor 4 ตัว — ใครเริ่มอะไร</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>Actor</th><th>initiate (เริ่ม UC)</th><th>หน้าที่สรุป</th><th>บทบาทในระบบ (ตาราง ROLES)</th></tr>
+          <tr><td>👤 พนักงานกลุ่มเป้าหมาย</td><td>UC01–UC03</td><td>รับแจ้งเตือน อ่าน กดยืนยันรับทราบ ดูย้อนหลัง</td><td><code>EMPLOYEE</code></td></tr>
+          <tr><td>🗂️ เจ้าหน้าที่ธุรการส่วนกลาง</td><td>UC04–UC06</td><td>ร่างเอกสาร ตั้ง SLA แปลงเป็นข้อความเวียน แก้ร่างตีกลับ</td><td><code>CREATOR</code></td></tr>
+          <tr><td>🛠️ ผู้ดูแลระบบ IT</td><td>UC08</td><td>กำหนด/อัปเดตสิทธิ์การเข้าถึงเอกสาร</td><td><code>IT_ADMIN</code></td></tr>
+          <tr><td>👔 ฝ่ายบริหาร/ผู้อนุมัติ</td><td>UC07 (+ participate ทุก UC)</td><td>ตรวจสอบพิจารณา อนุมัติหรือตีกลับ ลงนาม</td><td><code>APPROVER</code></td></tr>
+          <tr><td colspan="4">ทุก Actor «include» <strong>UC09 เข้าสู่ระบบ</strong> ก่อนใช้ฟังก์ชันใด ๆ</td></tr>
+        </table>
+      </div>
+
+      <h2>📖 Use Case Specification ครบทั้ง 9 ตัว (รูปแบบ Ch9: UC-# + Related Requirements + Flow)</h2>
+      <p>อ่านสาย Flow: <strong>→</strong> = Actor ทำ / <strong>←</strong> = System ตอบสนอง · Extensions = กรณีผิดปกติ (1a, 2a, ...)</p>
+
+      <h3>UC-01 · รับการแจ้งเตือนและเปิดอ่านเอกสาร</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>US8</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>พนักงานกลุ่มเป้าหมาย</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>ให้พนักงานได้รับการแจ้งเตือนเมื่อมีประกาศใหม่ผ่านระบบแจ้งเตือนอีเมล เพื่ออ่านจดหมายเวียนหรือประกาศ</td></tr>
+          <tr><td><strong>Participating Actors</strong></td><td>ระบบสารสนเทศ</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>1. พนักงานต้องมีอีเมลอยู่ในระบบ · 2. มีการสร้างและอนุมัติส่งประกาศ/จดหมายเวียนใหม่ในระบบ</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>1. ระบบบันทึก Log การส่ง Email แจ้งเตือนสำเร็จ · 2. พนักงานเข้าไปอ่านประกาศหรือจดหมายเวียน</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>← 1. เมื่อมีการส่งประกาศหรือจดหมายเวียน<br>← 2. พนักงานได้รับแจ้งเตือนผ่าน Email<br>→ 3. พนักงานเข้าไปอ่านประกาศหรือจดหมายเวียน</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB: <code>NOTIFICATIONS</code> (แจ้งเตือน NEW) — สร้างโดย <code>SP_DECIDE_APPROVAL</code> ตอนกระจายเอกสาร</p>
+
+      <h3>UC-02 · อ่านและกดยืนยันรับทราบเอกสาร</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>US9</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>พนักงานกลุ่มเป้าหมาย</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>ยืนยันการรับทราบประกาศหรือข้อความเวียน</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>1. เข้าสู่ระบบ · 2. เปิดอ่านประกาศ/ข้อความเวียน · 3. ยืนยันรับทราบ</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>บันทึก User ID, Document ID, Timestamp (หลักฐานรับทราบ)</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>← 1. ระบบแสดงเนื้อหาเอกสารและปุ่มรับทราบ<br>→ 2. พนักงานอ่านเนื้อหาเลื่อนลงจนถึงด้านล่างสุด<br>→ 3. พนักงานกดปุ่มรับทราบ<br>← 4. ระบบบันทึกข้อมูล User ID, Document ID, Timestamp</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>1a.</strong> พนักงานไม่เปิดอ่านเอกสาร → ระบบส่งแจ้งเตือนซ้ำ<br><strong>3a.</strong> กดรับทราบก่อนเลื่อนอ่านจนสุด → ระบบล็อกปุ่มรับทราบจนกว่าจะเลื่อนดูจนสุด</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB: <code>READ_LOGS</code> + <code>SP_ACKNOWLEDGE_DOC</code> — UNIQUE (DOC_ID, EMP_ID) กันยืนยันซ้ำ + ครบ 100% แล้วเลื่อนสถานะเป็น COMPLETED</p>
+
+      <h3>UC-03 · ดูประกาศย้อนหลังและดูสถานะเอกสาร</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>US10</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>พนักงานกลุ่มเป้าหมาย</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>ตรวจสอบเนื้อหาและสถานะย้อนหลังได้</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>1. มีข้อมูลประกาศในระบบ · 2. เข้าสู่ระบบ</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>แสดงสถานะและข้อความประกาศ</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>→ 1. เมื่อต้องการตรวจสอบสถานะ<br>→ 2. ค้นหาประกาศ/ข้อความเวียนที่ต้องการในระบบ<br>← 3. ระบบแสดงสถานะและข้อความประกาศ</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>2a.</strong> ไม่เจอประกาศ/ข้อความเวียนที่ต้องการ → ระบบแจ้งเตือนว่าไม่มีเอกสารที่ตามหา</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB: <code>DOCUMENTS</code> (สถานะปัจจุบัน) + <code>DOC_STATUS_LOG</code> (Audit Trail จาก Trigger — สถานะย้อนหลังทุกจุดเปลี่ยน)</p>
+
+      <h3>UC-04 · ร่างเอกสารด้วยแม่แบบและตั้งค่า SLA</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>US3, US4</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>เจ้าหน้าที่ธุรการส่วนกลาง</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>สร้างร่างประกาศหรือข้อความเวียนตามแม่แบบ และกำหนดกรอบเวลาการอ่าน</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>มีแม่แบบเอกสารพร้อมใช้งาน</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>ได้ประกาศ/ข้อความเวียนตามแม่แบบ และมีการกำหนดกรอบเวลาการอ่าน</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>→ 1. เจ้าหน้าที่เลือกหมวดหมู่แม่แบบที่จะใช้<br>← 2. ระบบแสดงแบบฟอร์มเอกสารตามแม่แบบที่เลือก<br>→ 3. กรอกเนื้อหา เลือกกลุ่มเป้าหมาย และกำหนดกรอบเวลาการอ่าน<br>→ 4. เจ้าหน้าที่บันทึกเอกสาร<br>← 5. ระบบบันทึกข้อมูลร่างเอกสาร</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>1a.</strong> ไม่มีแม่แบบที่ต้องการ → ต้องทำแบบขึ้นมาเอง<br><strong>3a.</strong> ลืมเลือกกลุ่มเป้าหมาย/กรอบเวลาอ่าน → ระบบแจ้งเตือนให้กรอก มิฉะนั้นบันทึกไม่ได้</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB: <code>DOCUMENTS</code> (สถานะ DRAFT + คอลัมน์ SLA_HOURS DEFAULT 24 + SEQ_DOC ออกรหัสเอกสาร)</p>
+
+      <h3>UC-05 · ดึงเนื้อหาจากประกาศมาสร้างข้อความเวียน</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>US4</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>เจ้าหน้าที่ธุรการส่วนกลาง</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>สร้างข้อความเวียนที่มีเนื้อหาเดียวกับประกาศได้รวดเร็ว ไม่ต้องพิมพ์ซ้ำซ้อน</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>1. เข้าสู่ระบบด้วยสิทธิ์ Document Creator · 2. มีประกาศหลักที่ผ่านการอนุมัติ และต้องการทำจดหมายเวียน</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>1. ได้ร่างข้อความเวียนฉบับใหม่ที่ Copy เนื้อหาจากประกาศหลัก พร้อมปรับแต่งและส่งขออนุมัติต่อ · 2. ระบบ Save อัตโนมัติและรอธุรการกดส่ง</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>→ 1. หาประกาศที่ต้องการแปลงเป็นข้อความเวียน<br>→ 2. กดสร้างประกาศเป็นข้อความเวียน<br>← 3. ระบบ Copy ข้อมูลสำคัญอัตโนมัติ<br>→ 4. ตรวจเช็คและเติมส่วนสำคัญที่ระบบไม่ได้เติมให้<br>→ 5. กดส่งเอกสาร<br>← 6. ระบบส่งไปให้ CEO อนุมัติเอกสาร</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>5a.</strong> ไม่ได้กดส่ง → ระบบ Save อัตโนมัติและรอธุรการมากดส่ง</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB: <code>DOCUMENTS</code> (คอลัมน์ DOC_TYPE แยก ANNOUNCEMENT / MEMO — ประกาศและข้อความเวียนเป็นตารางเดียวกัน ต่างประเภท)</p>
+
+      <h3>UC-06 · แก้ไขและส่งร่างเอกสารใหม่กรณีถูกตีกลับ</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>US5</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>เจ้าหน้าที่ธุรการส่วนกลาง</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>แก้ร่างที่ถูกตีกลับ แล้วส่งขออนุมัติใหม่ให้ผู้อนุมัติคนเดิม</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>1. เจ้าหน้าที่ธุรการเข้าสู่ระบบ · 2. มีเอกสารที่ถูกตีกลับ</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>ได้เอกสารฉบับที่แก้ไข พร้อมส่งต่อไปยังผู้อนุมัติคนเดิม</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>← 1. ระบบแจ้งเตือนมีเอกสารถูกตีกลับ<br>→ 2. เข้ามาดูเอกสารที่ถูกตีกลับ<br>← 3. ระบบแสดงเนื้อหาเดิม พร้อมเหตุผลที่ถูกตีกลับจากผู้อนุมัติ<br>→ 4. กดแก้ไขเอกสาร<br>← 5. ระบบเปิดให้แก้เนื้อหาและอัปโหลดไฟล์แนบใหม่<br>→ 6. แก้ไขเนื้อหา/เลือกกลุ่มเป้าหมายใหม่<br>→ 7. ส่งขออนุมัติซ้ำ<br>← 8. ระบบบันทึกเอกสารใหม่<br>← 9. ระบบส่งการแจ้งเตือนไปยังผู้อนุมัติ</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>3a.</strong> พิจารณาแล้วเห็นควรยกเลิกเผยแพร่ → กดยกเลิกเอกสาร → ระบบปิดการเข้าถึงเอกสาร</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB: <code>APPROVALS</code> (คอลัมน์ REASON = เหตุผลตีกลับ) + สถานะ <code>REJECTED</code> บน DOCUMENTS — แก้แล้วส่งใหม่ผ่าน <code>SP_SUBMIT_DOC</code> (ยอมรับ DRAFT/REJECTED เท่านั้น)</p>
+
+      <h3>UC-07 · ตรวจสอบและพิจารณาอนุมัติเอกสาร</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>US6, US7</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>ผู้บริหาร/ผู้อนุมัติ</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>พิจารณาเนื้อหาเอกสาร และตัดสินใจอนุมัติหรือตีกลับ</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>1. ผู้อนุมัติพิสูจน์ตัวตนเข้าสู่ระบบแล้ว · 2. มีเอกสารสถานะ "รอการอนุมัติ" (PENDING)</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>ระบบบันทึกสถานะของเอกสารเป็นอนุมัติ</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>→ 1. ผู้อนุมัติเข้าสู่ระบบเพื่อดูร่างเอกสาร<br>← 2. ระบบแสดงเนื้อหาเอกสาร<br>→ 3. ผู้อนุมัติตรวจสอบ<br>→ 4. ผู้อนุมัติกดอนุมัติเอกสาร<br>← 5. ระบบบันทึกสถานะเอกสารเป็นอนุมัติ</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>4a.</strong> ไม่อนุมัติ → เขียนเหตุผลการตีกลับ → ระบบส่งเหตุผลให้คนร่างเอกสาร</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB: <code>SP_DECIDE_APPROVAL</code> (Transaction ใหญ่สุดของระบบ — XOR Gateway) + <code>APPROVALS</code> + <code>SIGNATURES</code> + <code>DISTRIBUTIONS</code> + <code>NOTIFICATIONS</code> (รายละเอียดหน้า PL/SQL)</p>
+
+      <h3>UC-08 · กำหนดและอัปเดตสิทธิ์การเข้าถึงเอกสาร</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>US1</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>ผู้ดูแลระบบ IT</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>จัดการสิทธิ์เข้าถึงให้ตรงกลุ่มเป้าหมายที่กำหนดในเอกสาร ป้องกันข้อมูลรั่วไหล</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>ผู้ดูแลระบบ IT ต้องเป็น Administrator ในระบบ</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>สิทธิ์การเข้าถึงตรงตามกลุ่มเป้าหมายที่กำหนดไว้</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>→ 1. ผู้ดูแลระบบ IT กำหนดสิทธิ์การเข้าถึงเอกสาร และบันทึก<br>← 2. ระบบบันทึกเงื่อนไขสิทธิ์ลงระบบสารสนเทศ</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>1a.</strong> พยายามลบสิทธิ์ของกลุ่มผู้ใช้หลักจนส่งผลกระทบระบบ → ระบบแสดงเตือนและไม่อนุญาตให้ลบสิทธิ์ System Role</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ เก็บใน DB: <code>ACCESS_MATRIX</code> (สิทธิ์ role × ประเภทเอกสาร + CAN_VIEW Y/N) — อ่านผ่าน JOIN Q6 หน้า JOIN</p>
+
+      <h3>UC-09 · เข้าสู่ระบบ</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><td style="width:230px;"><strong>Related Requirements</strong></td><td>UC-01, UC-02, UC-03, UC-04, UC-05, UC-06, UC-07, UC-08 (ทุกตัวเรียกใช้)</td></tr>
+          <tr><td><strong>Initiating Actor</strong></td><td>พนักงานกลุ่มเป้าหมาย, เจ้าหน้าที่ธุรการส่วนกลาง, ผู้ดูแลระบบ, ฝ่ายบริหาร</td></tr>
+          <tr><td><strong>Actor's Goal</strong></td><td>ยืนยันตัวตนก่อนเข้าใช้งานฟังก์ชันต่าง ๆ</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>มีบัญชีผู้ใช้งานที่ต้องการเข้าสู่ระบบในฐานข้อมูล</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>1. ผู้ใช้ได้รับอนุญาตให้เข้าถึงระบบตามที่ต้องการ · 2. ระบบระบุบทบาทและสิทธิ์เพื่อจำกัดเมนูการใช้งาน</td></tr>
+          <tr><td><strong>Flow (Main Success)</strong></td><td>→ 1. ผู้ใช้งานเข้าสู่หน้าเข้าสู่ระบบ<br>← 2. ระบบแสดงช่อง Username และ Password ให้กรอก<br>→ 3. กรอก Username/Email + Password แล้วกดเข้าสู่ระบบ<br>← 4. ระบบตรวจสอบความถูกต้องกับฐานข้อมูล<br>← 5. ระบบดึงข้อมูลบทบาทและสิทธิ์การเข้าถึง<br>← 6. ระบบบันทึก Login Timestamp ลงฐานข้อมูล และแสดงหน้าเอกสาร</td></tr>
+          <tr><td><strong>Extensions</strong></td><td><strong>3a.</strong> ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง → ระบบแจ้งเตือน → ผู้ใช้กรอกข้อมูลใหม่อีกครั้ง</td></tr>
+        </table>
+      </div>
+      <p class="mermaid-caption">🗄️ ใน DB: ตรวจกับ <code>EMPLOYEES</code> (EMAIL UNIQUE ใช้เป็นบัญชีได้) + <code>ROLES</code> (ดึงบทบาท/สิทธิ์) — ที่มาของเส้น «include» จากทุก UC</p>
+
+      <h2>🔗 Traceability Matrix — US1–US10 ↔ UC</h2>
+      <p>รูปแบบตาม Ch9: แถว = Requirement คอลัมน์ = Use Case วาง X ที่ UC ที่รองรับ Req นั้น จากเอกสารจริงของกลุ่ม:</p>
+      <div class="tbl-wrap">
+        <table class="tbl nowrap">
+          <tr><th>Req't</th><th>UC1</th><th>UC2</th><th>UC3</th><th>UC4</th><th>UC5</th><th>UC6</th><th>UC7</th><th>UC8</th><th>UC9</th></tr>
+          <tr><td><strong>US1</strong></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="x">X</td><td class="x">X</td></tr>
+          <tr><td><strong>US2</strong></td><td></td><td></td><td></td><td class="x">X</td><td></td><td></td><td></td><td></td><td class="x">X</td></tr>
+          <tr><td><strong>US3</strong></td><td></td><td></td><td></td><td class="x">X</td><td></td><td></td><td></td><td></td><td class="x">X</td></tr>
+          <tr><td><strong>US4</strong></td><td></td><td></td><td></td><td></td><td class="x">X</td><td></td><td></td><td></td><td class="x">X</td></tr>
+          <tr><td><strong>US5</strong></td><td></td><td></td><td></td><td></td><td></td><td class="x">X</td><td></td><td></td><td class="x">X</td></tr>
+          <tr><td><strong>US6</strong></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="x">X</td><td></td><td class="x">X</td></tr>
+          <tr><td><strong>US7</strong></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="x">X</td><td></td><td class="x">X</td></tr>
+          <tr><td><strong>US8</strong></td><td class="x">X</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="x">X</td></tr>
+          <tr><td><strong>US9</strong></td><td></td><td class="x">X</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="x">X</td></tr>
+          <tr><td><strong>US10</strong></td><td></td><td></td><td class="x">X</td><td></td><td></td><td></td><td></td><td></td><td class="x">X</td></tr>
+        </table>
+      </div>
+      <div class="box box-basics">
+        <p class="box-title">วิธีอ่าน Traceability + จุดประสงค์ 3 ข้อ (ตอบอาจารย์ได้)</p>
+        <ul>
+          <li><strong>อ่านแนวนอน</strong>: US8 รองรับโดย UC1 (รับแจ้งเตือน) และ UC9 (เข้าสู่ระบบ) — ทุกแถวต้องมี X อย่างน้อย 1 → <em>ครอบคลุมทุก Requirement</em></li>
+          <li><strong>อ่านแนวตั้ง</strong>: ทุก UC มี X จาก US อย่างน้อย 1 ตัว (UC09 มีทุกแถว) → <em>ไม่มี UC ที่ไร้ที่มา</em></li>
+          <li><strong>จัดลำดับงาน</strong>: UC ไหนรองรับ Req หลายตัว = สำคัญ ทำให้เสร็จก่อน จึงรู้ว่าตาราง/Procedure ไหนต้องมีแน่ ๆ</li>
+        </ul>
+      </div>
+
+      <h2>🧭 จับคู่ UC ↔ ตาราง + PL/SQL (สรุปตอบคำถาม "ตารางนี้ทำไมมี")</h2>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>UC</th><th>ตาราง/ออบเจ็กต์ที่รองรับ</th><th>PL/SQL ที่เกี่ยว</th></tr>
+          <tr><td>UC01 รับแจ้งเตือน</td><td>NOTIFICATIONS · EMPLOYEES (กลุ่มเป้าหมาย)</td><td>SP_DECIDE_APPROVAL (INSERT NOTIFICATIONS type NEW)</td></tr>
+          <tr><td>UC02 ยืนยันรับทราบ</td><td>READ_LOGS (UNIQUE DOC+EMP)</td><td>SP_ACKNOWLEDGE_DOC (+DUP_VAL_ON_INDEX) · SP_CHECK_SLA_REMIND</td></tr>
+          <tr><td>UC03 ดูย้อนหลัง/สถานะ</td><td>DOCUMENTS + DOC_STATUS_LOG (Audit)</td><td>TRG_DOC_STATUS_LOG</td></tr>
+          <tr><td>UC04 ร่าง+SLA</td><td>DOCUMENTS (DRAFT, SLA_HOURS) · SEQ_DOC</td><td>SP_SUBMIT_DOC (ส่งเสนออนุมัติ)</td></tr>
+          <tr><td>UC05 แปลงเป็นข้อความเวียน</td><td>DOCUMENTS (DOC_TYPE: ANNOUNCEMENT/MEMO)</td><td>— (เป็นฟังก์ชันสร้างร่างใหม่ใน DOCUMENTS)</td></tr>
+          <tr><td>UC06 แก้ไขตีกลับ</td><td>APPROVALS (REASON) · DOCUMENTS (REJECTED)</td><td>SP_SUBMIT_DOC (ส่งซ้ำได้เฉพาะ DRAFT/REJECTED)</td></tr>
+          <tr><td>UC07 อนุมัติ/ตีกลับ</td><td>APPROVALS · SIGNATURES · DISTRIBUTIONS · NOTIFICATIONS</td><td>SP_DECIDE_APPROVAL (Transaction ใหญ่)</td></tr>
+          <tr><td>UC08 สิทธิ์เข้าถึง</td><td>ACCESS_MATRIX · ROLES</td><td>— (อ่านด้วย JOIN Q6)</td></tr>
+          <tr><td>UC09 เข้าสู่ระบบ</td><td>EMPLOYEES (EMAIL UNIQUE) · ROLES</td><td>—</td></tr>
+        </table>
+      </div>
+
+      <div class="quiz" data-answer="2">
+        <p class="quiz-q"><span class="qno">Q1</span> ทำไมทุก UC ใน Part I ลากเส้น «include» ไปหา UC09?</p>
+        <div class="quiz-opts">
+          <button class="quiz-opt">เพราะ UC09 เป็น UC แรกสุดของระบบ</button>
+          <button class="quiz-opt">เพราะต้องบันทึก Login Log ทุกครั้ง</button>
+          <button class="quiz-opt">เพราะทุกฟังก์ชันต้องยืนยันตัวตนก่อนใช้งาน — UC09 เป็น Subroutine ที่ถูกเรียกทุกครั้งแบบไม่มีเงื่อนไข</button>
+          <button class="quiz-opt">เพราะ UC09 เป็น UC เดียวที่มี Preconditions</button>
+        </div>
+        <div class="quiz-explain"><strong>เฉลย:</strong> «include» = เรียกใช้ทุกครั้งแบบบังคับ ทุก UC ต้องรู้ว่าใครใช้ (บทบาท/สิทธิ์) จึงต้องผ่านการเข้าสู่ระบบก่อนเสมอ — ใน DB คือตรวจกับ EMPLOYEES + ROLES ก่อนทำงานทุก Procedure</div>
+      </div>
+
+      <div class="quiz" data-answer="1">
+        <p class="quiz-q"><span class="qno">Q2</span> จาก Traceability: US4 (ฟังก์ชันแปลงประกาศ→ข้อความเวียน) ถูกรองรับโดย UC ใดบ้าง?</p>
+        <div class="quiz-opts">
+          <button class="quiz-opt">UC4 และ UC9</button>
+          <button class="quiz-opt">UC5 และ UC9</button>
+          <button class="quiz-opt">UC4, UC5 และ UC9</button>
+          <button class="quiz-opt">UC5 อย่างเดียว</button>
+        </div>
+        <div class="quiz-explain"><strong>เฉลย:</strong> แถว US4 มี X ที่ UC5 (ตัวแปลงเอกสาร) + UC9 (เข้าสู่ระบบ — ทุก Req ต้องมี) — ส่วน UC4 รับ US2 และ US3</div>
+      </div>
+
+      <div class="prevnext">
+        <a href="index.html">หน้าแรก<small>🏠 โจทย์อาจารย์ + แผนรวม</small></a>
+        <a class="next" href="p1-er-ddl-dml.html">ต่อไป: E/R + DDL/DML (11 ตาราง)<small>🗄️ โค้ด 00–02 เต็ม พร้อมอธิบาย Constraint ทุกตัว</small></a>
+      </div>
+
+    </div>
+  </main>
+</div>
+<script src="script.js"></script>
+<script src="tts.js"></script>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true, securityLevel: 'loose', theme: 'base',
+    fontFamily: '"Noto Sans Thai", sans-serif',
+    themeVariables: { primaryColor:'#eef0ff', primaryTextColor:'#1d2333', primaryBorderColor:'#4f46e5', lineColor:'#5b6474' }
+  });
+</script>
+</body>
+</html>

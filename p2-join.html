@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Part II · รายงาน SQL 3 แบบ (JOIN 6 ตาราง · RANK · WITH) — เว็บติวสอบ Project Database</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-tts="1">
+<div id="progressBar"></div>
+<div class="backdrop"></div>
+
+<header class="topbar">
+  <button class="hamburger" aria-label="เปิดเมนู">☰</button>
+  <div class="topbar-title">🎓 ติวสอบ Project Database</div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="เมนูหลัก">
+    <div class="side-brand">🎓 Project DB Prep<small>สอบ Project Face-to-face • 2 Business Domain</small></div>
+    <div class="side-note">💡 <b>กฎเหล็ก:</b> ลำดับรัน 00→05 • DROP ให้อาจารย์ดู • ทุกคนตอบ "ทำไม" ได้เหมือนกัน</div>
+    <a class="nav-link" href="index.html"><span class="nav-emoji">🏠</span> หน้าแรก + โจทย์อาจารย์</a>
+    <div class="side-group">PART I — อ.อู๊ด (เวียน + ประกาศ)</div>
+    <a class="nav-link" href="p1-usecase.html"><span class="nav-emoji">📋</span> Use Case + Traceability</a>
+    <a class="nav-link" href="p1-er-ddl-dml.html"><span class="nav-emoji">🗄️</span> E/R + DDL/DML <span class="nav-pts">11 ตาราง</span></a>
+    <a class="nav-link" href="p1-plsql.html"><span class="nav-emoji">⚙️</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p1-join.html"><span class="nav-emoji">🔗</span> SQL JOIN 6 ข้อ</a>
+    <div class="side-group">PART II — อ.ผึ้ง (Smart Bus Bell)</div>
+    <a class="nav-link" href="p2-usecase.html"><span class="nav-emoji">🚌</span> Use Case + REG1–17</a>
+    <a class="nav-link" href="p2-er-ddl-dml.html"><span class="nav-emoji">🚏</span> E/R + DDL/DML <span class="nav-pts">11 ตาราง</span></a>
+    <a class="nav-link" href="p2-plsql.html"><span class="nav-emoji">🚦</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p2-join.html"><span class="nav-emoji">🧭</span> รายงาน SQL 3 แบบ</a>
+    <div class="side-group">สาธิตหน้าห้อง</div>
+    <a class="nav-link" href="verify-demo.html"><span class="nav-emoji">🎤</span> ลำดับ demo + Q&A</a>
+  </nav>
+
+  <main class="main">
+    <div class="content">
+
+      <section class="page-head">
+        <p class="crumb"><a href="index.html">หน้าแรก</a> • PART II — Smart Bus Bell &amp; IoT Tracking System (อ.ผึ้ง)</p>
+        <h1>🧭 รายงาน SQL 3 แบบ — JOIN 6 ตาราง · สรุปต่อรถ + RANK Analytic · WITH clause</h1>
+        <div class="head-meta">
+          <span class="badge">มากสุด 6 ตาราง</span><span class="badge">RANK() OVER</span><span class="badge gold">ไฟล์ 4 (Oracle 10g R2)</span>
+        </div>
+      </section>
+
+      <div class="box box-exam">
+        <p class="box-title">① อาจารย์ต้องการอะไร (โจทย์ข้อนี้)</p>
+        <p>"<strong>3- เขียน SQL : JOIN แสดงข้อมูลการทำงานหลัก ( JOIN ตารางมากๆ)</strong>" —
+        ไฟล์ 4 ตอบด้วย 3 รายงานที่จงใจใช้เทคนิคต่างกันครบ 3 แบบ: <strong>รายงาน 1</strong> = JOIN 6 ตาราง (บันทึกการกดกริ่งแบบเต็มสาย),
+        <strong>รายงาน 2</strong> = สรุปต่อรถ + อันดับด้วย Analytic Function, <strong>รายงาน 3</strong> = รวม Data set ด้วย WITH clause (แทน CREATE VIEW ซึ่ง account ไม่มีสิทธิ์) —
+        รันแล้วผลตรงตามตาราง "ผลที่จะเห็นจริง" ท้ายหน้า</p>
+      </div>
+
+      <div class="term">
+        <p><span class="term-word">Analytic Function</span> — <code>RANK() OVER (ORDER BY ...)</code> ให้ทั้งรายละเอียดแถว "และ" อันดับในคอลัมน์เดียว (ไม่ต้อง GROUP ทิ้งรายละเอียด) · ค่าเท่ากันได้ rank เท่ากัน (tie)</p>
+        <p><span class="term-word">WITH ... AS</span> (Subquery Factoring) — ตั้งชื่อผล subquery ชั่วคราวเอาไว้ SELECT ต่อใน query เดียว = "view ชั่วคราว" (ทางแก้เมื่อไม่มีสิทธิ์ CREATE VIEW)</p>
+        <p><span class="term-word">LEFT JOIN + NVL</span> — รถที่ไม่มีสถิติเลยก็ต้องโผล่ในรายงาน (ค่า 0 ไม่ใช่หายไป)</p>
+      </div>
+
+      <h2>📊 รายงาน 1 · ประวัติการกดกริ่งลงรถแบบเต็มสาย (JOIN 6 ตาราง) ⭐</h2>
+      <span class="file-tag">oracle_4_report.sql · รายงาน 1</span>
+      <pre class="code sql"><span class="cm">-- ----------------------------------------------------------------------------</span></span>
+<span class="cm">-- รายงาน 1 : ประวัติการกดกริ่งลงรถแบบเต็มสาย (JOIN 6 ตาราง)</span></span>
+<span class="cm">-- ใครกดกริ่ง / บทบาท / รถคันไหน / สายอะไร / สถานะ / สถิติแจ้งเตือนของรถวันนั้น</span></span>
+<span class="cm">-- ----------------------------------------------------------------------------</span></span>
+<span class="kw">SELECT</span></span> b.BELL_REQ_ID,
+       u.FULL_NAME                 <span class="kw">AS</span></span> PASSENGER,
+       ut.ROLE_NAME                <span class="kw">AS</span></span> ROLE_NAME,
+       b.REQ_TIME,
+       b.NOTIFY_STATUS,
+       b.ALIGHT_TIME,
+       v.PLATE_NO,
+       v.ROUTE_NO,
+       s.ALERT_COUNT               <span class="kw">AS</span></span> DAILY_ALERT
+<span class="kw">FROM</span></span> BELL_REQUEST b
+<span class="kw">JOIN</span></span> USERS u                 <span class="kw">ON</span></span> u.USER_ID        = b.USER_ID
+<span class="kw">JOIN</span></span> USER_TYPE ut            <span class="kw">ON</span></span> ut.ROLE_ID       = u.ROLE_ID
+<span class="kw">JOIN</span></span> VEHICLE_BELL_REQUEST vb <span class="kw">ON</span></span> vb.BELL_REQ_ID   = b.BELL_REQ_ID
+<span class="kw">JOIN</span></span> VEHICLE v               <span class="kw">ON</span></span> v.VEHICLE_ID     = vb.VEHICLE_ID
+<span class="kw">LEFT</span></span> <span class="kw">JOIN</span></span> ALERT_STATISTICS s <span class="kw">ON</span></span> s.VEHICLE_ID     = v.VEHICLE_ID
+                            <span class="kw">AND</span></span> s.STAT_DATE      = <span class="fn">TRUNC</span></span>(b.REQ_TIME)
+<span class="kw">ORDER</span></span> <span class="kw">BY</span></span> b.REQ_TIME;</pre>
+      <ul>
+        <li><strong>JOIN 6 ตาราง</strong>เดินลูกโซ่: กริ่ง (b) → ใครกด (u) → บทบาทอะไร (ut) → ส่งให้รถไหน (vb — junction) → รถคันนั้น (v) → สถิติวันนั้น (s)</li>
+        <li><strong>5 ตัวแรก INNER เพราะเป็นคู่บังคับ</strong> (กริ่งต้องมีคน มีบทบาท มีรถผู้รับเสมอ) — แต่ <strong>สถิติ LEFT JOIN</strong> เพราะวันนั้นรถอาจยังไม่มีสถิติ (ให้ NULL แทนการหายไป)</li>
+        <li><strong>เงื่อนไข 2 ช่องใน ON ของ LEFT JOIN</strong> (รถ + <code>TRUNC(b.REQ_TIME)</code> = วันของการกดกริ่งนั้น) — ต้องอยู่ใน ON ห้ามไป WHERE ไม่งั้นกลายเป็น INNER</li>
+        <li>จุดสอน: <code>DAILY_ALERT</code> อ่านว่า "รถคันนี้ วันที่กดกริ่งนั้น ถูกแจ้งเตือนรวมกี่ครั้ง" — สถิติเก็บต่อวัน (UNIQUE รถ+วัน) เลยเทียบด้วย TRUNC</li>
+      </ul>
+
+      <h2>📊 รายงาน 2 · สรุปต่อรถ + อันดับ (Analytic RANK) ⭐ ตัวเด่นสุด</h2>
+      <span class="file-tag">oracle_4_report.sql · รายงาน 2</span>
+      <pre class="code sql"><span class="cm">-- ----------------------------------------------------------------------------</span></span>
+<span class="cm">-- รายงาน 2 : สรุปต่อรถ — ยอดแจ้งเตือนวันนี้ + ยอดสะสมทั้งหมด + อันดับ (Analytic)</span></span>
+<span class="cm">-- รถที่ไม่มีข้อมูลเลยก็แสดง (LEFT JOIN + NVL)</span></span>
+<span class="cm">-- ----------------------------------------------------------------------------</span></span>
+<span class="kw">SELECT</span></span> v.PLATE_NO,
+       v.ROUTE_NO,
+       <span class="fn">NVL</span></span>(st.ALERT_COUNT, <span class="fn">0</span></span>) <span class="kw">AS</span></span> ALERT_TODAY,
+       (<span class="kw">SELECT</span></span> <span class="fn">COUNT</span></span>(*) <span class="kw">FROM</span></span> VEHICLE_BELL_REQUEST vb
+         <span class="kw">WHERE</span></span> vb.VEHICLE_ID = v.VEHICLE_ID)        <span class="kw">AS</span></span> TOTAL_REQUESTS,
+       (<span class="kw">SELECT</span></span> <span class="fn">COUNT</span></span>(*) <span class="kw">FROM</span></span> VEHICLE_BELL_BUTTON vb2
+         <span class="kw">WHERE</span></span> vb2.VEHICLE_ID = v.VEHICLE_ID)       <span class="kw">AS</span></span> BELL_BUTTONS,
+       <span class="fn">RANK</span></span>() OVER (<span class="kw">ORDER</span></span> <span class="kw">BY</span></span> <span class="fn">NVL</span></span>(st.ALERT_COUNT, <span class="fn">0</span></span>) <span class="kw">DESC</span></span>) <span class="kw">AS</span></span> RANK_TODAY
+<span class="kw">FROM</span></span> VEHICLE v
+<span class="kw">LEFT</span></span> <span class="kw">JOIN</span></span> ALERT_STATISTICS st <span class="kw">ON</span></span> st.VEHICLE_ID = v.VEHICLE_ID
+                             <span class="kw">AND</span></span> st.STAT_DATE   = <span class="fn">TRUNC</span></span>(<span class="fn">SYSDATE</span></span>)
+<span class="kw">ORDER</span></span> <span class="kw">BY</span></span> RANK_TODAY;</pre>
+      <ul>
+        <li><strong>เริ่มจาก VEHICLE ทั้งหมด (LEFT JOIN)</strong> — รถไม่มีข้อมูลเลยวันนี้ก็โผล่ (ALERT_TODAY ผ่าน NVL กลายเป็น 0 ไม่ใช่ NULL) — ตรงคำโจทย์ "รถที่ไม่มีข้อมูลเลยก็แสดง"</li>
+        <li><strong>Scalar Subquery 2 ตัว</strong> นับย้อนหลังทั้งหมด (TOTAL_REQUESTS) และนับจำนวนปุ่มที่ติดตั้ง (BELL_BUTTONS — อ่านจาก junction รถ↔ปุ่ม)</li>
+        <li><code>RANK() OVER (ORDER BY ALERT_TODAY DESC)</code> — ให้อันดับโดยยอดวันนี้มากสุด = 1 · ค่าเท่ากันได้ rank เท่ากัน (tie) แล้วอันดับถัดไปกระโดด</li>
+        <li>เทียบให้อาจารย์ฟัง: GROUP BY จะยุบผลเป็นเลขอย่างเดียว แต่ Analytic ให้ "ทุกคอลัมน์ + อันดับ" พร้อมกัน</li>
+      </ul>
+
+      <h2>📊 รายงาน 3 · Data set รวมด้วย WITH clause (แทน CREATE VIEW)</h2>
+      <span class="file-tag">oracle_4_report.sql · รายงาน 3</span>
+      <pre class="code sql"><span class="cm">-- ----------------------------------------------------------------------------</span></span>
+<span class="cm">-- รายงาน 3 : Data set รวมด้วย WITH clause (Subquery Factoring)</span></span>
+<span class="cm">-- หมายเหตุ: account นักศึกษาไม่มีสิทธิ์ CREATE VIEW (ORA-01031)</span></span>
+<span class="cm">--           จึงใช้ WITH ทำ "view ชั่วคราวใน query เดียว" แทน ผลลัพธ์เหมือนกัน</span></span>
+<span class="cm">-- ----------------------------------------------------------------------------</span></span>
+<span class="kw">WITH</span></span> REQ_REPORT <span class="kw">AS</span></span> (
+  <span class="kw">SELECT</span></span> b.BELL_REQ_ID,
+         u.FULL_NAME   <span class="kw">AS</span></span> PASSENGER,
+         u.PHONE,
+         v.PLATE_NO,
+         v.ROUTE_NO,
+         b.REQ_TIME,
+         b.NOTIFY_STATUS,
+         b.ALIGHT_TIME
+  <span class="kw">FROM</span></span> BELL_REQUEST b
+  <span class="kw">JOIN</span></span> USERS u                 <span class="kw">ON</span></span> u.USER_ID      = b.USER_ID
+  <span class="kw">JOIN</span></span> VEHICLE_BELL_REQUEST vb <span class="kw">ON</span></span> vb.BELL_REQ_ID = b.BELL_REQ_ID
+  <span class="kw">JOIN</span></span> VEHICLE v               <span class="kw">ON</span></span> v.VEHICLE_ID   = vb.VEHICLE_ID
+)
+<span class="kw">SELECT</span></span> r.*,
+       <span class="kw">CASE</span></span> r.NOTIFY_STATUS
+         <span class="kw">WHEN</span></span> <span class="st">'SENDING'</span></span>   <span class="kw">THEN</span></span> <span class="st">'กำลังส่ง'</span></span>
+         <span class="kw">WHEN</span></span> <span class="st">'SUCCESS'</span></span>   <span class="kw">THEN</span></span> <span class="st">'สำเร็จ'</span></span>
+         <span class="kw">WHEN</span></span> <span class="st">'CANCELLED'</span></span> <span class="kw">THEN</span></span> <span class="st">'ยกเลิก'</span></span>
+       <span class="kw">END</span></span> <span class="kw">AS</span></span> STATUS_TH
+<span class="kw">FROM</span></span> REQ_REPORT r
+<span class="kw">ORDER</span></span> <span class="kw">BY</span></span> r.REQ_TIME;</pre>
+      <ul>
+        <li><code>WITH REQ_REPORT AS (...)...</code> — ตั้งชื่อผล JOIN 4 ตารางว่า REQ_REPORT แล้วเอามา SELECT ต่อใน query เดียว — ตอบข้อจำกัดข้อ 2 (ไม่มีสิทธิ์ CREATE VIEW)</li>
+        <li><code>CASE ... END AS STATUS_TH</code> — แปลสถานะอังกฤษเป็นภาษาไทยบนผลลัพธ์ (SENDING=กำลังส่ง ฯลฯ) — อ่าน CASE ว่า "ถ้าค่านี้แล้วแสดงอะไร"</li>
+        <li>ถ้าอาจารย์ถาม "ทำไมไม่สร้าง VIEW จริง" — ตอบ: account ไม่มีสิทธิ์ (ORA-01031) และ WITH ยังดีกว่าในแง่ไม่ทิ้ง object ค้างใน DB</li>
+      </ul>
+
+      <h2>👀 ผลที่จะเห็นจริงทั้ง 3 รายงาน (ข้อมูล seed จริงจากไฟล์ 2)</h2>
+      <p>สภาพหลังรันไฟล์ 1–2 (ยังไม่รัน demo block ของไฟล์ 3):</p>
+      <div class="tbl-wrap">
+        <table class="tbl nowrap">
+          <tr><th>รายงาน</th><th>แถวที่เห็น</th><th>ค่าที่ต้องชี้ให้อาจารย์ดู</th></tr>
+          <tr><td>รายงาน 1</td><td><strong>3 แถว</strong></td><td>สมหญิง 08:15 (SUCCESS มี ALIGHT_TIME) · มานะ 09:05 (SENDING) · สมหญิง 09:40 (CANCELLED) · สาย 8 = กท 1234 · <strong>DAILY_ALERT เป็น (null) ทั้งหมด</strong> เพราะสถิติที่มีคือวันที่ 09/11 แต่กริ่งทั้งหมดเกิดวันที่ 10/11</td></tr>
+          <tr><td>รายงาน 2</td><td><strong>2 แถว</strong> (รถครบทุกคัน)</td><td>กท 1234: ALERT_TODAY 0 · TOTAL_REQUESTS 3 · BELL_BUTTONS 2 · RANK 1 · กท 5678: 0 · 1 · 1 · <strong>RANK 1 เท่ากัน (tie)</strong> เพราะยอดวันนี้เสมอกัน 0-0</td></tr>
+          <tr><td>รายงาน 3</td><td><strong>3 แถว</strong></td><td>เหมือนรายงาน 1 แต่มีคอลัมน์ STATUS_TH: สำเร็จ / กำลังส่ง / ยกเลิก</td></tr>
+        </table>
+      </div>
+      <p>สภาพหลังรัน demo block ของไฟล์ 3 ต่อ (สมหญิงกดกริ่ง กท 1234 แล้วยืนยัน):</p>
+      <div class="tbl-wrap">
+        <table class="tbl nowrap">
+          <tr><th>รายงาน</th><th>เปลี่ยนเป็น</th><th>จุดเล่าประกอบ</th></tr>
+          <tr><td>รายงาน 1</td><td><strong>4 แถว</strong></td><td>เพิ่มแถวกริ่ง ID=4 (SUCCESS) · แถวทั้งหมดของ กท 1234 DAILY_ALERT = <strong>1</strong> (เพราะ MERGE สร้างสถิติวัน 10/11 ไว้แล้ว) · กท 5678 ยัง (null)</td></tr>
+          <tr><td>รายงาน 2</td><td>ยัง 2 แถว</td><td>กท 1234: ALERT_TODAY = <strong>1</strong> · TOTAL_REQUESTS = <strong>4</strong> · RANK 1 · กท 5678: 0 · RANK 2 — อันดับแยกแล้วไม่ tie</td></tr>
+          <tr><td>รายงาน 3</td><td><strong>4 แถว</strong></td><td>แถวใหม่ STATUS_TH = สำเร็จ</td></tr>
+        </table>
+      </div>
+      <div class="box box-tip">
+        <p class="box-title">💡 วิธีพูดเทียบ 2 สภาพให้เห็นระบบ "ทำงานจริง"</p>
+        <p>"รันรายงานก่อนเริ่ม DAILY_ALERT ว่างและอันดับ tie 0-0 → รัน demo block (กดกริ่ง+ยืนยัน) → รายงานจับการเปลี่ยนแปลงทันที: มีกริ่งใหม่ 1 รายการ สถิติวันนี้ขึ้น 1 อันดับแยกออก" — สามประโยคนี้พิสูจน์ทั้ง PL/SQL และ SQL พร้อมกัน</p>
+      </div>
+
+      <h2>⚠️ กับดักของรายงาน 3 แบบนี้</h2>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>อาการ</th><th>สาเหตุ</th><th>แก้</th></tr>
+          <tr><td>ยอดวันนี้เป็น NULL แทนที่จะเป็น 0</td><td>ลืม NVL(st.ALERT_COUNT, 0) หลัง LEFT JOIN</td><td>ครอด้วย NVL (รายงานที่ดีไม่แสดง NULL ให้คนใช้)</td></tr>
+          <tr><td>รถที่ไม่มีข้อมูลหายจากรายงาน</td><td>ใช้ INNER JOIN กับ ALERT_STATISTICS</td><td>LEFT JOIN จาก VEHICLE + เงื่อนไขวันใน ON</td></tr>
+          <tr><td><code>ORA-01031</code> เวลาสร้าง view</td><td>account ไม่มีสิทธิ์ CREATE VIEW</td><td>ใช้ WITH clause (รายงาน 3) — ห้ามไปแกะสิทธิ์หน้างาน</td></tr>
+          <tr><td><code>ORA-01427</code> single-row subquery</td><td>scalar subquery คืนหลายแถว (ลืมเงื่อนไข WHERE)</td><td>scalar ต้องคืน 0/1 ค่า — ตรวจ WHERE ให้ชี้เฉพาะรถของแถวนั้น</td></tr>
+        </table>
+      </div>
+
+      <div class="quiz" data-answer="2">
+        <p class="quiz-q"><span class="qno">Q</span> รายงาน 2 ถ้าสองคันมียอดวันนี้เท่ากัน (เช่น 0-0) คอลัมน์ RANK_TODAY จะเป็นอย่างไร?</p>
+        <div class="quiz-opts">
+          <button class="quiz-opt">Oracle สุ่มอันดับให้อัตโนมัติ</button>
+          <button class="quiz-opt">อันดับถัดไปเป็น 2 เสมอ</button>
+          <button class="quiz-opt">ได้ rank เท่ากัน (เช่น 1 ทั้งคู่) แล้วอันดับถัดไปกระโดด (ถ้ามี 3 คัน อันดับถัดไปคือ 3)</button>
+          <button class="quiz-opt">รายงาน error</button>
+        </div>
+        <div class="quiz-explain"><strong>เฉลย:</strong> พฤติกรรมมาตรฐานของ RANK() — tie ได้ rank เดียวกัน และช่องว่างอันดับถัดไป (DENSE_RANK จะไม่กระโดด — จุดเทียบที่อาจารย์ชอบถามต่อ)</div>
+      </div>
+
+      <div class="prevnext">
+        <a href="p2-plsql.html">ก่อนหน้า: PL/SQL Transaction<small>🚦 SP 4 ตัว + Oracle 10g</small></a>
+        <a class="next" href="verify-demo.html">หน้าสุดท้าย: ลำดับ demo + Q&A<small>🎤 สคริปต์สาธิต + กรณี error + บทบาท 4 คน</small></a>
+      </div>
+
+    </div>
+  </main>
+</div>
+<script src="script.js"></script>
+<script src="tts.js"></script>
+</body>
+</html>

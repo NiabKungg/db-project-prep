@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Part II · PL/SQL Transaction Processing (Smart Bus Bell) — เว็บติวสอบ Project Database</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-tts="1">
+<div id="progressBar"></div>
+<div class="backdrop"></div>
+
+<header class="topbar">
+  <button class="hamburger" aria-label="เปิดเมนู">☰</button>
+  <div class="topbar-title">🎓 ติวสอบ Project Database</div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="เมนูหลัก">
+    <div class="side-brand">🎓 Project DB Prep<small>สอบ Project Face-to-face • 2 Business Domain</small></div>
+    <div class="side-note">💡 <b>กฎเหล็ก:</b> ลำดับรัน 00→05 • DROP ให้อาจารย์ดู • ทุกคนตอบ "ทำไม" ได้เหมือนกัน</div>
+    <a class="nav-link" href="index.html"><span class="nav-emoji">🏠</span> หน้าแรก + โจทย์อาจารย์</a>
+    <div class="side-group">PART I — อ.อู๊ด (เวียน + ประกาศ)</div>
+    <a class="nav-link" href="p1-usecase.html"><span class="nav-emoji">📋</span> Use Case + Traceability</a>
+    <a class="nav-link" href="p1-er-ddl-dml.html"><span class="nav-emoji">🗄️</span> E/R + DDL/DML <span class="nav-pts">11 ตาราง</span></a>
+    <a class="nav-link" href="p1-plsql.html"><span class="nav-emoji">⚙️</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p1-join.html"><span class="nav-emoji">🔗</span> SQL JOIN 6 ข้อ</a>
+    <div class="side-group">PART II — อ.ผึ้ง (Smart Bus Bell)</div>
+    <a class="nav-link" href="p2-usecase.html"><span class="nav-emoji">🚌</span> Use Case + REG1–17</a>
+    <a class="nav-link" href="p2-er-ddl-dml.html"><span class="nav-emoji">🚏</span> E/R + DDL/DML <span class="nav-pts">11 ตาราง</span></a>
+    <a class="nav-link" href="p2-plsql.html"><span class="nav-emoji">🚦</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p2-join.html"><span class="nav-emoji">🧭</span> รายงาน SQL 3 แบบ</a>
+    <div class="side-group">สาธิตหน้าห้อง</div>
+    <a class="nav-link" href="verify-demo.html"><span class="nav-emoji">🎤</span> ลำดับ demo + Q&A</a>
+  </nav>
+
+  <main class="main">
+    <div class="content">
+
+      <section class="page-head">
+        <p class="crumb"><a href="index.html">หน้าแรก</a> • PART II — Smart Bus Bell &amp; IoT Tracking System (อ.ผึ้ง)</p>
+        <h1>🚦 PL/SQL Transaction Processing — Procedure 4 ตัว + Demo Block ครอบโจทย์หลัก "กดกริ่งลงรถ"</h1>
+        <div class="head-meta">
+          <span class="badge">SP 4 ตัว</span><span class="badge">RETURNING INTO · MERGE · SQL%ROWCOUNT</span><span class="badge gold">ไฟล์ 3 (Oracle 10g R2)</span>
+        </div>
+      </section>
+
+      <div class="box box-exam">
+        <p class="box-title">① อาจารย์ต้องการอะไร (โจทย์ข้อนี้)</p>
+        <p>"<strong>2- เขียน PL/SQL ตามโจทย์หลักของระบบงาน (Transaction Processing)</strong>" —
+        โจทย์หลักของระบบนี้คือ: <strong>กดกริ่งลงรถ → ส่งสัญญาณถึงรถ → อัปเดตสถิติ ใน transaction เดียว</strong> —
+        SP_PRESS_BELL คือคำตอบตรง ๆ: 3 DML + COMMIT/ROLLBACK ใน Procedure เดียว · สคริปต์ deploy บน server แล้ว วันสอบรับซ้ำและซักถาม —
+        จุดที่อาจารย์ซักหนักคือ <strong>ข้อจำกัด Oracle 10g 3 ข้อด้านล่าง</strong> (เจอจริงตอน deploy)</p>
+      </div>
+
+      <div class="big-warn">
+        <p class="box-title">⚠️ ข้อจำกัด Oracle 10g 3 ข้อ — "จุดโปรดของอาจารย์" ที่เจอจริงบน server (ตอบได้ = ผ่านใหญ่)</p>
+        <div class="tbl-wrap">
+          <table class="tbl compact">
+            <tr><th>ข้อจำกัด</th><th>อาการถ้าทำผิด</th><th>วิธีแก้ในสคริปต์ของเรา</th></tr>
+            <tr><td><strong>1. ห้ามใช้ SEQ.CURRVAL ใน PL/SQL expression</strong> (10g เท่านั้น — 11g+ ทำได้)</td><td><code>PLS-00357</code></td><td>ใช้ <code>INSERT ... RETURNING id INTO ตัวแปร</code> คว้า ID ที่เพิ่ง insert กลับมา — ใช้ใน SP_PRESS_BELL และ SP_SEND_DIGITAL_SIGNAL</td></tr>
+            <tr><td><strong>2. Account ไม่มีสิทธิ์ CREATE VIEW</strong></td><td><code>ORA-01031: insufficient privileges</code></td><td>รายงาน 3 ใช้ <code>WITH ... AS</code> (Subquery Factoring) สร้าง "view ชั่วคราวใน query เดียว" แทน — ผลเหมือนกัน</td></tr>
+            <tr><td><strong>3. USER_TABLES ไม่มีคอลัมน์ OWNER</strong> (script ต้นฉบับอาจารย์รันไม่ผ่าน)</td><td><code>ORA-00904: "USER_TABLES"."OWNER": invalid identifier</code></td><td>ไฟล์ 5 แก้เป็น <code>USER AS OWNER</code> (USER = ฟังก์ชันคืนชื่อ schema ปัจจุบัน · OWNER มีจริงเฉพาะ ALL_TABLES/DBA_TABLES ซึ่งต้องสิทธิ์สูง)</td></tr>
+          </table>
+        </div>
+        <p style="margin-bottom:0;">เกร็ดเสริม: Oracle 10g ไม่มี AUTO_INCREMENT → ใช้ SEQUENCE.NEXTVAL · ไม่มี ENUM → ใช้ VARCHAR2 + CHECK</p>
+      </div>
+
+      <h2>🧠 พื้นฐานที่ต้องพูดให้ออกก่อนรันโค้ด</h2>
+      <div class="box box-basics">
+        <p class="box-title">Transaction ของระบบนี้อยู่ตรงไหน — ตอบพร้อมเดินให้ดู</p>
+        <p><strong>SP_PRESS_BELL = 1 transaction ครบ 3 DML</strong>: ① INSERT BELL_REQUEST (สถานะ SENDING) → ② INSERT VEHICLE_BELL_REQUEST (ส่งสัญญาณถึงรถผ่าน junction) → ③ MERGE ALERT_STATISTICS (สถิติรถวันนี้ +1) →
+        <strong>สำเร็จทั้งหมดจึง COMMIT · พลาดขั้นไหน ROLLBACK ทั้งหมด</strong> (Atomicity) — ข้อมูลไม่มีวันครึ่ง ๆ เช่น "กดแล้วแต่รถไม่รู้"</p>
+      </div>
+      <div class="term">
+        <p><span class="term-word">RETURNING ... INTO</span> — INSERT เสร็จปั๊บ ดึงค่าคอลัมน์ที่เพิ่งใส่ (เช่น ID จาก SEQUENCE) กลับมาเก็บในตัวแปร — ทางออกของ 10g แทน SEQ.CURRVAL</p>
+        <p><span class="term-word">MERGE (Upsert)</span> — "ถ้ามีแถวนี้อยู่แล้ว → UPDATE / ถ้ายังไม่มี → INSERT" ทำในคำสั่งเดียว (WHEN MATCHED / WHEN NOT MATCHED)</p>
+        <p><span class="term-word">SQL%ROWCOUNT</span> — นับว่าคำสั่งล่าสุด (UPDATE/DELETE) กระทบไปกี่แถว — = 0 แปลว่าไม่เจอแถวที่ต้องการ → โยน error เอง</p>
+        <p><span class="term-word">%TYPE</span> — ให้ตัวแปร/พารามิเตอร์มีชนิดตามคอลัมน์จริง เช่น <code>P_USER_ID IN BELL_REQUEST.USER_ID%TYPE</code> — แก้ DDL แล้วโค้ดไม่พัง</p>
+        <p><span class="term-word">Parameter Binding</span> — SP ทุกตัวรับค่าผ่านพารามิเตอร์ ไม่ต่อสตริง SQL (กัน SQL Injection — โจทย์ซักถามได้)</p>
+      </div>
+
+      <h3>จับคู่ Procedure ↔ โจทย์หลัก ↔ ตาราง</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>PL/SQL</th><th>โจทย์หลักที่รองรับ</th><th>Business Rule ที่ implement</th><th>ตารางที่เขียน</th></tr>
+          <tr><td><code>SP_PRESS_BELL</code></td><td>ผู้โดยสารกดกริ่งลงรถ</td><td>กดได้เฉพาะ PASSENGER → <strong>-20001</strong> · สถานะเริ่ม SENDING</td><td>BELL_REQUEST + VEHICLE_BELL_REQUEST + ALERT_STATISTICS</td></tr>
+          <tr><td><code>SP_SEND_DIGITAL_SIGNAL</code></td><td>ส่งสัญญาณไปกริ่งดิจิตอลประจำรถ</td><td>USER_ID ต้องมีจริง → <strong>-20003</strong></td><td>DIGITAL_BELL_SIGNAL + VEHICLE_DIGITAL_SIGNAL + ALERT_STATISTICS</td></tr>
+          <tr><td><code>SP_COMPLETE_ALIGHT</code></td><td>คนขับยืนยันว่าลงรถแล้ว (SENDING → SUCCESS)</td><td>ยืนยันได้เฉพาะ SENDING (SQL%ROWCOUNT=0 → <strong>-20002</strong>)</td><td>BELL_REQUEST</td></tr>
+          <tr><td><code>SP_CANCEL_BELL</code></td><td>ยกเลิกการกดกริ่ง (SENDING → CANCELLED)</td><td>ยกเลิกได้เฉพาะ SENDING (<strong>-20004</strong>)</td><td>BELL_REQUEST</td></tr>
+          <tr><td>Anonymous Block</td><td>สาธิต Transaction ต่อหน้าอาจารย์: กดกริ่ง → ยืนยันลง ต่อเนื่อง</td><td>—</td><td>เรียกใช้ SP 2 ตัว</td></tr>
+        </table>
+      </div>
+
+      <h2>⚙️ โค้ดไฟล์ 3 เต็ม — อ่านทีละก้อน</h2>
+
+      <h3>ก้อนที่ 1 · SP_PRESS_BELL — Transaction หลักของระบบ ⭐</h3>
+      <span class="file-tag">oracle_3_plsql.sql · PROCEDURE 1</span>
+      <pre class="code sql"><span class="cm">-- ----------------------------------------------------------------------------</span></span>
+<span class="cm">-- SP_PRESS_BELL : ผู้โดยสารกดกริ่งลงรถ (1 transaction = 3 DML + COMMIT/ROLLBACK)</span></span>
+<span class="cm">-- ----------------------------------------------------------------------------</span></span>
+<span class="kw">CREATE</span></span> <span class="kw">OR</span></span> <span class="kw">REPLACE</span></span> <span class="kw">PROCEDURE</span></span> SP_PRESS_BELL (
+  P_USER_ID     <span class="kw">IN</span></span>  BELL_REQUEST.USER_ID%<span class="kw">TYPE</span></span>,       -- ผู้กดกริ่ง
+  P_VEHICLE_ID  <span class="kw">IN</span></span>  VEHICLE.VEHICLE_ID%<span class="kw">TYPE</span></span>,         -- รถเป้าหมาย
+  P_BELL_REQ_ID <span class="kw">OUT</span></span> BELL_REQUEST.BELL_REQ_ID%<span class="kw">TYPE</span></span>   -- คืน ID รายการที่สร้าง
+) <span class="kw">IS</span></span>
+  V_ROLE_NAME USER_TYPE.ROLE_NAME%<span class="kw">TYPE</span></span>;
+<span class="kw">BEGIN</span></span>
+<span class="cm">  -- (1) Business Rule: ต้องเป็น PASSENGER เท่านั้น</span></span>
+  <span class="kw">SELECT</span></span> ut.ROLE_NAME <span class="kw">INTO</span></span> V_ROLE_NAME
+  <span class="kw">FROM</span></span> USERS u <span class="kw">JOIN</span></span> USER_TYPE ut <span class="kw">ON</span></span> ut.ROLE_ID = u.ROLE_ID
+  <span class="kw">WHERE</span></span> u.USER_ID = P_USER_ID;
+
+  <span class="kw">IF</span></span> V_ROLE_NAME &lt;&gt; <span class="st">'PASSENGER'</span></span> <span class="kw">THEN</span></span>
+    <span class="fn">RAISE_APPLICATION_ERROR</span></span>(-<span class="fn">20001</span></span>,
+      <span class="st">'ผู้กดกริ่งต้องเป็น PASSENGER เท่านั้น (ได้บทบาท: '</span></span>||V_ROLE_NAME||<span class="st">')'</span></span>);
+  <span class="kw">END</span></span> <span class="kw">IF</span></span>;
+
+<span class="cm">  -- (2) สร้างรายการกดกริ่ง (สถานะเริ่ม SENDING)</span></span>
+<span class="cm">  -- หมายเหตุ: Oracle 10g ห้ามใช้ SEQ.CURRVAL ใน PL/SQL expression (ทำได้เฉพาะ 11g+)</span></span>
+<span class="cm">  --           จึงใช้ RETURNING INTO เพื่อคว้า ID ที่เพิ่ง insert กลับมาแทน</span></span>
+  <span class="kw">INSERT</span></span> <span class="kw">INTO</span></span> BELL_REQUEST (BELL_REQ_ID, USER_ID, REQ_TIME, NOTIFY_STATUS)
+  <span class="kw">VALUES</span></span> (SEQ_BELL_REQ.<span class="fn">NEXTVAL</span></span>, P_USER_ID, <span class="fn">SYSDATE</span></span>, <span class="st">'SENDING'</span></span>)
+  <span class="kw">RETURNING</span></span> BELL_REQ_ID <span class="kw">INTO</span></span> P_BELL_REQ_ID;
+
+<span class="cm">  -- (3) ส่งสัญญาณถึงรถเป้าหมาย (ผ่าน Junction Table ของ N:M)</span></span>
+  <span class="kw">INSERT</span></span> <span class="kw">INTO</span></span> VEHICLE_BELL_REQUEST (BELL_REQ_ID, VEHICLE_ID, SENT_AT)
+  <span class="kw">VALUES</span></span> (P_BELL_REQ_ID, P_VEHICLE_ID, <span class="fn">SYSDATE</span></span>);
+
+<span class="cm">  -- (4) อัปเดตสถิติการแจ้งเตือนของรถ (Upsert ด้วย MERGE)</span></span>
+  <span class="kw">MERGE</span></span> <span class="kw">INTO</span></span> ALERT_STATISTICS a
+  <span class="kw">USING</span></span> (<span class="kw">SELECT</span></span> P_VEHICLE_ID <span class="kw">AS</span></span> VID, <span class="fn">TRUNC</span></span>(<span class="fn">SYSDATE</span></span>) <span class="kw">AS</span></span> D <span class="kw">FROM</span></span> DUAL) s
+  <span class="kw">ON</span></span> (a.VEHICLE_ID = s.VID <span class="kw">AND</span></span> a.STAT_DATE = s.D)
+  <span class="kw">WHEN</span></span> <span class="kw">MATCHED</span></span> <span class="kw">THEN</span></span> <span class="kw">UPDATE</span></span> <span class="kw">SET</span></span> a.ALERT_COUNT = a.ALERT_COUNT + <span class="fn">1</span></span>
+  <span class="kw">WHEN</span></span> <span class="kw">NOT</span></span> <span class="kw">MATCHED</span></span> <span class="kw">THEN</span></span>
+    <span class="kw">INSERT</span></span> (STAT_ID, VEHICLE_ID, STAT_DATE, ALERT_COUNT)
+    <span class="kw">VALUES</span></span> (SEQ_ALERT_STAT.<span class="fn">NEXTVAL</span></span>, s.VID, s.D, <span class="fn">1</span></span>);
+
+  <span class="kw">COMMIT</span></span>;                                   -- สำเร็จทั้งหมดจึง <span class="kw">COMMIT</span></span>
+<span class="kw">EXCEPTION</span></span>
+  <span class="kw">WHEN</span></span> <span class="kw">OTHERS</span></span> <span class="kw">THEN</span></span>
+    <span class="kw">ROLLBACK</span></span>;                               -- ผิดพลาด = ยกเลิกทั้ง transaction
+    <span class="kw">RAISE</span></span>;                                  -- ส่ง error กลับผู้เรียก
+<span class="kw">END</span></span>;
+/</pre>
+      <ul>
+        <li><strong>ขั้น (1)</strong> — JOIN USERS×USER_TYPE ดึงชื่อบทบาทของคนกด ถ้าไม่ใช่ PASSENGER → <strong>-20001</strong> (Business Rule ที่โจทย์ระบุ) · <code>&lt;&gt;</code> อ่านว่า "ไม่เท่ากับ"</li>
+        <li><strong>ขั้น (2)</strong> — INSERT สถานะเริ่ม <strong>SENDING</strong> + <code>RETURNING BELL_REQ_ID INTO P_BELL_REQ_ID</code> — คว้า ID ใหม่ทันที (ทางแก้ Oracle 10g)</li>
+        <li><strong>ขั้น (3)</strong> — เขียนลง <strong>Junction Table</strong> = "สัญญาณถึงรถ" — คือการใช้ตารางกลาง N:M ที่ออกแบบไว้จริง</li>
+        <li><strong>ขั้น (4)</strong> — <strong>MERGE</strong>: เทียบ (รถ, วันนี้) กับ ALERT_STATISTICS มีแถวอยู่แล้ว → นับ +1 / ยังไม่มี → INSERT เริ่มที่ 1 · <code>TRUNC(SYSDATE)</code> = ตัดเวลาเหลือแค่วันที่</li>
+        <li><strong>COMMIT เดียวจบ 3 DML</strong> — <code>WHEN OTHERS → ROLLBACK + RAISE</code>: พังกลางทางย้อนทุกอย่าง (Atomicity) และไม่กลืน error</li>
+      </ul>
+
+      <h3>🌱 ไล่อ่าน SP_PRESS_BELL ทีละบรรทัด (แปลเป็นไทยล้วน)</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th style="width:54%;">โค้ด (ย่อ)</th><th>แปลว่าอะไร / ทำไมต้องมี</th></tr>
+          <tr><td><code>P_USER_ID IN ..., P_VEHICLE_ID IN ..., P_BELL_REQ_ID OUT ...</code></td><td>รับ 2 ค่าเข้า (ใครกด, รถคันไหน) + คืน 1 ค่าออก (ID รายการที่เพิ่งสร้าง)</td></tr>
+          <tr><td><code>V_ROLE_NAME USER_TYPE.ROLE_NAME%TYPE;</code></td><td>กล่องเก็บชื่อบทบาท (%TYPE = ชนิดตามคอลัมน์จริง)</td></tr>
+          <tr><td><code>SELECT ut.ROLE_NAME INTO V_ROLE_NAME FROM USERS u JOIN USER_TYPE ut ...</code></td><td>ดึงชื่อบทบาทของคนกด (JOIN เพราะบทบาทเก็บเป็นรหัส อยากได้ชื่อ)</td></tr>
+          <tr><td><code>IF V_ROLE_NAME &lt;&gt; 'PASSENGER' THEN RAISE...(-20001)</code></td><td>ไม่ใช่ผู้โดยสาร → หยุดทันที (กฎธุรกิจข้อแรก)</td></tr>
+          <tr><td><code>INSERT INTO BELL_REQUEST ... 'SENDING' RETURNING BELL_REQ_ID INTO P_BELL_REQ_ID;</code></td><td>สร้างรายการกริ่งสถานะ SENDING + คว้า ID ใหม่กลับมา (10g-safe)</td></tr>
+          <tr><td><code>INSERT INTO VEHICLE_BELL_REQUEST ... P_BELL_REQ_ID, P_VEHICLE_ID ...</code></td><td>บอกรถคันเป้าหมายว่ามีกริ่งส่งมา (ใช้ ID ที่เพิ่งได้)</td></tr>
+          <tr><td><code>MERGE INTO ALERT_STATISTICS ... WHEN MATCHED → +1 / WHEN NOT MATCHED → INSERT 1</code></td><td>อัปเดตสถิติรถวันนี้แบบ Upsert — มีก็บวก ไม่มีก็สร้าง (อาศัย UNIQUE รถ+วัน)</td></tr>
+          <tr><td><code>COMMIT;</code></td><td>ครบทั้ง 3 DML แล้วจึงบันทึกถาวรครั้งเดียว</td></tr>
+          <tr><td><code>EXCEPTION WHEN OTHERS THEN ROLLBACK; RAISE;</code></td><td>พังกลางทาง → ย้อนทั้ง Transaction แล้วโยน error ต่อ</td></tr>
+        </table>
+      </div>
+
+      <h3>ก้อนที่ 2 · SP_SEND_DIGITAL_SIGNAL — กริ่งดิจิตอลประจำรถ</h3>
+      <span class="file-tag">oracle_3_plsql.sql · PROCEDURE 2</span>
+      <pre class="code sql"><span class="kw">CREATE</span></span> <span class="kw">OR</span></span> <span class="kw">REPLACE</span></span> <span class="kw">PROCEDURE</span></span> SP_SEND_DIGITAL_SIGNAL (
+  P_USER_ID     <span class="kw">IN</span></span>  DIGITAL_BELL_SIGNAL.USER_ID%<span class="kw">TYPE</span></span>,
+  P_VEHICLE_ID  <span class="kw">IN</span></span>  VEHICLE.VEHICLE_ID%<span class="kw">TYPE</span></span>,
+  P_SIGNAL_ID   <span class="kw">OUT</span></span> DIGITAL_BELL_SIGNAL.SIGNAL_ID%<span class="kw">TYPE</span></span>
+) <span class="kw">IS</span></span>
+  V_CNT <span class="kw">NUMBER</span></span>;
+<span class="kw">BEGIN</span></span>
+  <span class="kw">SELECT</span></span> <span class="fn">COUNT</span></span>(*) <span class="kw">INTO</span></span> V_CNT <span class="kw">FROM</span></span> USERS <span class="kw">WHERE</span></span> USER_ID = P_USER_ID;
+  <span class="kw">IF</span></span> V_CNT = <span class="fn">0</span></span> <span class="kw">THEN</span></span>
+    <span class="fn">RAISE_APPLICATION_ERROR</span></span>(-<span class="fn">20003</span></span>, <span class="st">'ไม่พบ USER_ID นี้ในระบบ'</span></span>);
+  <span class="kw">END</span></span> <span class="kw">IF</span></span>;
+
+  <span class="kw">INSERT</span></span> <span class="kw">INTO</span></span> DIGITAL_BELL_SIGNAL (SIGNAL_ID, USER_ID, SIGNAL_DATE)
+  <span class="kw">VALUES</span></span> (SEQ_DIG_SIGNAL.<span class="fn">NEXTVAL</span></span>, P_USER_ID, <span class="fn">TRUNC</span></span>(<span class="fn">SYSDATE</span></span>))
+  <span class="kw">RETURNING</span></span> SIGNAL_ID <span class="kw">INTO</span></span> P_SIGNAL_ID;   -- 10g-compatible (ไม่ใช้ SEQ.<span class="fn">CURRVAL</span></span>)
+
+  <span class="kw">INSERT</span></span> <span class="kw">INTO</span></span> VEHICLE_DIGITAL_SIGNAL (SIGNAL_ID, VEHICLE_ID, SENT_AT)
+  <span class="kw">VALUES</span></span> (P_SIGNAL_ID, P_VEHICLE_ID, <span class="fn">SYSDATE</span></span>);
+
+  <span class="kw">MERGE</span></span> <span class="kw">INTO</span></span> ALERT_STATISTICS a
+  <span class="kw">USING</span></span> (<span class="kw">SELECT</span></span> P_VEHICLE_ID <span class="kw">AS</span></span> VID, <span class="fn">TRUNC</span></span>(<span class="fn">SYSDATE</span></span>) <span class="kw">AS</span></span> D <span class="kw">FROM</span></span> DUAL) s
+  <span class="kw">ON</span></span> (a.VEHICLE_ID = s.VID <span class="kw">AND</span></span> a.STAT_DATE = s.D)
+  <span class="kw">WHEN</span></span> <span class="kw">MATCHED</span></span> <span class="kw">THEN</span></span> <span class="kw">UPDATE</span></span> <span class="kw">SET</span></span> a.ALERT_COUNT = a.ALERT_COUNT + <span class="fn">1</span></span>
+  <span class="kw">WHEN</span></span> <span class="kw">NOT</span></span> <span class="kw">MATCHED</span></span> <span class="kw">THEN</span></span>
+    <span class="kw">INSERT</span></span> (STAT_ID, VEHICLE_ID, STAT_DATE, ALERT_COUNT)
+    <span class="kw">VALUES</span></span> (SEQ_ALERT_STAT.<span class="fn">NEXTVAL</span></span>, s.VID, s.D, <span class="fn">1</span></span>);
+
+  <span class="kw">COMMIT</span></span>;
+<span class="kw">EXCEPTION</span></span>
+  <span class="kw">WHEN</span></span> <span class="kw">OTHERS</span></span> <span class="kw">THEN</span></span> <span class="kw">ROLLBACK</span></span>; <span class="kw">RAISE</span></span>;
+<span class="kw">END</span></span>;
+/</pre>
+      <ul>
+        <li>โครงเดียวกับ SP_PRESS_BELL แต่ตรวจด้วย <code>COUNT(*)</code> (มีคนนี้ไหม → <strong>-20003</strong>) แล้วเดินสาย junction อีกด้าน (DIGITAL_BELL_SIGNAL + VEHICLE_DIGITAL_SIGNAL) และ MERGE สถิติเหมือนกัน</li>
+      </ul>
+
+      <h3>ก้อนที่ 3–4 · SP_COMPLETE_ALIGHT + SP_CANCEL_BELL — เปลี่ยนสถานะด้วย SQL%ROWCOUNT</h3>
+      <span class="file-tag">oracle_3_plsql.sql · PROCEDURE 3–4</span>
+      <pre class="code sql"><span class="cm">-- SP_COMPLETE_ALIGHT : คนขับยืนยันว่าผู้โดยสารลงรถแล้ว (SENDING -&gt; SUCCESS)</span></span>
+<span class="kw">CREATE</span></span> <span class="kw">OR</span></span> <span class="kw">REPLACE</span></span> <span class="kw">PROCEDURE</span></span> SP_COMPLETE_ALIGHT (
+  P_BELL_REQ_ID <span class="kw">IN</span></span> BELL_REQUEST.BELL_REQ_ID%<span class="kw">TYPE</span></span>
+) <span class="kw">IS</span></span>
+<span class="kw">BEGIN</span></span>
+  <span class="kw">UPDATE</span></span> BELL_REQUEST
+  <span class="kw">SET</span></span> NOTIFY_STATUS = <span class="st">'SUCCESS'</span></span>, ALIGHT_TIME = <span class="fn">SYSDATE</span></span>
+  <span class="kw">WHERE</span></span> BELL_REQ_ID = P_BELL_REQ_ID <span class="kw">AND</span></span> NOTIFY_STATUS = <span class="st">'SENDING'</span></span>;
+
+  <span class="kw">IF</span></span> SQL%ROWCOUNT = <span class="fn">0</span></span> <span class="kw">THEN</span></span>
+    <span class="fn">RAISE_APPLICATION_ERROR</span></span>(-<span class="fn">20002</span></span>,
+      <span class="st">'ไม่พบรายการกดกริ่งสถานะ SENDING ตาม ID นี้ (อาจสำเร็จ/ยกเลิกไปแล้ว)'</span></span>);
+  <span class="kw">END</span></span> <span class="kw">IF</span></span>;
+  <span class="kw">COMMIT</span></span>;
+<span class="kw">EXCEPTION</span></span>
+  <span class="kw">WHEN</span></span> <span class="kw">OTHERS</span></span> <span class="kw">THEN</span></span> <span class="kw">ROLLBACK</span></span>; <span class="kw">RAISE</span></span>;
+<span class="kw">END</span></span>;
+/
+
+<span class="cm">-- SP_CANCEL_BELL : ยกเลิกรายการกดกริ่ง (SENDING -&gt; CANCELLED)</span></span>
+<span class="kw">CREATE</span></span> <span class="kw">OR</span></span> <span class="kw">REPLACE</span></span> <span class="kw">PROCEDURE</span></span> SP_CANCEL_BELL (
+  P_BELL_REQ_ID <span class="kw">IN</span></span> BELL_REQUEST.BELL_REQ_ID%<span class="kw">TYPE</span></span>
+) <span class="kw">IS</span></span>
+<span class="kw">BEGIN</span></span>
+  <span class="kw">UPDATE</span></span> BELL_REQUEST
+  <span class="kw">SET</span></span> NOTIFY_STATUS = <span class="st">'CANCELLED'</span></span>
+  <span class="kw">WHERE</span></span> BELL_REQ_ID = P_BELL_REQ_ID <span class="kw">AND</span></span> NOTIFY_STATUS = <span class="st">'SENDING'</span></span>;
+
+  <span class="kw">IF</span></span> SQL%ROWCOUNT = <span class="fn">0</span></span> <span class="kw">THEN</span></span>
+    <span class="fn">RAISE_APPLICATION_ERROR</span></span>(-<span class="fn">20004</span></span>,
+      <span class="st">'ยกเลิกไม่ได้: ไม่พบรายการสถานะ SENDING ตาม ID นี้'</span></span>);
+  <span class="kw">END</span></span> <span class="kw">IF</span></span>;
+  <span class="kw">COMMIT</span></span>;
+<span class="kw">EXCEPTION</span></span>
+  <span class="kw">WHEN</span></span> <span class="kw">OTHERS</span></span> <span class="kw">THEN</span></span> <span class="kw">ROLLBACK</span></span>; <span class="kw">RAISE</span></span>;
+<span class="kw">END</span></span>;
+/</pre>
+      <ul>
+        <li>เทคนิคเด็ด: เงื่อนไข "ต้องเป็น SENDING เท่านั้น" ฝังใน WHERE ของ UPDATE — ถ้าสถานะไม่ใช่ SENDING แถวไม่ถูกกระทบ → <code>SQL%ROWCOUNT = 0</code> → โยน error (<strong>-20002 / -20004</strong>) — ไม่ต้อง SELECT เช็คก่อน 2 รอบ</li>
+        <li>SP_COMPLETE_ALIGHT ยังประทับ <code>ALIGHT_TIME = SYSDATE</code> (เวลาลง — Attribute กำกับความสัมพันธ์ใน ER) ตอนยืนยัน</li>
+      </ul>
+
+      <h3>ก้อนสุดท้าย · Anonymous Block — สาธิต Transaction ต่อหน้าอาจารย์</h3>
+      <span class="file-tag">oracle_3_plsql.sql · ตัวอย่างการเรียกใช้</span>
+      <pre class="code sql"><span class="kw">SET</span></span> SERVEROUTPUT <span class="kw">ON</span></span>
+
+<span class="kw">DECLARE</span></span>
+  V_REQ BELL_REQUEST.BELL_REQ_ID%<span class="kw">TYPE</span></span>;
+  V_UID USERS.USER_ID%<span class="kw">TYPE</span></span>;
+  V_VID VEHICLE.VEHICLE_ID%<span class="kw">TYPE</span></span>;
+<span class="kw">BEGIN</span></span>
+  <span class="kw">SELECT</span></span> USER_ID   <span class="kw">INTO</span></span> V_UID <span class="kw">FROM</span></span> USERS   <span class="kw">WHERE</span></span> PHONE    = <span class="st">'0800000003'</span></span>;
+  <span class="kw">SELECT</span></span> VEHICLE_ID <span class="kw">INTO</span></span> V_VID <span class="kw">FROM</span></span> VEHICLE <span class="kw">WHERE</span></span> PLATE_NO = <span class="st">'กท 1234'</span></span>;
+
+  SP_PRESS_BELL(V_UID, V_VID, V_REQ);
+  <span class="fn">DBMS_OUTPUT.PUT_LINE</span></span>(<span class="st">'สร้างรายการกดกริ่ง ID = '</span></span> || V_REQ || <span class="st">' (สถานะ SENDING)'</span></span>);
+
+  SP_COMPLETE_ALIGHT(V_REQ);
+  <span class="fn">DBMS_OUTPUT.PUT_LINE</span></span>(<span class="st">'ยืนยันลงรถเรียบร้อย -&gt; สถานะ SUCCESS'</span></span>);
+<span class="kw">END</span></span>;
+/
+
+<span class="cm">-- ตรวจสอบผลลัพธ์หลังรัน block ด้านบน</span></span>
+<span class="kw">SELECT</span></span> BELL_REQ_ID, USER_ID, REQ_TIME, NOTIFY_STATUS, ALIGHT_TIME
+<span class="kw">FROM</span></span> BELL_REQUEST <span class="kw">ORDER</span></span> <span class="kw">BY</span></span> BELL_REQ_ID;</pre>
+      <ul>
+        <li><code>SET SERVEROUTPUT ON</code> — เปิดให้ DBMS_OUTPUT พิมพ์ข้อความออกจอ (ไม่เปิดจะไม่เห็นอะไรเลย)</li>
+        <li>DECLARE 3 ตัวแปร (%TYPE) → หา USER_ID จากเบอร์ + VEHICLE_ID จากทะเบียน (natural key อีกครั้ง) → เรียก SP_PRESS_BELL → เรียก SP_COMPLETE_ALIGHT — เห็นกระบวนการ "กดกริ่ง → ลงรถแล้ว" จบในหน้าจอเดียว</li>
+        <li><strong>ผลที่ต้องเห็น:</strong> ข้อความ "สร้างรายการกดกริ่ง ID = 4 (สถานะ SENDING)" แล้ว "ยืนยันลงรถเรียบร้อย → SUCCESS" (ID=4 เพราะ seed ใช้ไป 3) — และผล SELECT ท้ายไฟล์มี BELL_REQ_ID 4 แถว สถานะ SUCCESS พร้อม ALIGHT_TIME</li>
+      </ul>
+
+      <h2>💥 กรณี error ที่ต้อง demo (ทุกกรณีเห็น raise + ROLLBACK)</h2>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>กรณี</th><th>วิธีเรียก (Anonymous Block)</th><th>ผลที่ต้องเห็น</th><th>จุดในโค้ดที่จับ</th></tr>
+          <tr><td>คนขับ/แอดมินกดกริ่ง (ไม่ใช่ PASSENGER)</td><td><code>SP_PRESS_BELL(2, 1, V_REQ);</code> (2 = วิชัย DRIVER)</td><td><code>ORA-20001</code> ผู้กดกริ่งต้องเป็น PASSENGER เท่านั้น</td><td>IF ตรวจ V_ROLE_NAME</td></tr>
+          <tr><td>ยืนยันรายการที่ไม่ใช่ SENDING</td><td><code>SP_COMPLETE_ALIGHT(1);</code> (ID=1 เป็น SUCCESS ไปแล้ว)</td><td><code>ORA-20002</code> ไม่พบรายการสถานะ SENDING</td><td>SQL%ROWCOUNT = 0</td></tr>
+          <tr><td>ส่งสัญญาณด้วย USER ที่ไม่มีจริง</td><td><code>SP_SEND_DIGITAL_SIGNAL(999, 1, V_SIG);</code></td><td><code>ORA-20003</code> ไม่พบ USER_ID นี้ในระบบ</td><td>COUNT(*) = 0</td></tr>
+          <tr><td>ยกเลิกรายการที่ไม่ใช่ SENDING</td><td><code>SP_CANCEL_BELL(1);</code></td><td><code>ORA-20004</code> ยกเลิกไม่ได้</td><td>SQL%ROWCOUNT = 0</td></tr>
+          <tr><td>Transaction ตัวจริง (ไม่ใช่ error — โชว์ Atomicity)</td><td>รัน demo block ทั้งก้อน</td><td>กริ่งใหม่ ID=4 SENDING → SUCCESS + สถิติ กท 1234 +1</td><td>3 DML → COMMIT เดียว</td></tr>
+        </table>
+      </div>
+      <div class="box box-tip">
+        <p class="box-title">💡 สูตรพูดเวลาโชว์ error (ใช้ซ้ำได้ทุกกรณี)</p>
+        <p>"กรณีนี้คือ Business Rule ที่โจทย์ระบุ → เรา implement เป็น ORA-20xxx ใน Procedure นี้ → ตรวจก่อนเขียนข้อมูล → ผิดแล้ว ROLLBACK ข้อมูลเดิมไม่เสีย — และนี่คือเหตุผลที่ transaction ต้อง ROLLBACK ทั้งก้อน ไม่ COMMIT ครึ่ง ๆ"</p>
+      </div>
+
+      <h2>❓ Q&A ของหน้านี้ (อาจารย์มักถามตอนรัน PL/SQL)</h2>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th style="width:36%;">คำถาม</th><th>คำตอบสั้น</th></tr>
+          <tr><td>Transaction Processing อยู่ตรงไหน?</td><td>SP_PRESS_BELL = 3 DML (INSERT BELL_REQUEST + INSERT junction + MERGE สถิติ) ใน 1 transaction — สำเร็จ COMMIT / พลาด ROLLBACK ทั้งหมด (Atomicity)</td></tr>
+          <tr><td>MERGE ทำอะไร?</td><td>Upsert สถิติ: ยังไม่มีสถิติของ (รถ, วันนั้น) → INSERT count=1 / มีแล้ว → UPDATE +1 — อาศัย UNIQUE (VEHICLE_ID, STAT_DATE)</td></tr>
+          <tr><td>Business Rule ในโค้ดมีอะไรบ้าง?</td><td>กดกริ่งได้เฉพาะ PASSENGER (ORA-20001) · ยืนยัน/ยกเลิกได้เฉพาะสถานะ SENDING (SQL%ROWCOUNT=0 → ORA-20002/-20004)</td></tr>
+          <tr><td>ทำไมใช้ RETURNING INTO?</td><td>Oracle 10g ห้าม SEQ.CURRVAL ใน PL/SQL (PLS-00357) — INSERT ... RETURNING คว้า ID ใหม่ได้ทันที ปลอดภัยกับ 10g</td></tr>
+          <tr><td>SQL%ROWCOUNT ใช้ทำอะไร?</td><td>เช็คว่า UPDATE กระทบกี่แถว — 0 แถว = ไม่พบรายการสถานะ SENDING → โยน error เอง</td></tr>
+          <tr><td>%TYPE ใช้ทำไม?</td><td>ให้พารามิเตอร์/ตัวแปรมีชนิดตามคอลัมน์จริง — แก้ DDL แล้วโค้ดไม่พัง</td></tr>
+          <tr><td>ทำไมไม่มี Trigger?</td><td>ระบบนี้คุม flow ด้วย SP เรียกจากแอปชัดเจน (parameter binding กัน SQL Injection) — เหตุผลออกแบบ ไม่ใช่ลืม</td></tr>
+          <tr><td>ถ้า MERGE พังกลางทางเกิดอะไรขึ้น?</td><td>EXCEPTION → ROLLBACK ทั้ง 3 DML — กริ่งไม่ถูกสร้าง รถไม่ได้รับ สถิติไม่นับ (ข้อมูลสอดคล้องกันเสมอ)</td></tr>
+        </table>
+      </div>
+
+      <div class="quiz" data-answer="3">
+        <p class="quiz-q"><span class="qno">Q</span> ระหว่าง SP_PRESS_BELL รันอยู่ ถ้า INSERT VEHICLE_BELL_REQUEST (ขั้น 3) ล้มเหลว ผลลัพธ์คือ?</p>
+        <div class="quiz-opts">
+          <button class="quiz-opt">กริ่งถูกสร้างแล้ว แต่รถไม่รู้ (ค้าง SENDING ไม่มีคู่รถ)</button>
+          <button class="quiz-opt">สถิติถูกนับแต่กริ่งไม่ถูกสร้าง</button>
+          <button class="quiz-opt">Oracle จะ COMMIT เฉพาะขั้นที่สำเร็จอัตโนมัติ</button>
+          <button class="quiz-opt">ROLLBACK ทั้ง transaction — BELL_REQUEST/junction/สถิติ ไม่มีอะไรถูกบันทึกเลย</button>
+        </div>
+        <div class="quiz-explain"><strong>เฉลย:</strong> WHEN OTHERS → ROLLBACK — Atomicity ทำให้ 3 DML เป็นเหมือนคำสั่งเดียว: สำเร็จทั้งก้อนหรือไม่มีอะไรเกิดขึ้นเลย</div>
+      </div>
+
+      <div class="prevnext">
+        <a href="p2-er-ddl-dml.html">ก่อนหน้า: E/R + DDL/DML<small>🚏 11 ตาราง + Seed 27 แถว</small></a>
+        <a class="next" href="p2-join.html">ต่อไป: รายงาน SQL 3 แบบ<small>🧭 JOIN 6 ตาราง · RANK Analytic · WITH clause</small></a>
+      </div>
+
+    </div>
+  </main>
+</div>
+<script src="script.js"></script>
+<script src="tts.js"></script>
+</body>
+</html>

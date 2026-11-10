@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ลำดับ demo + Q&A + บทบาท 4 คน — เว็บติวสอบ Project Database</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-tts="1">
+<div id="progressBar"></div>
+<div class="backdrop"></div>
+
+<header class="topbar">
+  <button class="hamburger" aria-label="เปิดเมนู">☰</button>
+  <div class="topbar-title">🎓 ติวสอบ Project Database</div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="เมนูหลัก">
+    <div class="side-brand">🎓 Project DB Prep<small>สอบ Project Face-to-face • 2 Business Domain</small></div>
+    <div class="side-note">💡 <b>กฎเหล็ก:</b> ลำดับรัน 00→05 • DROP ให้อาจารย์ดู • ทุกคนตอบ "ทำไม" ได้เหมือนกัน</div>
+    <a class="nav-link" href="index.html"><span class="nav-emoji">🏠</span> หน้าแรก + โจทย์อาจารย์</a>
+    <div class="side-group">PART I — อ.อู๊ด (เวียน + ประกาศ)</div>
+    <a class="nav-link" href="p1-usecase.html"><span class="nav-emoji">📋</span> Use Case + Traceability</a>
+    <a class="nav-link" href="p1-er-ddl-dml.html"><span class="nav-emoji">🗄️</span> E/R + DDL/DML <span class="nav-pts">11 ตาราง</span></a>
+    <a class="nav-link" href="p1-plsql.html"><span class="nav-emoji">⚙️</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p1-join.html"><span class="nav-emoji">🔗</span> SQL JOIN 6 ข้อ</a>
+    <div class="side-group">PART II — อ.ผึ้ง (Smart Bus Bell)</div>
+    <a class="nav-link" href="p2-usecase.html"><span class="nav-emoji">🚌</span> Use Case + REG1–17</a>
+    <a class="nav-link" href="p2-er-ddl-dml.html"><span class="nav-emoji">🚏</span> E/R + DDL/DML <span class="nav-pts">11 ตาราง</span></a>
+    <a class="nav-link" href="p2-plsql.html"><span class="nav-emoji">🚦</span> PL/SQL Transaction</a>
+    <a class="nav-link" href="p2-join.html"><span class="nav-emoji">🧭</span> รายงาน SQL 3 แบบ</a>
+    <div class="side-group">สาธิตหน้าห้อง</div>
+    <a class="nav-link" href="verify-demo.html"><span class="nav-emoji">🎤</span> ลำดับ demo + Q&A</a>
+  </nav>
+
+  <main class="main">
+    <div class="content">
+
+      <section class="page-head">
+        <p class="crumb"><a href="index.html">หน้าแรก</a> • สาธิตหน้าห้อง (Face-to-face)</p>
+        <h1>🎤 ลำดับสาธิต + Script ตรวจสอบ + กรณี error + Q&A + บทบาท 4 คน</h1>
+        <div class="head-meta">
+          <span class="badge">Part I + Part II</span><span class="badge">DROP ให้ดูทุกครั้ง</span><span class="badge gold">Script ตรวจสอบอาจารย์คือฉากจบ</span>
+        </div>
+      </section>
+
+      <div class="big-warn">
+        <p class="box-title">⚠️ คำเตือน #1 ก่อน demo — Database User ตัวนี้มี "ตารางงานอื่น" อยู่รวมด้วย</p>
+        <ul>
+          <li>Account ที่ใช้บน server (iSQL*Plus Oracle 10g) มีตารางของงานอื่นอยู่แล้ว:
+          <code>ADMIN, DEPARTMENT, DEPARTMENT_HEAD, DOCUMENT, DOCUMENT_DETAIL, EMPLOYEE, LOG, RECEIPT_RECORD</code> — <strong>ห้ามลบโดยเด็ดขาด</strong></li>
+          <li>เพราะฉะนั้น <strong>ห้ามใช้ DROP ALL ทั้ง schema</strong> — ไฟล์ 1 (oracle_1_ddl.sql) ออกแบบมาให้ลบเฉพาะตาราง/Sequence/View <strong>ที่ชื่อตรงกับโปรเจกต์นี้</strong> ด้วย <code>WHERE TABLE_NAME IN (...)</code> + EXECUTE IMMEDIATE — รันกี่ครั้งก็ปลอดภัย</li>
+          <li>ชุดเก่าที่เคยวางแผนเรื่อง "NOTIFICATIONS ชนกันระหว่าง 2 Part" ตอนนี้ไม่มีปัญหาแล้ว (โปรเจกต์ใหม่ไม่มีตารางชื่อชนงานอื่น) — แต่หลักคิดเดียวกันคือ <strong>"ล้างของเก่าเฉพาะของตัวเอง แล้วสร้างใหม่ให้อาจารย์ดู"</strong></li>
+        </ul>
+      </div>
+
+      <div class="box box-tip">
+        <p class="box-title">🖥️ หน้างานจริง — iSQL*Plus (Oracle 10g R2)</p>
+        <ul>
+          <li>เข้า server ที่ <code>http://161.246.35.92:5560/isqlplus/</code> แล้ว login ด้วย account ของกลุ่ม (user/pass ตามที่กลุ่มใช้ deploy — ดู README_Oracle_Exam.md ในโฟลเดอร์งาน)</li>
+          <li>วิธีรัน: วางเนื้อไฟล์ทั้งไฟล์ใน textarea worksheet → กด <strong>Execute</strong> รอบเดียวจบทั้งไฟล์</li>
+          <li>ก่อนรันไฟล์ 3 ต้องมี <code>SET SERVEROUTPUT ON</code> ไม่งั้น DBMS_OUTPUT ไม่พิมพ์อะไรเลย</li>
+          <li>ผลลัพธ์บน iSQL*Plus แบ่งหน้า — ถ้าข้อมูลยาวให้กด "Next Page" ดูให้ครบก่อนสรุปผล</li>
+          <li>สคริปต์ <strong>deploy บน server แล้วทั้งหมด</strong> — วันสอบแค่รับซ้ำตามลำดับให้อาจารย์เห็น + จับภาพผล script ตรวจสอบ</li>
+        </ul>
+      </div>
+
+      <h2>🗺️ ลำดับ demo (ทั้ง 2 Part — รูปแบบเดียวกัน)</h2>
+      <pre class="mermaid">
+flowchart TD
+  A["ไฟล์ 1: DROP ของเดิม<br>+ DDL สร้างตาราง/Sequence"] --> B["ไฟล์ 2: DML<br>INSERT ข้อมูลทดสอบ + COMMIT"]
+  B --> C["ไฟล์ 3: PL/SQL<br>Procedure + Transaction"]
+  C --> C2["Demo Block: กดกริ่ง → ยืนยัน<br>+ โชว์กรณี error"]
+  C2 --> D["ไฟล์ 4: รายงาน SQL<br>JOIN 6 ตาราง · RANK · WITH"]
+  D --> E["ไฟล์ 5: Script ตรวจสอบอาจารย์ ⭐<br>ตาราง + Constraint ครบ"]
+      </pre>
+      <p class="mermaid-caption">Part II รันตามชื่อไฟล์ oracle_1 → oracle_5 · Part I ใช้ลำดับ 00→05 ของชุดสคริปต์เดิม (โครงเดียวกัน: DROP → DDL → DML → PL/SQL → JOIN/รายงาน → VERIFY)</p>
+
+      <h2>📋 ตารางลำดับรันพร้อมบทพูด (คนไหนรัน-พูดอะไร)</h2>
+      <div class="tbl-wrap">
+        <table class="tbl nowrap">
+          <tr><th>ขั้น</th><th>คน</th><th>Part II — Smart Bus Bell (11 ตาราง) — พูดว่า</th><th>Part I (เวียน+ประกาศ) — พูดว่า</th></tr>
+          <tr><td>1 · DROP + DDL</td><td>คน 1</td><td>"ลบเฉพาะตารางของโปรเจกต์นี้ตามชื่อ (User นี้มีของงานอื่น) แล้วสร้างใหม่ 11 ตาราง + 7 Sequence — ตาม E/R Chen ที่ตัด APP/LOG ออก"</td><td>"ลบลูกก่อนแม่ CASCADE CONSTRAINTS PURGE แล้วสร้าง 11 ตาราง + Constraint ครบ"</td></tr>
+          <tr><td>2 · DML</td><td>คน 2</td><td>"Seed 27 แถว: USER_TYPE 3 · USERS 4 · VEHICLE 2 · กริ่ง 3 (SUCCESS/SENDING/CANCELLED ครบ 3 สถานะ) · junction 3+2 · สถิติ 1 · IOT 2 · ปุ่ม 2+3 — FK อ้างด้วย subquery ตาม natural key (เบอร์โทร/ทะเบียน)"</td><td>"พนักงาน 8 (ธุรการ 1001, CEO 1002, กลุ่มเป้าหมาย 1004–1007) · เอกสาร 4 (5001–5004)"</td></tr>
+          <tr><td>3 · PL/SQL</td><td>คน 3</td><td>"SP_PRESS_BELL = 1 transaction 3 DML: กริ่ง → junction → MERGE สถิติ · รัน demo block: กดกริ่ง ID=4 → ยืนยัน SUCCESS + โชว์กรณี error -20001..-20004"</td><td>"Trigger + Procedure 4 ตาม Flow: ส่งอนุมัติ → XOR → ลงนาม → AND กระจาย → ยืนยัน → SLA"</td></tr>
+          <tr><td>4 · รายงาน</td><td>คน 4</td><td>"3 รายงาน: JOIN 6 ตาราง · สรุปต่อรถ + RANK analytic · WITH clause แทน CREATE VIEW (ไม่มีสิทธิ์)"</td><td>"JOIN 6 ข้อ มากสุด 6 ตาราง — อธิบายทำไม LEFT JOIN ข้อ 2"</td></tr>
+          <tr><td>5 · VERIFY ⭐</td><td>คน 4</td><td colspan="2">"จบด้วย Script ตรวจสอบที่อาจารย์กำหนด — ตารางที่ User เป็นเจ้าของ + Constraint ทุกตัว" แล้วอ่านผลให้ฟัง (ดูวิธีอ่านด้านล่าง)</td></tr>
+        </table>
+      </div>
+
+      <h2>⭐ ไฟล์ 5 · Script ตรวจสอบอาจารย์ — เวอร์ชันแก้ให้รันได้จริงบน Oracle</h2>
+      <div class="box box-warn">
+        <p class="box-title">⚠️ ต้นฉบับอาจารย์มีบั๊กที่ต้องอธิบายหน้างานได้</p>
+        <p>ต้นฉบับใช้ <code>USER_TABLES.OWNER</code> — แต่ <strong>USER_TABLES ไม่มีคอลัมน์ OWNER จริง</strong> รันตรง ๆ จะได้
+        <code>ORA-00904: "USER_TABLES"."OWNER": invalid identifier</code> — เพราะ OWNER มีเฉพาะ ALL_TABLES/DBA_TABLES ซึ่งต้องใช้สิทธิ์สูง —
+        เราจึงแก้เป็น <code>USER AS OWNER</code> (USER = ฟังก์ชันคืนชื่อ schema ปัจจุบัน ผลเหมือนกันเพราะ USER_TABLES = ตารางที่ User ตัวเองเป็นเจ้าของอยู่แล้ว)</p>
+      </div>
+      <span class="file-tag">oracle_5_verify.sql</span>
+      <pre class="code sql"><span class="cm">-- ตารางของ Database User + Constraint ทั้งหมด</span></span>
+<span class="kw">SELECT</span></span> USER_TABLES.TABLE_NAME, TABLESPACE_NAME, <span class="fn">USER</span></span> <span class="kw">AS</span></span> OWNER,
+       CONSTRAINT_NAME, CONSTRAINT_TYPE, USER_CONSTRAINTS.TABLE_NAME
+<span class="kw">FROM</span></span> USER_TABLES <span class="kw">LEFT</span></span> <span class="kw">OUTER</span></span> <span class="kw">JOIN</span></span> USER_CONSTRAINTS
+  <span class="kw">ON</span></span> (USER_TABLES.TABLE_NAME = USER_CONSTRAINTS.TABLE_NAME)
+<span class="kw">ORDER</span></span> <span class="kw">BY</span></span> USER_TABLES.TABLE_NAME, CONSTRAINT_TYPE, CONSTRAINT_NAME;
+
+<span class="cm">-- เช็คเพิ่มเติม: SEQUENCE ของโปรเจกต์ (SEQUENCE ไม่แสดงใน USER_TABLES)</span></span>
+<span class="kw">SELECT</span></span> SEQUENCE_NAME, LAST_NUMBER <span class="kw">FROM</span></span> USER_SEQUENCES <span class="kw">ORDER</span></span> <span class="kw">BY</span></span> SEQUENCE_NAME;
+
+<span class="cm">-- เช็คเพิ่มเติม: Stored Procedure ของโปรเจกต์ (VALID = compile ผ่าน)</span></span>
+<span class="kw">SELECT</span></span> OBJECT_NAME, STATUS <span class="kw">FROM</span></span> USER_OBJECTS
+<span class="kw">WHERE</span></span> OBJECT_TYPE = <span class="st">'PROCEDURE'</span></span> <span class="kw">AND</span></span> OBJECT_NAME LIKE <span class="st">'SP_%'</span></span>
+<span class="kw">ORDER</span></span> <span class="kw">BY</span></span> OBJECT_NAME;</pre>
+      <p class="code-note">ความต่างจากชุด Part I: เพิ่ม 2 query เสริม — ตรวจ SEQUENCE 7 ตัว (ไม่โผล่ใน USER_TABLES) และตรวจว่า Procedure ทุกตัว STATUS = VALID (compile ผ่าน ไม่มี INVALID ติดค้าง)</p>
+
+      <h3>🌱 จำลองผลบนจอ — อ่านออกทีละคอลัมน์ (คาดหวังเห็นตารางโปรเจกต์ 11 ตาราง)</h3>
+      <div class="tbl-wrap">
+        <table class="tbl nowrap">
+          <tr><th>TABLE_NAME</th><th>TABLESPACE_NAME</th><th>OWNER</th><th>CONSTRAINT_NAME</th><th>CONSTRAINT_TYPE</th><th>TABLE_NAME (ขวา)</th></tr>
+          <tr><td>ALERT_STATISTICS</td><td>USERS</td><td>SQL_S2_11</td><td>FK_ALERT_VEH</td><td><strong>R</strong></td><td>ALERT_STATISTICS</td></tr>
+          <tr><td>ALERT_STATISTICS</td><td>USERS</td><td>SQL_S2_11</td><td>PK_ALERT_STAT</td><td><strong>P</strong></td><td>ALERT_STATISTICS</td></tr>
+          <tr><td>ALERT_STATISTICS</td><td>USERS</td><td>SQL_S2_11</td><td>SYS_C00xxxxx</td><td><strong>C</strong></td><td>ALERT_STATISTICS</td></tr>
+          <tr><td>ALERT_STATISTICS</td><td>USERS</td><td>SQL_S2_11</td><td>UQ_ALERT_VDATE</td><td><strong>U</strong></td><td>ALERT_STATISTICS</td></tr>
+          <tr><td>BELL_BUTTON</td><td>USERS</td><td>SQL_S2_11</td><td>PK_BELL_BUTTON</td><td><strong>P</strong></td><td>BELL_BUTTON</td></tr>
+          <tr><td>BELL_REQUEST</td><td>USERS</td><td>SQL_S2_11</td><td>CK_BELL_STATUS</td><td><strong>C</strong></td><td>BELL_REQUEST</td></tr>
+          <tr><td>BELL_REQUEST</td><td>USERS</td><td>SQL_S2_11</td><td>FK_BELL_USER</td><td><strong>R</strong></td><td>BELL_REQUEST</td></tr>
+          <tr><td>BELL_REQUEST</td><td>USERS</td><td>SQL_S2_11</td><td>PK_BELL_REQUEST</td><td><strong>P</strong></td><td>BELL_REQUEST</td></tr>
+          <tr><td>…</td><td colspan="5">ต่อเนื่อง A→Z จนครบ 11 ตารางโปรเจกต์ (IOT_BOX, USERS, USER_TYPE, VEHICLE, VEHICLE_BELL_BUTTON, VEHICLE_BELL_REQUEST, VEHICLE_DIGITAL_SIGNAL, DIGITAL_BELL_SIGNAL) + ตารางงานอื่นที่ยังอยู่ (ADMIN, DEPARTMENT, DOCUMENT, EMPLOYEE, LOG ฯลฯ — ชี้แล้วบอกว่า "ตารางงานอื่น ยังไม่แตะ")</td></tr>
+        </table>
+      </div>
+      <ul>
+        <li>คอลัมน์ <strong>CONSTRAINT_TYPE</strong>: <strong>P</strong> = Primary Key · <strong>R</strong> = Foreign Key · <strong>U</strong> = Unique · <strong>C</strong> = Check/NOT NULL</li>
+        <li><strong>OWNER = ชื่อ schema เรา</strong> (จาก USER AS OWNER) · ตารางงานอื่นโผล่มาด้วย = พิสูจน์ว่าเราไม่ลบของใคร</li>
+        <li><strong>SYS_Cxxxxxxxx</strong> = ชื่อที่ Oracle ตั้งให้ NOT NULL ที่เราไม่ได้ตั้งชื่อ — อธิบายได้ = เข้าใจจริง</li>
+        <li>ตาราง composite PK 4 ตัวที่ควรชี้ให้เห็น: <code>PK_VEH_BELL_REQ · PK_VEH_DIG_SIG · PK_IOT_BOX · PK_VEH_BELL_BTN</code> (junction ×3 + weak entity ×1)</li>
+        <li>ผลรวม constraint ของโปรเจกต์: <strong>P 11 · R 11 · U 4 · C 33</strong> (CHECK 2 + NOT NULL SYS_C 31) ≈ 59 แถว</li>
+        <li>Query เสริม: SEQUENCE 7 ตัว (SEQ_ALERT_STAT, SEQ_BELL_REQ, SEQ_BUTTON, SEQ_DIG_SIGNAL, SEQ_IOT_BOX, SEQ_USERS, SEQ_VEHICLE) + PROCEDURE 4 ตัว STATUS = <strong>VALID</strong> ทั้งหมด</li>
+      </ul>
+
+      <h2>💥 กรณี error ที่ต้อง demo ให้ครบ (ทุกกรณีต้องเห็น raise + ROLLBACK)</h2>
+      <h3>Part II — Smart Bus Bell (ตาม Business Rule ที่ implement ใน SP)</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>กรณี</th><th>วิธีเรียก</th><th>ผลที่ต้องเห็น</th><th>พูดต่ออาจารย์ว่า</th></tr>
+          <tr><td>คนขับกดกริ่ง (ไม่ใช่ PASSENGER)</td><td><code>SP_PRESS_BELL(2, 1, V_REQ);</code> (2 = วิชัย DRIVER)</td><td><code>ORA-20001</code></td><td>"Business Rule: กดกริ่งได้เฉพาะ PASSENGER — เช็คก่อนเขียนทุก DML"</td></tr>
+          <tr><td>ยืนยันรายการที่ไม่ใช่ SENDING</td><td><code>SP_COMPLETE_ALIGHT(1);</code> (ID=1 SUCCESS แล้ว)</td><td><code>ORA-20002</code></td><td>"SQL%ROWCOUNT=0 → ไม่มีแถว SENDING ให้ยืนยัน — กันยืนยันซ้ำ"</td></tr>
+          <tr><td>ส่งสัญญาณด้วย USER ไม่มีจริง</td><td><code>SP_SEND_DIGITAL_SIGNAL(999, 1, V_SIG);</code></td><td><code>ORA-20003</code></td><td>"COUNT(*)=0 → ไม่พบผู้ใช้ — FK ยังกันชั้นล่างอีก"</td></tr>
+          <tr><td>ยกเลิกรายการที่ไม่ใช่ SENDING</td><td><code>SP_CANCEL_BELL(1);</code></td><td><code>ORA-20004</code></td><td>"ยกเลิกได้เฉพาะที่ยังค้างส่ง"</td></tr>
+          <tr><td>Transaction จริง (โชว์ Atomicity)</td><td>รัน demo block ท้ายไฟล์ 3</td><td>กริ่ง ID=4 SENDING → SUCCESS · สถิติ กท1234 = 1</td><td>"3 DML → COMMIT เดียว พัง ROLLBACK ทั้งก้อน"</td></tr>
+          <tr><td>ข้อจำกัด Oracle 10g (พูดประกอบ)</td><td>ลอง SEQ.CURRVAL ใน PL/SQL / CREATE VIEW / รัน verify ต้นฉบับ</td><td><code>PLS-00357</code> · <code>ORA-01031</code> · <code>ORA-00904</code></td><td>"เจอจริงตอน deploy — แก้ด้วย RETURNING INTO / WITH clause / USER AS OWNER"</td></tr>
+          <tr><td>Constraint ระดับ DB (เสริม)</td><td>INSERT PHONE ซ้ำ / ROLE_NAME 'STUDENT' / ROLE_ID 99</td><td><code>ORA-00001 / ORA-02290 / ORA-02291</code></td><td>"UNIQUE/CHECK/FK ฝังใน DB — โค้ดผิด DB ไม่ปล่อย"</td></tr>
+        </table>
+      </div>
+      <h3>Part I — ระบบแจ้งข้อความเวียน + ประกาศ (ชุดสคริปต์เดิม)</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th>กรณี</th><th>คำสั่ง</th><th>ผลที่ต้องเห็น</th><th>พูดต่ออาจารย์ว่า</th></tr>
+          <tr><td>ส่งเสนออนุมัติเอกสารที่ไม่ใช่ร่าง</td><td><code>EXEC SP_SUBMIT_DOC(5001);</code> ครั้งที่ 2</td><td><code>ORA-20001</code> ไม่อยู่ในสถานะร่าง</td><td>"กันส่งซ้ำ — สถานะเดินตาม Flow เท่านั้น"</td></tr>
+          <tr><td>ผู้พิจารณาไม่ใช่ Approver</td><td><code>EXEC SP_DECIDE_APPROVAL(5002, 1004, 'APPROVED', null);</code></td><td><code>ORA-20003</code></td><td>"ตรง Lane CEO/Manager — พนักงาน (1004) พิจารณาไม่ได้"</td></tr>
+          <tr><td>ยืนยันรับทราบซ้ำ</td><td><code>EXEC SP_ACKNOWLEDGE_DOC(5001, 1004, '10.0.0.5');</code> ครั้งที่ 2</td><td><code>ORA-20010</code></td><td>"UNIQUE (DOC_ID, EMP_ID) + DUP_VAL_ON_INDEX — กันซ้ำ 2 ชั้น"</td></tr>
+          <tr><td>ตีกลับ (Rejected Loop)</td><td><code>EXEC SP_DECIDE_APPROVAL(5003, 1003, 'REJECTED', 'เหตุผล');</code> → <code>EXEC SP_SUBMIT_DOC(5003);</code></td><td>REJECTED → PENDING</td><td>"XOR ทางตีกลับ — แก้ร่างแล้วส่งใหม่ได้ตาม DR-Ann-101"</td></tr>
+        </table>
+      </div>
+      <div class="box box-tip">
+        <p class="box-title">💡 รูปแบบพูดเวลาโชว์ error (ใช้ซ้ำได้ทุกกรณี)</p>
+        <p>"กรณีนี้คือ Business Rule ของโจทย์ → เรา implement เป็น error ORA-20xxx ใน Procedure ชื่อนี้ → ตรวจก่อนเขียนข้อมูล → ผิดแล้ว ROLLBACK ข้อมูลเดิมไม่เสีย" — ครบทั้งที่มา, เทคนิค, ผลลัพธ์</p>
+      </div>
+
+      <h2>👥 แบ่งบทบาท 4 คน — รายละเอียดซ้อมรวม</h2>
+      <div class="tbl-wrap">
+        <table class="tbl nowrap">
+          <tr><th>คน</th><th>รับผิดชอบ</th><th>ซ้อมรัน</th><th>คำถามที่น่าจะโดนถาม (ต้องตอบเองได้)</th></tr>
+          <tr><td><strong>1</strong></td><td>ไฟล์ 1 DROP+DDL (ทั้ง 2 Part)</td><td>อธิบาย drop-by-name ให้ได้ + ทำไมไม่ DROP ทั้ง schema</td><td>"ทำไมลบเฉพาะชื่อตาราง" · "EXECUTE IMMEDIATE คืออะไร" · "ทำไมกล่อง IOT เป็น composite PK" · "P/R/U/C แปลว่าอะไร"</td></tr>
+          <tr><td><strong>2</strong></td><td>ไฟล์ 2 DML + โครงเรื่อง ER/UC</td><td>เล่าระบบ 30 วินาที + จำตัวเลข seed (สมหญิง=3, มานะ=4, กท1234=1)</td><td>"ทำไม junction table" · "derived attribute ไม่เก็บยังไง" · "ทำไม FK ใช้ subquery ตามเบอร์โทร"</td></tr>
+          <tr><td><strong>3</strong></td><td>ไฟล์ 3 PL/SQL + demo block + error</td><td>รัน SP_PRESS_BELL จนจบ + โชว์ -20001..-20004 ครบ</td><td>"Transaction อยู่ตรงไหน" · "MERGE ทำอะไร" · "ทำไม RETURNING INTO" · "SQL%ROWCOUNT เช็คอะไร"</td></tr>
+          <tr><td><strong>4</strong></td><td>ไฟล์ 4 รายงาน + ไฟล์ 5 VERIFY + ปิด Q&A</td><td>รัน 3 รายงาน + อ่านผล VERIFY ลื่น (รวม SYS_C)</td><td>"RANK ต่างจาก GROUP BY ยังไง" · "WITH clause ทำไมใช้" · "USER_TABLES.OWNER ทำไมแก้" · "อ่านแถวนี้ให้ฟัง"</td></tr>
+        </table>
+      </div>
+      <div class="box box-mem">
+        <p class="box-title">🧠 กฎของทีมตอน demo (คะแนนกลุ่ม = คะแนนต่ำสุดของสมาชิก!)</p>
+        <ul>
+          <li>ทุกคนอ่านครบทุกหน้า — คะแนนกลุ่มมาจากคนที่ตอบไม่ได้คนสุดท้าย ใครก็ต้องช่วยเพื่อนตอบได้</li>
+          <li>ส่งไม้ชัด: "ขั้นต่อไปฝั่งน้อง ... เป็นคนอธิบาย" — ทุกคนพูดคนละส่วน ไม่ใช่คนเดียวทำทั้งหมด</li>
+          <li>จบด้วย script ตรวจสอบเสมอ + จับภาพผล (มีหลักฐานว่ารันครบ)</li>
+        </ul>
+      </div>
+
+      <h2>❓ Q&A รวมทุกข้อที่อาจารย์มักถาม (ท่องให้ตอบได้เหมือนกันทั้งทีม)</h2>
+      <h3>Part II — Smart Bus Bell (9 ข้อ — จากประสบการณ์ deploy จริง)</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th style="width:36%;">คำถาม</th><th>คำตอบสั้น</th></tr>
+          <tr><td>ทำไมมี Junction Table?</td><td>ความสัมพันธ์ N:M ใน ER แปลงเป็นตารางกลาง เช่น VEHICLE_BELL_REQUEST (PK = คู่ FK ทั้งสอง) — 1 แถว = 1 คู่ "กริ่งนี้→รถนี้"</td></tr>
+          <tr><td>ทำไม IOT_BOX PK เป็น (VEHICLE_ID, BOX_ID)?</td><td>Weak Entity ผูกกับรถแบบ Identifying Relationship → composite PK = PK เจ้าของ + Partial Key</td></tr>
+          <tr><td>Transaction Processing อยู่ตรงไหน?</td><td>SP_PRESS_BELL = 3 DML (INSERT BELL_REQUEST + INSERT junction + MERGE สถิติ) ใน 1 transaction — สำเร็จ COMMIT / พลาด ROLLBACK ทั้งหมด</td></tr>
+          <tr><td>MERGE ทำอะไร?</td><td>Upsert สถิติ: ยังไม่มีสถิติ (รถ, วันนั้น) → INSERT count=1 / มีแล้ว → UPDATE +1 (อาศัย UNIQUE รถ+วัน)</td></tr>
+          <tr><td>Business Rule ในโค้ดมีอะไร?</td><td>กดกริ่งได้เฉพาะ PASSENGER (ORA-20001) · ยืนยันลงรถ/ยกเลิกได้เฉพาะสถานะ SENDING (SQL%ROWCOUNT=0 → ORA-20002/-20004)</td></tr>
+          <tr><td>CONSTRAINT_TYPE ในผลลัพธ์คืออะไรบ้าง?</td><td>P=PK, R=FK, C=Check/NOT NULL, U=Unique — และ SYS_Cxxxx = NOT NULL ที่ Oracle ตั้งชื่อให้อัตโนมัติ</td></tr>
+          <tr><td>ทำไมมี SEQUENCE?</td><td>Oracle 10g ไม่มี AUTO_INCREMENT → ใช้ SEQUENCE.NEXTVAL สร้าง key (7 ตัวของโปรเจกต์)</td></tr>
+          <tr><td>จำนวนคนบนรถอยู่ไหน?</td><td>เป็น Derived Attribute ตาม ER → ไม่เก็บคอลัมน์ ต้องคำนวณจากแหล่งอื่น (ตัวนับ IoT/แอปคนขับ)</td></tr>
+          <tr><td>ข้อจำกัด Oracle 10g ที่เจอ?</td><td>① SEQ.CURRVAL ใน PL/SQL → PLS-00357 แก้ด้วย RETURNING INTO ② ไม่มีสิทธิ์ CREATE VIEW → ORA-01031 แก้ด้วย WITH clause ③ USER_TABLES.OWNER ไม่มีจริง → ORA-00904 แก้ด้วย USER AS OWNER</td></tr>
+        </table>
+      </div>
+      <h3>Part I — ระบบแจ้งข้อความเวียน + ประกาศ (9 ข้อ — ชุดเดิม)</h3>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th style="width:36%;">คำถาม</th><th>คำตอบสั้น</th></tr>
+          <tr><td>ทำไมมี FK / NOT NULL / CHECK</td><td>FK = อ้างอิงความถูกต้องข้ามตาราง · NOT NULL = ข้อมูลจำเป็น · CHECK = จำกัดค่าตามกฎธุรกิจ (สถานะ 8 ค่า / ช่องทาง 3 ช่อง)</td></tr>
+          <tr><td>Transaction อยู่ตรงไหน</td><td>SP_DECIDE_APPROVAL: บันทึกผล + ลงนาม + กระจาย + แจ้งเตือน ใน Transaction เดียว — ผิดพลาด ROLLBACK ทั้งหมด (Atomicity)</td></tr>
+          <tr><td>ถ้าตีกลับ (REJECTED) เอกสารไปไหน</td><td>สถานะ REJECTED (เหตุผลใน APPROVALS.REASON) → ธุรการแก้ร่าง → ส่งซ้ำผ่าน SP_SUBMIT_DOC (ยอมรับ DRAFT/REJECTED) — ตาม XOR Gateway</td></tr>
+          <tr><td>Trigger ทำอะไร</td><td>TRG_DOC_STATUS_LOG บันทึก Audit Trail ทุกครั้งที่สถานะเปลี่ยน (OLD ≠ NEW) — รองรับ UC03 + BR-Memo-103</td></tr>
+          <tr><td>Sequence ทำอะไร</td><td>สร้างรหัสอ้างอิงอัตโนมัติ เช่น Doc ID (ตาม To-Be "จัดเก็บ + ออกรหัสอ้างอิง") — SEQ_DOC เริ่ม 5001</td></tr>
+          <tr><td>ป้องกันยืนยันซ้ำยังไง</td><td>UNIQUE (DOC_ID, EMP_ID) + EXCEPTION DUP_VAL_ON_INDEX → ORA-20010 — กันซ้ำ 2 ชั้น</td></tr>
+          <tr><td>SLA 24 ชม. ทำงานยังไง</td><td>SP_CHECK_SLA_REMIND: เกิน 24 ชม. และยังมีคนไม่ยืนยัน → INSERT NOTIFICATIONS type REMINDER เฉพาะคนที่ยังไม่อ่าน</td></tr>
+          <tr><td>ทำไมมีตาราง ACCESS_MATRIX</td><td>สิทธิ์การเข้าถึงตามบทบาท × ประเภทเอกสาร (UC08) — กันข้อมูลรั่วไหล</td></tr>
+          <tr><td>JOIN มากสุดกี่ตาราง</td><td>Q1 = 6 ตาราง (DOCUMENTS + EMPLOYEES ผู้ร่าง + ROLES + APPROVALS + EMPLOYEES ผู้อนุมัติ + SIGNATURES) — LEFT JOIN 3 ตัวให้เอกสารยังไม่พิจารณาไม่หาย</td></tr>
+        </table>
+      </div>
+
+      <h2>🌱 Q&A พื้นฐานเฉพาะ "คนที่ไม่มีพื้นฐาน SQL" (โดนจิ้มแบบง่าย ๆ ต้องตอบลื่น)</h2>
+      <p>อาจารย์มักทดสอบความเข้าใจจริงด้วยคำถามพื้นฐานสุด ๆ — คนพื้นฐานดีที่ตอบข้อนี้ลื่นจะดู "เข้าใจจริง" กว่าคนท่องโค้ดเป็นนกแก้ว:</p>
+      <div class="tbl-wrap">
+        <table class="tbl compact">
+          <tr><th style="width:38%;">คำถามแบบจิ้มง่าย</th><th>คำตอบแบบคนเข้าใจจริง</th></tr>
+          <tr><td>"SELECT คืออะไร เอาไปทำไม"</td><td>คำสั่ง "ขอดูข้อมูล" — ไม่แก้ไม่ลบอะไร ดึงมาแสดงเท่านั้น เช่น SELECT * FROM USERS = ขอดูตารางผู้ใช้ทั้งหมด</td></tr>
+          <tr><td>"* บนจอนี้หมายความว่าอะไร"</td><td>"ทุกคอลัมน์" — ถ้าอยากได้เฉพาะบางคอลัมน์ก็พิมพ์ชื่อคอลัมน์แทน *</td></tr>
+          <tr><td>"แถว (Row) กับคอลัมน์ (Column) ต่างกันยังไง ชี้ให้ดูในผลที่จอ"</td><td>คอลัมน์ = หัวข้อแนวตั้ง (USER_ID, FULL_NAME) · แถว = ข้อมูล 1 ชิ้นจริงแนวนอน (สมหญิง 1 บรรทัดทั้งบรรทัด)</td></tr>
+          <tr><td>"PK กับ FK พูดง่าย ๆ คืออะไร"</td><td>PK = เลขบัตรประชาชนของแถว (ไม่ซ้ำ ไม่ว่าง) · FK = คอลัมน์ที่เขียน "รหัสของตารางอื่น" ไว้ผูกความสัมพันธ์ (USERS มี ROLE_ID ชี้ไป USER_TYPE)</td></tr>
+          <tr><td>"WHERE ใช้ทำอะไร ถ้าลบออกจะเป็นยังไง"</td><td>กรองเฉพาะแถวที่เงื่อนไขจริง — ลบออกได้ "ทุกแถวทั้งตาราง"</td></tr>
+          <tr><td>"COMMIT กับ ROLLBACK ต่างกันยังไง"</td><td>COMMIT = บันทึกถาวร · ROLLBACK = ย้อนยกเลิกสิ่งที่ทำในรอบนี้ทั้งหมด — ระบบนี้ใช้หลัก "ทำครบทุกขั้นถึง COMMIT พังกลางทาง ROLLBACK ทันที"</td></tr>
+          <tr><td>"เลข 1, 2, 3 ที่โผล่ทั่วจอมาจากไหน"</td><td>จาก SEQUENCE (เครื่องนับอัตโนมัติ เริ่มที่ 1) — เช่น USER_ID 1-4 = admin, วิชัย, สมหญิง, มานะ · ไม่มีใครพิมพ์เอง</td></tr>
+          <tr><td>"อ่านแถวนี้บนจอให้ฟังหน่อย" (จิ้มแถวไหนก็ได้)</td><td>ใช้สูตร 3 ประโยคด้านล่าง — ฝึกจนพูดได้กับแถวสุ่มใด ๆ</td></tr>
+        </table>
+      </div>
+      <div class="box box-mem">
+        <p class="box-title">🧠 สูตรตอบ "อ่านโค้ด/ผลบนจอให้ฟัง" — 3 ประโยคตายตัว (ใช้ได้ทุกแถว ทุกก้อนโค้ด)</p>
+        <ol>
+          <li><strong>"บรรทัดนี้ทำอะไร"</strong> — แปลโค้ดเป็นไทยตรง ๆ ("แถวนี้บอกว่าตาราง BELL_REQUEST มี constraint ชื่อ CK_BELL_STATUS ชนิด C ที่จำกัดสถานะ 3 ค่า")</li>
+          <li><strong>"ทำไมจึงมี"</strong> — เหตุผลธุรกิจ ("สถานะต้องเดินตามโจทย์ กันใส่ค่ามั่ว")</li>
+          <li><strong>"ถ้าไม่มีจะเกิดอะไร"</strong> — ผลเสีย ("ใส่ 'ส่งแล้ว' แบบพิมพ์ผิดก็ผ่าน ระบบอ่านไม่รู้เรื่อง")</li>
+        </ol>
+        <p style="margin-bottom:0;">ซ้อมสุ่มแถวตอบ 3 ประโยคให้คล่องก่อนเข้าห้อง — อาจารย์จิ้มตรงไหนก็รอด</p>
+      </div>
+
+      <h2>🧪 ซ้อม demo 3 รอบ แบบนี้ (เทมเพลต 1 รอบ ≈ 20 นาที)</h2>
+      <ol class="steps">
+        <li><span class="step-title">รอบที่ 1 — เดินให้ครบบน server จริง</span><p>login iSQL*Plus → รันไฟล์ 1→5 ตามลำดับ → รัน demo block → ตรวจว่าผลตรงตาราง "ผลที่จะเห็นจริง" ทุกข้อ (จำภาพหน้าจอมาด้วย)</p></li>
+        <li><span class="step-title">รอบที่ 2 — ใส่บทพูด + error ครบ</span><p>ทุกคนพูดส่วนตัวเอง + โชว์ error -20001..-20004 ครบ + เล่า 3 ข้อจำกัด Oracle 10g ที่เจอตอน deploy (จุดโปรดอาจารย์)</p></li>
+        <li><span class="step-title">รอบที่ 3 — แบบสอบจริง</span><p>จับเวลา + ตั้งคนถามแทนอาจารย์สุ่มจากตาราง Q&A + ซ้อมสถานการณ์ "เน็ตหลุดกลางทาง" (re-login แล้วรันไฟล์ 5 อีกครั้งเพื่อยืนยันสถานะ)</p></li>
+      </ol>
+
+      <div class="box box-warn">
+        <p class="box-title">เช็คก่อนเข้าห้อง</p>
+        <ul>
+          <li>เทียบชื่อตาราง/คอลัมน์กับ <strong>E/R Diagram (Chen) ที่กลุ่มส่งอาจารย์</strong> — อาจารย์ตรวจ "ตาม E/R Diagram"</li>
+          <li>ตรวจ encoding ไฟล์ .sql เป็น UTF-8 (ภาษาไทยใน DML เพี้ยนถ้าเซฟผิด)</li>
+          <li>เปิด server ให้ได้ 2 ทาง: iSQL*Plus หลัก + เตรียมภาพหน้าจอผลรันล่าสุดสำรองไว้ทุกไฟล์ (เน็ตหลุดก็ยังโชว์หลักฐานได้)</li>
+          <li>พิมพ์สคริปต์ทั้งชุดแบ่งให้ทุกคน + จำตัวเลข seed ให้ขึ้นใจ (สมหญิง 3, มานะ 4, กท 1234 = 1)</li>
+        </ul>
+      </div>
+
+      <div class="prevnext">
+        <a href="p2-join.html">ก่อนหน้า: รายงาน SQL 3 แบบ<small>🧭 ข้อสุดท้ายของเนื้อหา</small></a>
+        <a class="next" href="index.html">กลับหน้าแรก<small>🏠 โจทย์ + แผนรวม + เช็คลิสต์</small></a>
+      </div>
+
+    </div>
+  </main>
+</div>
+<script src="script.js"></script>
+<script src="tts.js"></script>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true, securityLevel: 'loose', theme: 'base',
+    fontFamily: '"Noto Sans Thai", sans-serif',
+    themeVariables: { primaryColor:'#eef0ff', primaryTextColor:'#1d2333', primaryBorderColor:'#4f46e5', lineColor:'#5b6474' }
+  });
+</script>
+</body>
+</html>
